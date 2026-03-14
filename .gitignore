@@ -8,4 +8,6 @@ training/__pycache__/
 
 # Ignore Vivado project files and generated bitstreams
 vivado_project/
-vivado_project.runs/ 
+vivado_project.runs/
+
+.reports/

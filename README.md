@@ -11,6 +11,7 @@
 <br>
 
 ---
+
 # Heterogeneous Edge-AI Acceleration Platform on FPGA (Kria KV260)
 
 ## 🎯 Objectives
