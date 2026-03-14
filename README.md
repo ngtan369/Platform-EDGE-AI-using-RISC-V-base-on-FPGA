@@ -63,6 +63,17 @@ DATN/
 
 ---
 
+## 📊 Dataset
+
+This project uses the **INRIAPerson** dataset from Kaggle for training and evaluation.
+
+- Kaggle dataset: https://www.kaggle.com/datasets/jcoral02/inriaperson
+- Original dataset: Dalal, N. and Triggs, B., *Histograms of Oriented Gradients for Human Detection*, CVPR 2005.
+
+We thank the Kaggle contributor **jcoral02** and the original authors for providing the dataset.
+
+---
+
 ## 🚀 How to Run
 
 Follow these steps sequentially to build and deploy the entire system from scratch.
