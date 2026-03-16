@@ -6,13 +6,9 @@
 training/.venv/
 training/__pycache__/
 
-# Ignore Vivado project files and generated bitstreams
-vivado_project/
-vivado_project.runs/
-
 # Ignore generated reports (LaTeX build outputs, PDFs, etc.)
 /reports/
 
 
 # Ignore RISC-V core implementations and related files
-/FGPA/riscv-cores/
+/FPGA/riscv-cores/
