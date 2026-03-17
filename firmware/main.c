@@ -1,17 +1,22 @@
 #include <stdint.h>
-#include "../training/model_data.h" // Chứa mảng trọng số weights_int8[]
+#include "../training/model_data.h"
 
 // ==============================================================================
-// 1. BẢN ĐỒ BỘ NHỚ (MEMORY MAP)
-// Các địa chỉ này phải khớp 100% với cấu hình AXI trong Vivado Block Design
+// 1. BẢN ĐỒ BỘ NHỚ (MEMORY MAP) - ĐÃ NÂNG CẤP CHO BÀI TOÁN TỌA ĐỘ
 // ==============================================================================
-#define CAMERA_RAM_BASE   0x80000000 // Nơi lõi ARM đổ dữ liệu ảnh (128x128) vào
-#define ARM_COMM_BASE     0x40000000 // Địa chỉ Base của thanh ghi giao tiếp AXI
+#define CAMERA_RAM_BASE   0x80000000 
+#define ARM_COMM_BASE     0x40000000 
 
-// Các thanh ghi điều khiển (Cộng dồn offset)
+// Các thanh ghi điều khiển hệ thống
 #define REG_CMD_FROM_ARM  (*(volatile uint32_t*)(ARM_COMM_BASE + 0x00))
 #define REG_STATUS_TO_ARM (*(volatile uint32_t*)(ARM_COMM_BASE + 0x04))
-#define REG_AI_RESULT     (*(volatile int32_t*)(ARM_COMM_BASE + 0x08))
+
+// 4 THANH GHI MỚI CHỨA TỌA ĐỘ BẬC (BOUNDING BOX)
+// Lõi ARM sẽ đọc 4 thanh ghi này để vẽ khung bằng thư viện OpenCV
+#define REG_BBOX_XMIN     (*(volatile int32_t*)(ARM_COMM_BASE + 0x08))
+#define REG_BBOX_YMIN     (*(volatile int32_t*)(ARM_COMM_BASE + 0x0C))
+#define REG_BBOX_XMAX     (*(volatile int32_t*)(ARM_COMM_BASE + 0x10))
+#define REG_BBOX_YMAX     (*(volatile int32_t*)(ARM_COMM_BASE + 0x14))
 
 // Các cờ trạng thái (Flags)
 #define CMD_START         0x01
@@ -24,47 +29,43 @@
 // ==============================================================================
 
 void initialize_model() {
-    // Với model tĩnh lưu trong ROM (model_data.h), thường không cần init nhiều.
-    // Chủ yếu dùng để reset các thanh ghi phần cứng về trạng thái ban đầu.
     REG_STATUS_TO_ARM = STATUS_IDLE;
-    REG_AI_RESULT = 0;
+    REG_BBOX_XMIN = 0;
+    REG_BBOX_YMIN = 0;
+    REG_BBOX_XMAX = 0;
+    REG_BBOX_YMAX = 0;
 }
 
 void wait_for_input_data() {
-    // Cơ chế Polling (Hỏi vòng): RISC-V liên tục hỏi "ARM ơi có ảnh chưa?"
-    // Nó sẽ kẹt ở vòng lặp này cho đến khi ARM ghi số 1 (CMD_START) vào thanh ghi.
     while (REG_CMD_FROM_ARM != CMD_START) {
-        // Có thể chèn lệnh NOP hoặc WFI (Wait for Interrupt) ở đây để tiết kiệm điện
+        // Chờ ARM ném ảnh vào RAM và ra lệnh Start
     }
-    
-    // Báo lại cho ARM biết: "Đã nhận lệnh, đang tính toán, đừng gửi ảnh mới!"
     REG_STATUS_TO_ARM = STATUS_BUSY;
 }
 
-int32_t run_inference(int8_t* image_pointer) {
-    int32_t prediction_score = 0;
-    
-    // --- NƠI PHÉP MÀU XẢY RA ---
-    // Chỗ này bạn sẽ viết các vòng lặp for lồng nhau để nhân ma trận (MAC).
-    // Dữ liệu ảnh lấy từ *image_pointer, trọng số lấy từ weights_int8[]
-    // Ví dụ giả lập:
-    // prediction_score = convolution_layer_1(image_pointer, weights_int8);
+void run_inference(int8_t* image_pointer, int8_t* output_box) {
+    // --- NƠI RISC-V CÀY MA TRẬN ---
+    // Thuật toán mạng Neural Network tính toán ở đây
     // ...
     
-    // Giả lập trả về một con số ngẫu nhiên (sẽ thay bằng code AI thật sau)
-    prediction_score = 85; // 85% khả năng là người
-    
-    return prediction_score;
+    // Giả lập AI đã tính xong và nhả ra 4 tọa độ INT8.
+    // (Vì sigmoid xuất ra dải 0 -> 1, khi lượng tử hóa sang INT8 nó sẽ nằm ở dải -128 đến 127)
+    // Ví dụ giả lập cái khung nằm ở giữa ảnh:
+    output_box[0] = -64;  // xmin (~0.25)
+    output_box[1] = -64;  // ymin (~0.25)
+    output_box[2] = 64;   // xmax (~0.75)
+    output_box[3] = 64;   // ymax (~0.75)
 }
 
-void process_output(int32_t result) {
-    // 1. Ghi kết quả nhận diện ra thanh ghi để ARM đọc
-    REG_AI_RESULT = result;
+void process_output(int8_t* predicted_box) {
+    // 1. Đẩy 4 tọa độ INT8 ra 4 thanh ghi AXI (ép kiểu lên 32-bit cho ARM dễ đọc)
+    REG_BBOX_XMIN = (int32_t)predicted_box[0];
+    REG_BBOX_YMIN = (int32_t)predicted_box[1];
+    REG_BBOX_XMAX = (int32_t)predicted_box[2];
+    REG_BBOX_YMAX = (int32_t)predicted_box[3];
     
-    // 2. Xóa lệnh Start cũ đi
+    // 2. Xóa lệnh Start và phất cờ Done
     REG_CMD_FROM_ARM = 0x00;
-    
-    // 3. Phất cờ báo hiệu đã tính xong
     REG_STATUS_TO_ARM = STATUS_DONE;
 }
 
@@ -73,20 +74,18 @@ void process_output(int32_t result) {
 // ==============================================================================
 int main() {
     initialize_model();
-    
-    // Lấy con trỏ trỏ thẳng vào vùng RAM chứa ảnh
     int8_t* camera_buffer = (int8_t*)CAMERA_RAM_BASE;
+    int8_t bounding_box[4]; // Mảng chứa 4 kết quả từ AI
 
     while (1) {
-        // 1. Đợi ARM ra lệnh
         wait_for_input_data();
-
-        // 2. Chạy mạng Neural Network với mảng byte trong RAM
-        int32_t output_score = run_inference(camera_buffer);
-
-        // 3. Báo cáo kết quả
-        process_output(output_score);
+        
+        // Gọi AI bắt tọa độ
+        run_inference(camera_buffer, bounding_box);
+        
+        // Gửi tọa độ lên cho "sếp" ARM vẽ khung
+        process_output(bounding_box);
     }
 
-    return 0; // Thực tế bare-metal không bao giờ chạm tới dòng này
+    return 0;
 }
