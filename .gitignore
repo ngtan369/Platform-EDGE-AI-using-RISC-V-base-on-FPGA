@@ -10,5 +10,5 @@ training/__pycache__/
 /reports/
 
 
-# Ignore RISC-V core implementations and related files
-/FPGA/riscv-cores/
+# Ignore FPGA project build artifacts and temporary files
+/fpga/cv32e40p/
