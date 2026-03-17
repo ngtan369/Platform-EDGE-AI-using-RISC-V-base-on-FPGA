@@ -2,6 +2,9 @@
 /build/
 .vscode/
 
+# Ignore note.txt in the firmware directory
+firmware/note.txt
+
 # Ignore Python virtual environment and cache files
 training/.venv/
 training/__pycache__/
