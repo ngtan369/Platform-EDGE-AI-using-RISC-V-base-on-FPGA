@@ -1,80 +1,121 @@
 import os
-import kagglehub
+import xml.etree.ElementTree as ET
 import tensorflow as tf
 import numpy as np
+import kagglehub
 
 # ==========================================
-# 1. TẢI VÀ CHUẨN BỊ DỮ LIỆU
+# 1. PARSE DỮ LIỆU TỪ FILE XML (PASCAL VOC)
 # ==========================================
-print("Đang kiểm tra và tải dataset...")
-dataset_base_path = kagglehub.dataset_download("jcoral02/inriaperson")
-print(f"Dataset đã sẵn sàng tại: {dataset_base_path}")
+print("Đang chuẩn bị dữ liệu tọa độ...")
+# Giả sử bạn đã có đường dẫn dataset từ Kaggle
+dataset_path = kagglehub.dataset_download("jcoral02/inriaperson")
+img_dir = os.path.join(dataset_path, "Train", "JPEGImages")
+xml_dir = os.path.join(dataset_path, "Train", "Annotations")
 
-train_dir = dataset_base_path 
+image_paths = []
+bounding_boxes = []
 
-BATCH_SIZE = 32
+# Quét toàn bộ file XML
+for xml_file in os.listdir(xml_dir):
+    if not xml_file.endswith('.xml'): continue
+    
+    tree = ET.parse(os.path.join(xml_dir, xml_file))
+    root = tree.getroot()
+    
+    # Lấy tên file ảnh
+    filename = root.find('filename').text
+    img_path = os.path.join(img_dir, filename)
+    
+    # Bỏ qua nếu ảnh không tồn tại
+    if not os.path.exists(img_path): continue
+        
+    # Lấy kích thước ảnh gốc
+    size = root.find('size')
+    width = float(size.find('width').text)
+    height = float(size.find('height').text)
+    
+    # Lấy tọa độ Box (Giả định lấy người đầu tiên trong ảnh)
+    bndbox = root.find('object').find('bndbox')
+    xmin = float(bndbox.find('xmin').text)
+    ymin = float(bndbox.find('ymin').text)
+    xmax = float(bndbox.find('xmax').text)
+    ymax = float(bndbox.find('ymax').text)
+    
+    # CHUẨN HÓA: Đưa tọa độ về dải [0.0 -> 1.0] để AI dễ học
+    norm_box = [
+        xmin / width, 
+        ymin / height, 
+        xmax / width, 
+        ymax / height
+    ]
+    
+    image_paths.append(img_path)
+    bounding_boxes.append(norm_box)
+
+print(f"Đã tìm thấy {len(image_paths)} ảnh có chứa tọa độ Box hợp lệ.")
+
+# ==========================================
+# 2. XÂY DỰNG TENSORFLOW DATASET TỐC ĐỘ CAO
+# ==========================================
 IMG_SIZE = (128, 128)
+BATCH_SIZE = 32
 
-print("Đang load dữ liệu vào bộ nhớ...")
-train_dataset = tf.keras.utils.image_dataset_from_directory(
-    train_dir,
-    shuffle=True,
-    batch_size=BATCH_SIZE,
-    image_size=IMG_SIZE,
-    validation_split=0.2,
-    subset="training",
-    seed=42
-)
+def process_path(img_path, bbox):
+    # Đọc và resize ảnh
+    img = tf.io.read_file(img_path)
+    img = tf.image.decode_jpeg(img, channels=3)
+    img = tf.image.resize(img, IMG_SIZE)
+    return img, bbox
 
-validation_dataset = tf.keras.utils.image_dataset_from_directory(
-    train_dir,
-    shuffle=True,
-    batch_size=BATCH_SIZE,
-    image_size=IMG_SIZE,
-    validation_split=0.2,
-    subset="validation",
-    seed=42
-)
+# Tạo Dataset từ mảng list
+dataset = tf.data.Dataset.from_tensor_slices((image_paths, bounding_boxes))
+dataset = dataset.map(process_path, num_parallel_calls=tf.data.AUTOTUNE)
 
-AUTOTUNE = tf.data.AUTOTUNE
-train_dataset = train_dataset.cache().prefetch(buffer_size=AUTOTUNE)
-validation_dataset = validation_dataset.cache().prefetch(buffer_size=AUTOTUNE)
+# Chia Train/Val (80/20)
+data_size = len(image_paths)
+train_size = int(0.8 * data_size)
+
+dataset = dataset.shuffle(1000)
+train_dataset = dataset.take(train_size).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+val_dataset = dataset.skip(train_size).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
 # ==========================================
-# 2. XÂY DỰNG MÔ HÌNH (ĐÃ SỬA LỖI)
+# 3. MÔ HÌNH NHẢ RA TỌA ĐỘ (REGRESSION HEAD)
 # ==========================================
-print("Đang xây dựng MobileNetV2...")
+print("Đang xây dựng mô hình Regression...")
 base_model = tf.keras.applications.MobileNetV2(
     input_shape=(128, 128, 3),
-    alpha=0.5,           
-    include_top=False, 
+    alpha=0.5,
+    include_top=False,
     weights='imagenet'
 )
-
-# Đóng băng phần thân để giữ lại các đặc trưng đã học
-base_model.trainable = False
+base_model.trainable = False # Đóng băng
 
 model = tf.keras.Sequential([
-    # CHUẨN HÓA PIXEL: Ép dải [0, 255] về [-1, 1]
-    tf.keras.layers.Rescaling(1./127.5, offset=-1), 
-    
+    tf.keras.layers.Rescaling(1./127.5, offset=-1),
     base_model,
     tf.keras.layers.GlobalAveragePooling2D(),
-    tf.keras.layers.Dropout(0.2), # Chống học vẹt
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    
+    # KHÁC BIỆT Ở ĐÂY: Dense(4) thay vì Dense(1)
+    # Dùng 'sigmoid' vì ngõ ra (tọa độ chuẩn hóa) nằm trong khoảng [0, 1]
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dense(4, activation='sigmoid', name='bounding_box_output')
 ])
 
-# ==========================================
-# 3. HUẤN LUYỆN (TRAINING)
-# ==========================================
+# Hàm Loss là MSE (Đo khoảng cách lệch giữa Box đoán và Box thực)
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), 
-    loss='binary_crossentropy', 
-    metrics=['accuracy']
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+    loss='mean_squared_error',
+    metrics=['mae'] # Mean Absolute Error
 )
 
-print("Bắt đầu Training...")
-model.fit(train_dataset, validation_data=validation_dataset, epochs=10)
+# ==========================================
+# 4. TRAINING VÀ XUẤT FILE C
+# ==========================================
+print("Bắt đầu Training Box...")
+model.fit(train_dataset, validation_data=val_dataset, epochs=15)
+
 
 # ==========================================
 # 4. ÉP KIỂU (QUANTIZATION) SANG INT8
@@ -109,7 +150,8 @@ with open(tflite_path, 'rb') as f:
 
 hex_array = ', '.join([f'0x{byte:02x}' for byte in tflite_content])
 
-c_code = f"""#ifndef MODEL_DATA_H
+c_code = f"""
+#ifndef MODEL_DATA_H
 #define MODEL_DATA_H
 
 // Kích thước mảng: {len(tflite_content)} bytes
