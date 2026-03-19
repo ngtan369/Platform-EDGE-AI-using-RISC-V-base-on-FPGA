@@ -46,19 +46,20 @@ This project focuses on designing and deploying an end-to-end, hardware-aware Ed
 The project is organized strictly following the Hardware/Software Co-design methodology:
 
 ```text
-DATN/
-├── training/       # AI Model development (Python, TensorFlow)
-│   ├── main.py     # Training, Quantization, and C-header generation script
-│   └── model_data.h# Exported INT8 weights array for bare-metal C
-├── FPGA/           # Hardware RTL design (Verilog/SystemVerilog)
-│   ├── cpu.v       # AXI4 Wrapper for RISC-V core
-│   ├── cv32e40p.v  # CV32E40P RISC-V core source
-│   └── ...         # CNN Accelerator modules (PE, Line Buffers)
+Edge-AI Acceleration Platform on FPGA/
+├── training/          # AI Model development (Python, TensorFlow)
+│   ├── main.py        # Training, Quantization, and C-header generation script
+│   └── model_data.h   # Exported INT8 weights array for bare-metal C
+│   └── requirements.txt   # Library for python
+│   └── mobilenet_v2_128_quant.tflite  # Quantize to int8
+├── fpga/           # Hardware RTL design (Verilog/SystemVerilog)
+│   ├── hw_src      # AXI4 Wrapper for RISC-V core
+│   ├── cv32e40p    # Vendor Openhw Group CV32E40P RISC-V core source
+│   └── vivado_pj   # Project Vivado, Add file from hw_src, cv32e40p. Adding IP Block
 ├── firmware/       # Bare-metal software for RISC-V (C/C++)
-│   └── main.c      # Main control loop executing AI inference
-├── os/             # Host application running on ARM Cortex-A53 (Linux)
-│   └── main.cpp    # OpenCV video capture, pre-processing, and drawing bounding boxes
+│   └── main.c      # Main control loop executing AI inference - Using xpack-riscv-none-elf-gcc-13.2.0-2
 └── reports/        # Documentation, Block Diagrams, and Vivado timing reports
+    └── main.pdf    # Final compiled report
 ```
 
 ---
