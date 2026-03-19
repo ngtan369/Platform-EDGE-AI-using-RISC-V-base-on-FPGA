@@ -15,3 +15,7 @@ training/__pycache__/
 
 # Ignore FPGA project build artifacts and temporary files
 /fpga/cv32e40p/
+
+# Ignore everything in reports
+/reports/
+!/reports/main.pdf
