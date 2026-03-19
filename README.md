@@ -120,7 +120,7 @@ Compile the bare-metal C code, embedding the AI model weights generated in Step 
 cd firmware
 
 # Compile the firmware using the RISC-V GNU Toolchain
-riscv32-unknown-elf-gcc -O2 -I../training -o riscv_fw.bin main.c 
+riscv-none-elf-gcc-13.2.0-2 -O2 -I../training -o riscv_fw.bin main.c 
 ```
 
 ✅ **Success Check**: A `riscv_fw.bin` executable is created in the `firmware/` folder.
@@ -136,15 +136,6 @@ Move the generated files to the board and start the inference engine.
 
 ```bash
 sudo fpgautil -b <your_bitstream_name>.bit
-```
-
-4. Load the RISC-V firmware into the BRAM/TCDM using your preferred loader (e.g., custom bare-metal loader, PetaLinux app, or XSDB script).
-5. Navigate to the `os/` directory on the board, compile, and run the Host Application to start the camera feed:
-
-```bash
-cd os
-make
-./run_inference
 ```
 
 The application should start the camera, stream video, and display bounding boxes for detected humans in real time.
