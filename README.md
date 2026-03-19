@@ -79,7 +79,30 @@ We thank the Kaggle contributor **jcoral02** and the original authors for provid
 
 Follow these steps sequentially to build and deploy the entire system from scratch.
 
-### 1️⃣ Train Model & Generate C-Array Weights
+### 0️⃣ Prerequisites & Board Setup (on kit KV260)
+Before running any hardware or software configurations, the Kria KV260 board must be provisioned with an operating system.
+
+1. **Download the OS Image:** Download the official [Ubuntu 22.04 LTS image for Kria KV260](https://ubuntu.com/download/amd) provided by Canonical/Xilinx.
+2. **Flash the SD Card:** Use a tool like **BalenaEtcher** or **Rufus** to flash the downloaded `.img` file onto a MicroSD card (16GB or larger).
+3. **Boot the Board:** Insert the SD card into the board, connect an Ethernet cable (to your local router), and power it on.
+4. **Connect via SSH:** Find the board's IP address and access it from your development PC:
+
+```bash
+ssh ubuntu@<board_ip_address>
+```
+
+Install Dependencies: On the board's terminal, install the required Python libraries for the host application:
+
+```bash
+sudo apt update
+sudo apt install python3-opencv python3-numpy
+```
+
+(Once this step is done, the SD card remains in the board permanently. All subsequent development files will be transferred over the network via SSH/SCP).
+
+Detail manual: https://xilinx.github.io/kria-apps-docs/kv260/2022.1/linux_boot/ubuntu_22_04/build/html/docs/known_issues.html
+
+### 1️⃣ Train Model & Generate C-Array Weights on Host PC
 First, prepare the AI model and export the quantized `INT8` weights for the RISC-V core.
 
 ```bash
@@ -101,11 +124,20 @@ This will generate the quantized TFLite model and the `model_data.h` C header co
 ---
 
 ### 2️⃣ Build the FPGA Hardware (Vivado)
+
 Generate the physical hardware architecture for the Kria KV260.
+
+> Note: If the `cv32e40p` core is not present under `fpga/`, clone it first:
+>
+> ```bash
+> cd fpga
+> git clone https://github.com/openhwgroup/cv32e40p.git
+> ```
 
 1. Launch **Xilinx Vivado**.
 2. Create a **New Project** and select the Kria KV260 part: `xck26-sfvc784-2LV-c`.
-3. Add all `.v` and `.sv` sources from the `FPGA/` directory to the project.
+3. Add all `.v` and `.sv` sources from the `fpga/hw_src` directory to the project.
+3. Add `rtl` sources from the `fpga/cv32e40p` folder to the project.
 4. Open **IP Integrator** and build the Block Design (integrate Zynq MPSoC, CV32E40P IP, and AXI DMA).
 5. Click **Generate Bitstream**.
 
@@ -130,12 +162,24 @@ riscv-none-elf-gcc-13.2.0-2 -O2 -I../training -o riscv_fw.bin main.c
 ### 4️⃣ Deploy & Run on Kria KV260
 Move the generated files to the board and start the inference engine.
 
-1. Boot the Kria KV260 board using an SD Card flashed with **Ubuntu**/**PetaLinux**.
-2. Transfer the `.bit` file (from Step 2) and `riscv_fw.bin` (from Step 3) to the board.
-3. On the board terminal, load the hardware bitstream into the Programmable Logic (PL):
+**Step 4.1: Access the Board's Terminal**
+You can interact with the Kria KV260 board running Ubuntu/PetaLinux using one of these methods:
+* **Method A (SSH / Headless):** Connect the board to your local network via Ethernet. Open a terminal on your PC and SSH into the board (e.g., `ssh ubuntu@<board_ip>`).
+* **Method B (Direct Setup):** Plug a USB keyboard and a DisplayPort/HDMI monitor directly into the board and open the local terminal.
+
+**Step 4.2: Transfer Files**
+Transfer the hardware bitstream (`.bit`), the RISC-V firmware (`riscv_fw.bin`), and the host application script (`main_arm.py`) to the board using `scp` or a USB drive.
+
+**Step 4.3: Execute the Hardware & Software**
+On the board's terminal, load the hardware bitstream into the Programmable Logic (PL):
 
 ```bash
 sudo fpgautil -b <your_bitstream_name>.bit
 ```
+Next, load the RISC-V firmware into the shared memory space so the CV32E40P core can boot. Finally, execute the ARM host application to initialize the camera and manage communication:
 
-The application should start the camera, stream video, and display bounding boxes for detected humans in real time.
+
+```bash
+sudo python3 main_arm.py
+```
+The application will start the camera stream and display bounding boxes around detected humans in real time on the connected monitor.
