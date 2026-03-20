@@ -19,3 +19,5 @@ training/__pycache__/
 # Ignore everything in reports
 /reports/
 !/reports/main.pdf
+
+/README.md
