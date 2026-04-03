@@ -1,0 +1,138 @@
+#-----------------------------------------------------------
+# Vivado v2023.2.2 (64-bit)
+# SW Build 4126759 on Thu Feb  8 23:53:51 MST 2024
+# IP Build 4126054 on Fri Feb  9 11:39:09 MST 2024
+# SharedData Build 4115275 on Tue Jan 30 00:40:57 MST 2024
+# Start of session at: Fri Apr  3 15:41:53 2026
+# Process ID: 23648
+# Current directory: T:/home/tan/Course/capstoneProject/fpga/vivado_pj/vivado_pj.runs/synth_1
+# Command line: vivado.exe -log top_wrapper.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source top_wrapper.tcl
+# Log file: T:/home/tan/Course/capstoneProject/fpga/vivado_pj/vivado_pj.runs/synth_1/top_wrapper.vds
+# Journal file: T:/home/tan/Course/capstoneProject/fpga/vivado_pj/vivado_pj.runs/synth_1\vivado.jou
+# Running On: ASUS-TUF-DASH, OS: Windows, CPU Frequency: 2496 MHz, CPU Physical cores: 8, Host memory: 16782 MB
+#-----------------------------------------------------------
+source top_wrapper.tcl -notrace
+create_project: Time (s): cpu = 00:00:17 ; elapsed = 00:00:26 . Memory (MB): peak = 466.012 ; gain = 187.008
+Command: synth_design -top top_wrapper -part xck26-sfvc784-2LV-c
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xck26'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xck26'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 26744
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:10 ; elapsed = 00:00:17 . Memory (MB): peak = 912.719 ; gain = 442.750
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-11067] parameter 'OPCODE_SYSTEM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:37]
+WARNING: [Synth 8-11067] parameter 'OPCODE_FENCE' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:38]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OP' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:39]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OPIMM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:40]
+WARNING: [Synth 8-11067] parameter 'OPCODE_STORE' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:41]
+WARNING: [Synth 8-11067] parameter 'OPCODE_LOAD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:42]
+WARNING: [Synth 8-11067] parameter 'OPCODE_BRANCH' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:43]
+WARNING: [Synth 8-11067] parameter 'OPCODE_JALR' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:44]
+WARNING: [Synth 8-11067] parameter 'OPCODE_JAL' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:45]
+WARNING: [Synth 8-11067] parameter 'OPCODE_AUIPC' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:46]
+WARNING: [Synth 8-11067] parameter 'OPCODE_LUI' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:47]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OP_FP' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:48]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OP_FMADD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:49]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OP_FNMADD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:50]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OP_FMSUB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:51]
+WARNING: [Synth 8-11067] parameter 'OPCODE_OP_FNMSUB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:52]
+WARNING: [Synth 8-11067] parameter 'OPCODE_STORE_FP' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:53]
+WARNING: [Synth 8-11067] parameter 'OPCODE_LOAD_FP' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:54]
+WARNING: [Synth 8-11067] parameter 'OPCODE_AMO' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:55]
+WARNING: [Synth 8-11067] parameter 'OPCODE_CUSTOM_0' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:58]
+WARNING: [Synth 8-11067] parameter 'OPCODE_CUSTOM_1' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:59]
+WARNING: [Synth 8-11067] parameter 'OPCODE_CUSTOM_2' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:60]
+WARNING: [Synth 8-11067] parameter 'OPCODE_CUSTOM_3' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:61]
+WARNING: [Synth 8-11067] parameter 'REGC_S1' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:63]
+WARNING: [Synth 8-11067] parameter 'REGC_S4' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:64]
+WARNING: [Synth 8-11067] parameter 'REGC_RD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:65]
+WARNING: [Synth 8-11067] parameter 'REGC_ZERO' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:66]
+WARNING: [Synth 8-11067] parameter 'ALU_OP_WIDTH' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:77]
+WARNING: [Synth 8-11067] parameter 'MUL_OP_WIDTH' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:163]
+WARNING: [Synth 8-11067] parameter 'VEC_MODE32' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:178]
+WARNING: [Synth 8-11067] parameter 'VEC_MODE16' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:179]
+WARNING: [Synth 8-11067] parameter 'VEC_MODE8' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:180]
+WARNING: [Synth 8-11067] parameter 'HAVERESET_INDEX' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:207]
+WARNING: [Synth 8-11067] parameter 'RUNNING_INDEX' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:208]
+WARNING: [Synth 8-11067] parameter 'HALTED_INDEX' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:209]
+WARNING: [Synth 8-11067] parameter 'CSR_OP_WIDTH' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:510]
+WARNING: [Synth 8-11067] parameter 'CSR_MSIX_BIT' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:520]
+WARNING: [Synth 8-11067] parameter 'CSR_MTIX_BIT' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:521]
+WARNING: [Synth 8-11067] parameter 'CSR_MEIX_BIT' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:522]
+WARNING: [Synth 8-11067] parameter 'CSR_MFIX_BIT_LOW' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:523]
+WARNING: [Synth 8-11067] parameter 'CSR_MFIX_BIT_HIGH' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:524]
+WARNING: [Synth 8-11067] parameter 'SP_DVR0' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:527]
+WARNING: [Synth 8-11067] parameter 'SP_DCR0' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:528]
+WARNING: [Synth 8-11067] parameter 'SP_DMR1' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:529]
+WARNING: [Synth 8-11067] parameter 'SP_DMR2' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:530]
+WARNING: [Synth 8-11067] parameter 'SP_DVR_MSB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:532]
+WARNING: [Synth 8-11067] parameter 'SP_DCR_MSB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:533]
+WARNING: [Synth 8-11067] parameter 'SP_DMR_MSB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:534]
+WARNING: [Synth 8-11067] parameter 'SP_DSR_MSB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:535]
+WARNING: [Synth 8-11067] parameter 'MVENDORID_OFFSET' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:587]
+WARNING: [Synth 8-11067] parameter 'MVENDORID_BANK' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:588]
+WARNING: [Synth 8-11067] parameter 'MARCHID' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:591]
+WARNING: [Synth 8-11067] parameter 'MHPMCOUNTER_WIDTH' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:593]
+WARNING: [Synth 8-11067] parameter 'SEL_REGFILE' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:605]
+WARNING: [Synth 8-11067] parameter 'SEL_FW_EX' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:606]
+WARNING: [Synth 8-11067] parameter 'SEL_FW_WB' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:607]
+WARNING: [Synth 8-11067] parameter 'OP_A_REGA_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:610]
+WARNING: [Synth 8-11067] parameter 'OP_A_CURRPC' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:611]
+WARNING: [Synth 8-11067] parameter 'OP_A_IMM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:612]
+WARNING: [Synth 8-11067] parameter 'OP_A_REGB_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:613]
+WARNING: [Synth 8-11067] parameter 'OP_A_REGC_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:614]
+WARNING: [Synth 8-11067] parameter 'IMMA_Z' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:617]
+WARNING: [Synth 8-11067] parameter 'IMMA_ZERO' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:618]
+WARNING: [Synth 8-11067] parameter 'OP_B_REGB_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:621]
+WARNING: [Synth 8-11067] parameter 'OP_B_REGC_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:622]
+WARNING: [Synth 8-11067] parameter 'OP_B_IMM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:623]
+WARNING: [Synth 8-11067] parameter 'OP_B_REGA_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:624]
+WARNING: [Synth 8-11067] parameter 'OP_B_BMASK' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:625]
+WARNING: [Synth 8-11067] parameter 'IMMB_I' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:628]
+WARNING: [Synth 8-11067] parameter 'IMMB_S' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:629]
+WARNING: [Synth 8-11067] parameter 'IMMB_U' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:630]
+WARNING: [Synth 8-11067] parameter 'IMMB_PCINCR' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:631]
+WARNING: [Synth 8-11067] parameter 'IMMB_S2' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:632]
+WARNING: [Synth 8-11067] parameter 'IMMB_S3' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:633]
+WARNING: [Synth 8-11067] parameter 'IMMB_VS' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:634]
+WARNING: [Synth 8-11067] parameter 'IMMB_VU' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:635]
+WARNING: [Synth 8-11067] parameter 'IMMB_SHUF' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:636]
+WARNING: [Synth 8-11067] parameter 'IMMB_CLIP' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:637]
+WARNING: [Synth 8-11067] parameter 'IMMB_BI' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:638]
+WARNING: [Synth 8-11067] parameter 'BMASK_A_ZERO' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:641]
+WARNING: [Synth 8-11067] parameter 'BMASK_A_S3' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:642]
+WARNING: [Synth 8-11067] parameter 'BMASK_B_S2' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:644]
+WARNING: [Synth 8-11067] parameter 'BMASK_B_S3' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:645]
+WARNING: [Synth 8-11067] parameter 'BMASK_B_ZERO' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:646]
+WARNING: [Synth 8-11067] parameter 'BMASK_B_ONE' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:647]
+WARNING: [Synth 8-11067] parameter 'BMASK_A_REG' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:649]
+WARNING: [Synth 8-11067] parameter 'BMASK_A_IMM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:650]
+WARNING: [Synth 8-11067] parameter 'BMASK_B_REG' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:651]
+WARNING: [Synth 8-11067] parameter 'BMASK_B_IMM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:652]
+WARNING: [Synth 8-11067] parameter 'MIMM_ZERO' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:656]
+WARNING: [Synth 8-11067] parameter 'MIMM_S3' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:657]
+WARNING: [Synth 8-11067] parameter 'OP_C_REGC_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:660]
+WARNING: [Synth 8-11067] parameter 'OP_C_REGB_OR_FWD' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:661]
+WARNING: [Synth 8-11067] parameter 'OP_C_JT' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:662]
+WARNING: [Synth 8-11067] parameter 'BRANCH_NONE' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:665]
+WARNING: [Synth 8-11067] parameter 'BRANCH_JAL' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:666]
+WARNING: [Synth 8-11067] parameter 'BRANCH_JALR' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:667]
+WARNING: [Synth 8-11067] parameter 'BRANCH_COND' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:668]
+WARNING: [Synth 8-11067] parameter 'JT_JAL' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:671]
+WARNING: [Synth 8-11067] parameter 'JT_JALR' declared inside package 'cv32e40p_pkg' shall be treated as localparam [T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/include/cv32e40p_pkg.sv:672]
+INFO: [Common 17-14] Message 'Synth 8-11067' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-6157] synthesizing module 'top_wrapper' [T:/home/tan/Course/capstoneProject/fpga/hw_src/top_wrapper.v:3]
+ERROR: [Synth 8-7136] In the module 'cv32e40p_core' declared at 'T:/home/tan/Course/capstoneProject/fpga/cv32e40p/rtl/cv32e40p_core.sv:31', parameter 'PULP_XPULP' used as named parameter override, does not exist [T:/home/tan/Course/capstoneProject/fpga/hw_src/top_wrapper.v:61]
+ERROR: [Synth 8-6156] failed synthesizing module 'top_wrapper' [T:/home/tan/Course/capstoneProject/fpga/hw_src/top_wrapper.v:3]
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:13 ; elapsed = 00:00:26 . Memory (MB): peak = 1024.066 ; gain = 554.098
+---------------------------------------------------------------------------------
+synthesize failed
+INFO: [Common 17-83] Releasing license: Synthesis
+7 Infos, 100 Warnings, 0 Critical Warnings and 3 Errors encountered.
+synth_design failed
+ERROR: [Common 17-69] Command failed: Vivado Synthesis failed
+INFO: [Common 17-206] Exiting Vivado at Fri Apr  3 15:43:06 2026...
