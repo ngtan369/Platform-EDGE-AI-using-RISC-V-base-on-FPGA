@@ -20,4 +20,7 @@ training/__pycache__/
 /reports/
 !/reports/main.pdf
 
-/README.md
+
+/fpga/cv32e40p
+!/fpga/cv32e40p/rtl
+!/fpga/cv32e40p/bhv
