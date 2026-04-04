@@ -4,7 +4,7 @@
     "xci_name": "kria_soc_top_wrapper_0_0",
     "cell_name": "top_wrapper_0",
     "component_reference": "xilinx.com:module_ref:top_wrapper:1.0",
-    "ip_revision": "1775203523",
+    "ip_revision": "1775287856",
     "gen_directory": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_top_wrapper_0_0",
     "parameters": {
       "component_parameters": {
@@ -25,7 +25,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "1775203523" } ],
+        "IPREVISION": [ { "value": "1775287856" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_top_wrapper_0_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],

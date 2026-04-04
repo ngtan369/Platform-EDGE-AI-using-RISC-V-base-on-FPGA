@@ -20,7 +20,15 @@ training/__pycache__/
 /reports/
 !/reports/main.pdf
 
-
+# Ignore everything in fpga except for the source files vendor OpenHW and the README.md file
 /fpga/cv32e40p
 !/fpga/cv32e40p/rtl
 !/fpga/cv32e40p/bhv
+
+# Ignore everything in fpga except for the source files vendor Xilinx and the README.md file
+/fpga/vivado_pj
+!/fpga/vivado_pj/vivado_pj.xpr
+!/fpga/vivado_pj/.Xil/
+!/fpga/vivado_pj/*.log
+!/fpga/vivado_pj/*.jou
+!/fpga/vivado_pj/*.str
