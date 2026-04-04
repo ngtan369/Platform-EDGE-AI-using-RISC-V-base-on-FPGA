@@ -13,20 +13,17 @@ training/__pycache__/
 /reports/
 !/reports/main.pdf
 
-# --- Đối với OpenHW Core ---
+# --- OpenHW Core ---
 /fpga/cv32e40p/*
 !/fpga/cv32e40p/rtl/
 !/fpga/cv32e40p/bhv/
 !/fpga/cv32e40p/README.md
 
-# --- Đối với Vivado Project ---
+# ---  Vivado Project ---
 /fpga/vivado_pj/*
-# Giữ lại file project chính
+#  file project main
 !/fpga/vivado_pj/*.xpr
-# Giữ lại toàn bộ folder source (bao gồm code, bd, ip)
 !/fpga/vivado_pj/vivado_pj.srcs/
-
-# Loại bỏ các file rác phát sinh ngay trong folder project (không nằm trong sub-folder)
 /fpga/vivado_pj/*.log
 /fpga/vivado_pj/*.jou
 /fpga/vivado_pj/*.str
