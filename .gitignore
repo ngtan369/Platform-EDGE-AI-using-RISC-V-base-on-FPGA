@@ -9,26 +9,25 @@ firmware/note.txt
 training/.venv/
 training/__pycache__/
 
-# Ignore generated reports (LaTeX build outputs, PDFs, etc.)
-/reports/
-
-
-# Ignore FPGA project build artifacts and temporary files
-/fpga/cv32e40p/
-
 # Ignore everything in reports
 /reports/
 !/reports/main.pdf
 
-# Ignore everything in fpga except for the source files vendor OpenHW and the README.md file
-/fpga/cv32e40p
-!/fpga/cv32e40p/rtl
-!/fpga/cv32e40p/bhv
+# --- Đối với OpenHW Core ---
+/fpga/cv32e40p/*
+!/fpga/cv32e40p/rtl/
+!/fpga/cv32e40p/bhv/
+!/fpga/cv32e40p/README.md
 
-# Ignore everything in fpga except for the source files vendor Xilinx and the README.md file
-/fpga/vivado_pj
-!/fpga/vivado_pj/vivado_pj.xpr
-!/fpga/vivado_pj/.Xil/
-!/fpga/vivado_pj/*.log
-!/fpga/vivado_pj/*.jou
-!/fpga/vivado_pj/*.str
+# --- Đối với Vivado Project ---
+/fpga/vivado_pj/*
+# Giữ lại file project chính
+!/fpga/vivado_pj/*.xpr
+# Giữ lại toàn bộ folder source (bao gồm code, bd, ip)
+!/fpga/vivado_pj/vivado_pj.srcs/
+
+# Loại bỏ các file rác phát sinh ngay trong folder project (không nằm trong sub-folder)
+/fpga/vivado_pj/*.log
+/fpga/vivado_pj/*.jou
+/fpga/vivado_pj/*.str
+/fpga/vivado_pj/.xil/
