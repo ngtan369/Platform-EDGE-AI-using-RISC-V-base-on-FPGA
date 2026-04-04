@@ -10,8 +10,7 @@ training/.venv/
 training/__pycache__/
 
 # Ignore everything in reports
-/reports/
-!/reports/main.pdf
+/reports/*
 
 # --- OpenHW Core ---
 /fpga/cv32e40p/*
