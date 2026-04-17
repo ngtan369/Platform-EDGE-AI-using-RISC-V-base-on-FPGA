@@ -125,22 +125,23 @@
 	);
 
 	// Add user logic here
-            wire start;
-        wire done;
-assign start = slv_reg0[0];   // bit 0 = start
-conv_core u_conv (
-    .clk(S_AXI_ACLK),
-    .rst(~S_AXI_ARESETN),
-    .start(start),
-    .done(done)
-);
+    wire start;
+    wire done;
+    reg slv_reg0 [1:0]; // 2 bits: bit 0 for start, bit 1 for done
+    assign start = slv_reg0[0];   // bit 0 = start
+    conv_core u_conv (
+        .clk(S_AXI_ACLK),
+        .rst(~S_AXI_ARESETN),
+        .start(start),
+        .done(done)
+    );
 
-always @(posedge S_AXI_ACLK) begin
-    if (!S_AXI_ARESETN)
-        slv_reg0[1] <= 0;
-    else
-        slv_reg0[1] <= done;
-end
+    always @(posedge S_AXI_ACLK) begin
+        if (!S_AXI_ARESETN)
+            slv_reg0[1] <= 0;
+        else
+            slv_reg0[1] <= done;
+    end
 	// User logic ends
 
 	endmodule
