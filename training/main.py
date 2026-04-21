@@ -10,6 +10,7 @@ import kagglehub
 print("Đang chuẩn bị dữ liệu tọa độ...")
 # Giả sử bạn đã có đường dẫn dataset từ Kaggle
 dataset_path = kagglehub.dataset_download("jcoral02/inriaperson")
+# dataset_path = kagglehub.dataset_download("jcoral02/dog_cat")
 img_dir = os.path.join(dataset_path, "Train", "JPEGImages")
 xml_dir = os.path.join(dataset_path, "Train", "Annotations")
 

@@ -207,24 +207,6 @@
                 "TU": "memory"
             },
             "V4": {
-                "VT": "AC",
-                "BA": "0x0400000000",
-                "HA": "0x04FFFFFFFF",
-                "BP": "C_BASEADDR",
-                "HP": "C_HIGHADDR",
-                "MA": "Data",
-                "MX": "/zynq_ultra_ps_e_0",
-                "MI": "M_AXI_HPM0_FPD",
-                "MS": "SEG_top_wrapper_0_reg0",
-                "MV": "xilinx.com:ip:zynq_ultra_ps_e:3.5",
-                "SX": "/top_wrapper_0",
-                "SI": "s_axi",
-                "SS": "reg0",
-                "SV": "xilinx.com:module_ref:top_wrapper:1.0",
-                "TM": "both",
-                "TU": "register"
-            },
-            "V5": {
                 "VT": "ACE",
                 "BA": "0x0080000000",
                 "HA": "0x0080000000",
@@ -259,11 +241,6 @@
             },
             {
                 "src": "V4",
-                "trg": "V2",
-                "EH": "2"
-            },
-            {
-                "src": "V5",
                 "trg": "V2",
                 "EH": "2"
             }
