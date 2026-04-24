@@ -5,7 +5,7 @@
     "cell_name": "axi_bram_ctrl_0",
     "component_reference": "xilinx.com:ip:axi_bram_ctrl:4.1",
     "ip_revision": "9",
-    "gen_directory": "../../../../../../../course/capstoneproject/fpga/ip_repo/riscv_top_1_0/tmp_edit_project.gen/sources_1/ip/kria_soc_axi_bram_ctrl_0_0",
+    "gen_directory": "../../../../../../../course/capstoneproject/fpga/vivado_pj/vivado_pj.tmp/riscv_top_v1_0_project/riscv_top_v1_0_project.gen/sources_1/ip/kria_soc_axi_bram_ctrl_0_0",
     "parameters": {
       "component_parameters": {
         "DATA_WIDTH": [ { "value": "32", "resolve_type": "user", "format": "long", "usage": "all" } ],
@@ -60,7 +60,7 @@
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
         "IPREVISION": [ { "value": "9" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../../../../course/capstoneproject/fpga/ip_repo/riscv_top_1_0/tmp_edit_project.gen/sources_1/ip/kria_soc_axi_bram_ctrl_0_0" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../../course/capstoneproject/fpga/vivado_pj/vivado_pj.tmp/riscv_top_v1_0_project/riscv_top_v1_0_project.gen/sources_1/ip/kria_soc_axi_bram_ctrl_0_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2023.2.2" } ],

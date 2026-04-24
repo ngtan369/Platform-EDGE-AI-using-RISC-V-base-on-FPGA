@@ -28,6 +28,24 @@
 // 2. TRIỂN KHAI CÁC HÀM CỐT LÕI
 // ==============================================================================
 
+#define CNN_BASE_ADDR 0x40000000 // Địa chỉ AXI của CNN trong tầm nhìn của RISC-V
+
+void run_cnn_layer(int width, int cin, int use_pool) {
+    // 1. Cấu hình kích thước ảnh (slv_reg0)
+    *(volatile uint32_t*)(CNN_BASE_ADDR + 0) = width;
+    
+    // 2. Cấu hình số kênh (slv_reg3 - nếu bạn đã map chân này)
+    *(volatile uint32_t*)(CNN_BASE_ADDR + 12) = cin;
+
+    // 3. Ra lệnh Start và bật Pool (slv_reg1)
+    // Giả sử bit 0 là start, bit 1 là pool_en
+    uint32_t control = 0x01 | (use_pool << 1);
+    *(volatile uint32_t*)(CNN_BASE_ADDR + 4) = control;
+
+    // 4. Đợi phần cứng báo Done (slv_reg2) thông qua Polling hoặc ngắt IRQ
+    while( (*(volatile uint32_t*)(CNN_BASE_ADDR + 8) & 0x01) == 0 );
+}
+
 void initialize_model() {
     REG_STATUS_TO_ARM = STATUS_IDLE;
     REG_BBOX_XMIN = 0;

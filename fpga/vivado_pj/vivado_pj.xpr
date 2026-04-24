@@ -545,29 +545,17 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_auto_ds_0/kria_soc_auto_ds_0.xci">
-          <Proxy FileSetName="kria_soc_auto_ds_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_auto_ds_1/kria_soc_auto_ds_1.xci">
-          <Proxy FileSetName="kria_soc_auto_ds_1"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_axi_bram_ctrl_0_0/kria_soc_axi_bram_ctrl_0_0.xci">
           <Proxy FileSetName="kria_soc_axi_bram_ctrl_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_axi_bram_ctrl_0_1/kria_soc_axi_bram_ctrl_0_1.xci">
           <Proxy FileSetName="kria_soc_axi_bram_ctrl_0_1"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_blk_mem_gen_0_0/kria_soc_blk_mem_gen_0_0.xci">
-          <Proxy FileSetName="kria_soc_blk_mem_gen_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_blk_mem_gen_0_1/kria_soc_blk_mem_gen_0_1.xci">
           <Proxy FileSetName="kria_soc_blk_mem_gen_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_rst_ps8_0_99M_0/kria_soc_rst_ps8_0_99M_0.xci">
           <Proxy FileSetName="kria_soc_rst_ps8_0_99M_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_xbar_0/kria_soc_xbar_0.xci">
-          <Proxy FileSetName="kria_soc_xbar_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="kria_soc.bd" FileRelPathName="ip/kria_soc_zynq_ultra_ps_e_0_0/kria_soc_zynq_ultra_ps_e_0_0.xci">
           <Proxy FileSetName="kria_soc_zynq_ultra_ps_e_0_0"/>
@@ -1097,12 +1085,6 @@
         <Option Name="TopAutoSet" Val="TRUE"/>
       </Config>
     </FileSet>
-    <FileSet Name="kria_soc_xbar_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/kria_soc_xbar_0" RelGenDir="$PGENDIR/kria_soc_xbar_0">
-      <Config>
-        <Option Name="TopModule" Val="kria_soc_xbar_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="kria_soc_rst_ps8_0_99M_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/kria_soc_rst_ps8_0_99M_0" RelGenDir="$PGENDIR/kria_soc_rst_ps8_0_99M_0">
       <Config>
         <Option Name="TopModule" Val="kria_soc_rst_ps8_0_99M_0"/>
@@ -1127,27 +1109,9 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="kria_soc_blk_mem_gen_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/kria_soc_blk_mem_gen_0_0" RelGenDir="$PGENDIR/kria_soc_blk_mem_gen_0_0">
-      <Config>
-        <Option Name="TopModule" Val="kria_soc_blk_mem_gen_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="kria_soc_axi_bram_ctrl_0_1" Type="BlockSrcs" RelSrcDir="$PSRCDIR/kria_soc_axi_bram_ctrl_0_1" RelGenDir="$PGENDIR/kria_soc_axi_bram_ctrl_0_1">
       <Config>
         <Option Name="TopModule" Val="kria_soc_axi_bram_ctrl_0_1"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="kria_soc_auto_ds_1" Type="BlockSrcs" RelSrcDir="$PSRCDIR/kria_soc_auto_ds_1" RelGenDir="$PGENDIR/kria_soc_auto_ds_1">
-      <Config>
-        <Option Name="TopModule" Val="kria_soc_auto_ds_1"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="kria_soc_auto_ds_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/kria_soc_auto_ds_0" RelGenDir="$PGENDIR/kria_soc_auto_ds_0">
-      <Config>
-        <Option Name="TopModule" Val="kria_soc_auto_ds_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -1181,23 +1145,9 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="kria_soc_xbar_0_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_xbar_0" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_xbar_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_xbar_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_xbar_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_xbar_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="kria_soc_rst_ps8_0_99M_0_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_rst_ps8_0_99M_0" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_rst_ps8_0_99M_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_rst_ps8_0_99M_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_rst_ps8_0_99M_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_rst_ps8_0_99M_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1207,9 +1157,7 @@
     </Run>
     <Run Id="kria_soc_zynq_ultra_ps_e_0_0_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_zynq_ultra_ps_e_0_0" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_zynq_ultra_ps_e_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_zynq_ultra_ps_e_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_zynq_ultra_ps_e_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_zynq_ultra_ps_e_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1219,9 +1167,7 @@
     </Run>
     <Run Id="kria_soc_axi_bram_ctrl_0_0_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_axi_bram_ctrl_0_0" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_axi_bram_ctrl_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_axi_bram_ctrl_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_0_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1231,21 +1177,7 @@
     </Run>
     <Run Id="kria_soc_blk_mem_gen_0_1_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_blk_mem_gen_0_1" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_blk_mem_gen_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_blk_mem_gen_0_1_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_1_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_1_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="kria_soc_blk_mem_gen_0_0_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_blk_mem_gen_0_0" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_blk_mem_gen_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_blk_mem_gen_0_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1255,33 +1187,7 @@
     </Run>
     <Run Id="kria_soc_axi_bram_ctrl_0_1_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_axi_bram_ctrl_0_1" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_axi_bram_ctrl_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_axi_bram_ctrl_0_1_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_1_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_1_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="kria_soc_auto_ds_1_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_auto_ds_1" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_auto_ds_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_auto_ds_1_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_1_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_1_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="kria_soc_auto_ds_0_synth_1" Type="Ft3:Synth" SrcSet="kria_soc_auto_ds_0" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_auto_ds_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/kria_soc_auto_ds_0_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_0_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_0_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2023"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1306,30 +1212,9 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="kria_soc_xbar_0_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_xbar_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_xbar_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_xbar_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_xbar_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="kria_soc_rst_ps8_0_99M_0_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_rst_ps8_0_99M_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_rst_ps8_0_99M_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_rst_ps8_0_99M_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_rst_ps8_0_99M_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -1346,9 +1231,7 @@
     </Run>
     <Run Id="kria_soc_zynq_ultra_ps_e_0_0_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_zynq_ultra_ps_e_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_zynq_ultra_ps_e_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_zynq_ultra_ps_e_0_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_zynq_ultra_ps_e_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -1365,9 +1248,7 @@
     </Run>
     <Run Id="kria_soc_axi_bram_ctrl_0_0_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_axi_bram_ctrl_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_axi_bram_ctrl_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_0_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -1384,28 +1265,7 @@
     </Run>
     <Run Id="kria_soc_blk_mem_gen_0_1_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_blk_mem_gen_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_blk_mem_gen_0_1_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_1_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_1_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="kria_soc_blk_mem_gen_0_0_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_blk_mem_gen_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_blk_mem_gen_0_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_blk_mem_gen_0_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -1422,47 +1282,7 @@
     </Run>
     <Run Id="kria_soc_axi_bram_ctrl_0_1_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_axi_bram_ctrl_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_axi_bram_ctrl_0_1_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_1_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_axi_bram_ctrl_0_1_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="kria_soc_auto_ds_1_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_auto_ds_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_auto_ds_1_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_1_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_1_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2023"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="kria_soc_auto_ds_0_impl_1" Type="Ft2:EntireDesign" Part="xck26-sfvc784-2LV-c" ConstrsSet="kria_soc_auto_ds_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="kria_soc_auto_ds_0_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_0_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/kria_soc_auto_ds_0_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2023"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

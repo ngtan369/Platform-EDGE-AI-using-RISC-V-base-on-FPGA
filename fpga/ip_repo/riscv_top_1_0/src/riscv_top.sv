@@ -3,7 +3,7 @@
 module riscv_top (
     input  logic clk_i,
     input  logic rst_ni,
-
+    input  logic [31:0] irq_i,
     // ========================================================
     // AXI-Lite Master 0: Ðý?ng Instruction (Ch? Ð?c)
     // ========================================================
@@ -105,7 +105,7 @@ module riscv_top (
         .pulp_clock_en_i (1'b1),
         .scan_cg_en_i    (1'b0),
         .boot_addr_i     (32'h00000000), 
-        .irq_i           (32'b0),
+        .irq_i           (irq_i),
         .irq_ack_o       (),
         .irq_id_o        (),
         .debug_req_i     (1'b0),

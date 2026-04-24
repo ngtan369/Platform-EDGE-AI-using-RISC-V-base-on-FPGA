@@ -171,7 +171,9 @@
       <spirit:name>m_axi_instr</spirit:name>
       <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
       <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm_rtl" spirit:version="1.0"/>
-      <spirit:master/>
+      <spirit:master>
+        <spirit:addressSpaceRef spirit:addressSpaceRef="m_axi_instr"/>
+      </spirit:master>
       <spirit:portMaps>
         <spirit:portMap>
           <spirit:logicalPort>
@@ -249,11 +251,40 @@
         </spirit:parameter>
       </spirit:parameters>
     </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>clk_i</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock_rtl" spirit:version="1.0"/>
+      <spirit:slave/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>CLK</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>clk_i</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>ASSOCIATED_BUSIF</spirit:name>
+          <spirit:description>test</spirit:description>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.CLK_I.ASSOCIATED_BUSIF">m_axi_instr:m_axi_data</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
   </spirit:busInterfaces>
   <spirit:addressSpaces>
     <spirit:addressSpace>
       <spirit:name>m_axi_data</spirit:name>
       <spirit:displayName>m_axi_data</spirit:displayName>
+      <spirit:range spirit:format="bitString" spirit:bitStringLength="33" spirit:minimum="4096" spirit:rangeType="long">0x100000000</spirit:range>
+      <spirit:width spirit:format="long">32</spirit:width>
+    </spirit:addressSpace>
+    <spirit:addressSpace>
+      <spirit:name>m_axi_instr</spirit:name>
+      <spirit:displayName>m_axi_instr</spirit:displayName>
       <spirit:range spirit:format="bitString" spirit:bitStringLength="33" spirit:minimum="4096" spirit:rangeType="long">0x100000000</spirit:range>
       <spirit:width spirit:format="long">32</spirit:width>
     </spirit:addressSpace>
@@ -290,7 +321,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>eb4b1628</spirit:value>
+            <spirit:value>ff6ae15e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -324,7 +355,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>eb4b1628</spirit:value>
+            <spirit:value>ff6ae15e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -357,7 +388,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>6513a941</spirit:value>
+            <spirit:value>aea9c2d2</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -394,6 +425,23 @@
         <spirit:name>rst_ni</spirit:name>
         <spirit:wire>
           <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>irq_i</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">31</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
           <spirit:wireTypeDefs>
             <spirit:wireTypeDef>
               <spirit:typeName>logic</spirit:typeName>
@@ -1097,7 +1145,7 @@
       <spirit:file>
         <spirit:name>src/riscv_top.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_56f18901</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_02f69b66</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
@@ -1596,15 +1644,15 @@
       </xilinx:taxonomies>
       <xilinx:displayName>riscv_top_v1_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>2</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2026-04-20T13:50:52Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>4</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2026-04-22T14:55:31Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2023.2.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="b904da31"/>
-      <xilinx:checksum xilinx:scope="addressSpaces" xilinx:value="c64df814"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="ace42696"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="a714fd00"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="89f03e86"/>
+      <xilinx:checksum xilinx:scope="addressSpaces" xilinx:value="2203f47e"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="72b46dce"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="a6747a78"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="cfbe9fc4"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>

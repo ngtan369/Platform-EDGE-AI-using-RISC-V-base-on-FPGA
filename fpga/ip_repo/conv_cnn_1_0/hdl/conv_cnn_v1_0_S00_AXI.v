@@ -15,7 +15,10 @@
 	)
 	(
 		// Users to add ports here
-
+        output wire [31:0] out_active_width, // Lấy từ slv_reg0
+        output wire        out_start,        // Lấy từ slv_reg1
+        input  wire        in_done,          // Ghi vào slv_reg2 báo cho ARM
+        output wire out_pool_en,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -372,7 +375,8 @@
 	      case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
 	        2'h0   : reg_data_out <= slv_reg0;
 	        2'h1   : reg_data_out <= slv_reg1;
-	        2'h2   : reg_data_out <= slv_reg2;
+	        // 2'h2   : reg_data_out <= slv_reg2;
+            2'h2   : reg_data_out <= {31'd0, in_done};
 	        2'h3   : reg_data_out <= slv_reg3;
 	        default : reg_data_out <= 0;
 	      endcase
@@ -398,7 +402,9 @@
 	end    
 
 	// Add user logic here
-
+    assign out_active_width = slv_reg0; // Lấy độ rộng ảnh từ slv_reg0
+    assign out_start = slv_reg1[0];   // Lấy bit start từ slv_reg1
+    assign out_pool_en = slv_reg1[1];
 	// User logic ends
 
 	endmodule

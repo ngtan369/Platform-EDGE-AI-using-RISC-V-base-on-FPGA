@@ -5,7 +5,7 @@
     "cell_name": "blk_mem_gen_1",
     "component_reference": "xilinx.com:ip:blk_mem_gen:8.4",
     "ip_revision": "7",
-    "gen_directory": "../../../../../../../course/capstoneproject/fpga/ip_repo/riscv_top_1_0/tmp_edit_project.gen/sources_1/ip/kria_soc_blk_mem_gen_0_1",
+    "gen_directory": "../../../../../../../course/capstoneproject/fpga/vivado_pj/vivado_pj.tmp/riscv_top_v1_0_project/riscv_top_v1_0_project.gen/sources_1/ip/kria_soc_blk_mem_gen_0_1",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "kria_soc_blk_mem_gen_0_1", "resolve_type": "user", "usage": "all" } ],
@@ -175,7 +175,7 @@
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
         "IPREVISION": [ { "value": "7" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../../../../course/capstoneproject/fpga/ip_repo/riscv_top_1_0/tmp_edit_project.gen/sources_1/ip/kria_soc_blk_mem_gen_0_1" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../../course/capstoneproject/fpga/vivado_pj/vivado_pj.tmp/riscv_top_v1_0_project/riscv_top_v1_0_project.gen/sources_1/ip/kria_soc_blk_mem_gen_0_1" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2023.2.2" } ],
