@@ -1,4 +1,4 @@
-module tb;
+module tb_conv_core;
 
 reg clk;
 reg rst;
