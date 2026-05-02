@@ -7,6 +7,12 @@
 #define CAMERA_RAM_BASE   0x80000000 
 #define ARM_COMM_BASE     0x40000000 
 
+// Lõi RISC-V tự quy ước:
+#define MAILBOX_ADDR 0x8000FFFC 
+
+// Khi RISC-V tính toán xong YOLO/ResNet, nó gửi thư:
+*(volatile uint32_t*)MAILBOX_ADDR = 0x1111; // 0x1111 mã hóa cho "Đã xong!"
+
 // Các thanh ghi điều khiển hệ thống
 #define REG_CMD_FROM_ARM  (*(volatile uint32_t*)(ARM_COMM_BASE + 0x00))
 #define REG_STATUS_TO_ARM (*(volatile uint32_t*)(ARM_COMM_BASE + 0x04))

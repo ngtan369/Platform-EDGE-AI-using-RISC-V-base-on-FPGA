@@ -1,170 +1,127 @@
 import os
-import xml.etree.ElementTree as ET
-import tensorflow as tf
+import argparse
 import numpy as np
-import kagglehub
+import tensorflow as tf
+from tensorflow.keras import layers, models, applications
 
 # ==========================================
-# 1. PARSE DỮ LIỆU TỪ FILE XML (PASCAL VOC)
+# 1. DATASET PROCESSING
 # ==========================================
-print("Đang chuẩn bị dữ liệu tọa độ...")
-# Giả sử bạn đã có đường dẫn dataset từ Kaggle
-dataset_path = kagglehub.dataset_download("jcoral02/inriaperson")
-# dataset_path = kagglehub.dataset_download("jcoral02/dog_cat")
-img_dir = os.path.join(dataset_path, "Train", "JPEGImages")
-xml_dir = os.path.join(dataset_path, "Train", "Annotations")
+def load_dataset(dataset_name, batch_size, img_size):
+    """
+    Hàm phân luồng tải dữ liệu tùy thuộc vào lựa chọn của người dùng.
+    """
+    if dataset_name == 'inria':
+        print(f"[*] Đang tải tập dữ liệu: INRIA Person (Bài toán Phát hiện người)")
+        num_classes = 2 # Background / Person
+    elif dataset_name == 'cats_dogs':
+        print(f"[*] Đang tải tập dữ liệu: Dogs vs. Cats (Bài toán Phân loại Chó/Mèo)")
+        num_classes = 2 # Cat / Dog
+    else:
+        raise ValueError("Tập dữ liệu không được hỗ trợ!")
 
-image_paths = []
-bounding_boxes = []
-
-# Quét toàn bộ file XML
-for xml_file in os.listdir(xml_dir):
-    if not xml_file.endswith('.xml'): continue
+    print(f"    -> Kích thước ảnh đầu vào: {img_size}")
     
-    tree = ET.parse(os.path.join(xml_dir, xml_file))
-    root = tree.getroot()
+    # TODO: Khởi tạo tf.data.Dataset thật tại đây
+    # train_dataset = ...
+    # val_dataset = ...
     
-    # Lấy tên file ảnh
-    filename = root.find('filename').text
-    img_path = os.path.join(img_dir, filename)
-    
-    # Bỏ qua nếu ảnh không tồn tại
-    if not os.path.exists(img_path): continue
-        
-    # Lấy kích thước ảnh gốc
-    size = root.find('size')
-    width = float(size.find('width').text)
-    height = float(size.find('height').text)
-    
-    # Lấy tọa độ Box (Giả định lấy người đầu tiên trong ảnh)
-    bndbox = root.find('object').find('bndbox')
-    xmin = float(bndbox.find('xmin').text)
-    ymin = float(bndbox.find('ymin').text)
-    xmax = float(bndbox.find('xmax').text)
-    ymax = float(bndbox.find('ymax').text)
-    
-    # CHUẨN HÓA: Đưa tọa độ về dải [0.0 -> 1.0] để AI dễ học
-    norm_box = [
-        xmin / width, 
-        ymin / height, 
-        xmax / width, 
-        ymax / height
-    ]
-    
-    image_paths.append(img_path)
-    bounding_boxes.append(norm_box)
-
-print(f"Đã tìm thấy {len(image_paths)} ảnh có chứa tọa độ Box hợp lệ.")
-
-# ==========================================
-# 2. XÂY DỰNG TENSORFLOW DATASET TỐC ĐỘ CAO
-# ==========================================
-IMG_SIZE = (128, 128)
-BATCH_SIZE = 32
-
-def process_path(img_path, bbox):
-    # Đọc và resize ảnh
-    img = tf.io.read_file(img_path)
-    img = tf.image.decode_jpeg(img, channels=3)
-    img = tf.image.resize(img, IMG_SIZE)
-    return img, bbox
-
-# Tạo Dataset từ mảng list
-dataset = tf.data.Dataset.from_tensor_slices((image_paths, bounding_boxes))
-dataset = dataset.map(process_path, num_parallel_calls=tf.data.AUTOTUNE)
-
-# Chia Train/Val (80/20)
-data_size = len(image_paths)
-train_size = int(0.8 * data_size)
-
-dataset = dataset.shuffle(1000)
-train_dataset = dataset.take(train_size).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-val_dataset = dataset.skip(train_size).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-
-# ==========================================
-# 3. MÔ HÌNH NHẢ RA TỌA ĐỘ (REGRESSION HEAD)
-# ==========================================
-print("Đang xây dựng mô hình Regression...")
-base_model = tf.keras.applications.MobileNetV2(
-    input_shape=(128, 128, 3),
-    alpha=0.5,
-    include_top=False,
-    weights='imagenet'
-)
-base_model.trainable = False # Đóng băng
-
-model = tf.keras.Sequential([
-    tf.keras.layers.Rescaling(1./127.5, offset=-1),
-    base_model,
-    tf.keras.layers.GlobalAveragePooling2D(),
-    
-    # KHÁC BIỆT Ở ĐÂY: Dense(4) thay vì Dense(1)
-    # Dùng 'sigmoid' vì ngõ ra (tọa độ chuẩn hóa) nằm trong khoảng [0, 1]
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(4, activation='sigmoid', name='bounding_box_output')
-])
-
-# Hàm Loss là MSE (Đo khoảng cách lệch giữa Box đoán và Box thực)
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-    loss='mean_squared_error',
-    metrics=['mae'] # Mean Absolute Error
-)
-
-# ==========================================
-# 4. TRAINING VÀ XUẤT FILE C
-# ==========================================
-print("Bắt đầu Training Box...")
-model.fit(train_dataset, validation_data=val_dataset, epochs=15)
-
-
-# ==========================================
-# 4. ÉP KIỂU (QUANTIZATION) SANG INT8
-# ==========================================
-print("Bắt đầu lượng tử hóa xuống INT8...")
+    return None, None, num_classes # Tạm trả về None cho mục đích demo bộ khung
 
 def representative_data_gen():
-    for input_value, _ in train_dataset.take(50): 
-        # Ép kiểu float32 để TFLite đọc chuẩn xác
-        yield [tf.cast(input_value, tf.float32)] 
-
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.representative_dataset = representative_data_gen
-
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-converter.inference_input_type = tf.int8
-converter.inference_output_type = tf.int8
-
-tflite_model_quant = converter.convert()
-
-tflite_path = 'mobilenet_v2_128_quant.tflite'
-with open(tflite_path, 'wb') as f:
-    f.write(tflite_model_quant)
+    """
+    Hàm tạo dữ liệu đại diện cho quá trình Lượng tử hóa INT8.
+    """
+    # MOCK: Lấy 100 ảnh mẫu ngẫu nhiên (Thực tế phải lấy từ tập Validation của Dataset)
+    for _ in range(100):
+        yield [np.random.rand(1, 224, 224, 3).astype(np.float32)]
 
 # ==========================================
-# 5. XUẤT RA MẢNG C CHO NHÚNG BARE-METAL
+# 2. MODEL FACTORY (Hardware-Software Co-design Options)
 # ==========================================
-print("Đang xuất mảng C-Header...")
-with open(tflite_path, 'rb') as f:
-    tflite_content = f.read()
+def build_model(model_name, num_classes, input_shape=(224, 224, 3)):
+    """
+    Khởi tạo kiến trúc mạng dựa trên lựa chọn của người dùng.
+    """
+    print(f"[*] Đang khởi tạo kiến trúc: {model_name.upper()}")
+    
+    if model_name in ['vgg11', 'vgg16']:
+        base_model = applications.VGG16(weights=None, input_shape=input_shape, include_top=False)
+    elif model_name == 'resnet18':
+        base_model = applications.ResNet50V2(weights=None, input_shape=input_shape, include_top=False)
+    elif model_name == 'efficientnet-lite':
+        base_model = applications.EfficientNetB0(weights=None, input_shape=input_shape, include_top=False)
+    elif model_name in ['tiny-yolo', 'yolo-fastest']:
+        print("[!] Lưu ý: Dòng YOLO yêu cầu cấu hình thêm Detection Head (Bounding box).")
+        base_model = applications.MobileNetV2(weights=None, input_shape=input_shape, include_top=False)
+    else:
+        raise ValueError(f"Không hỗ trợ kiến trúc: {model_name}")
 
-hex_array = ', '.join([f'0x{byte:02x}' for byte in tflite_content])
+    # Phần Head chung cho Classification (Sẽ chạy trên ARM/RISC-V tùy phân chia)
+    x = layers.GlobalAveragePooling2D()(base_model.output)
+    output = layers.Dense(num_classes, activation='softmax')(x)
+    
+    model = models.Model(inputs=base_model.input, outputs=output)
+    return model
 
-c_code = f"""
-#ifndef MODEL_DATA_H
-#define MODEL_DATA_H
+# ==========================================
+# 3. INT8 QUANTIZATION & EXPORT
+# ==========================================
+def export_to_int8(keras_model, output_path):
+    """
+    Quy trình PTQ: Lượng tử hóa mô hình xuống INT8 cho BRAM.
+    """
+    print("[*] Bắt đầu quá trình Lượng tử hóa Post-Training (PTQ) INT8...")
+    
+    converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.representative_dataset = representative_data_gen
+    
+    # Ép IO xuống INT8 để giao tiếp qua AXI không cần khối chuyển đổi Float
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    converter.inference_input_type = tf.int8
+    converter.inference_output_type = tf.int8
+    
+    tflite_quant_model = converter.convert()
+    
+    with open(output_path, 'wb') as f:
+        f.write(tflite_quant_model)
+    
+    print(f"[+] DONE! File trọng số INT8 đã sẵn sàng tại: {output_path}")
 
-// Kích thước mảng: {len(tflite_content)} bytes
-const unsigned int model_data_len = {len(tflite_content)};
-const unsigned char model_data[] __attribute__((aligned(4))) = {{
-    {hex_array}
-}};
-
-#endif // MODEL_DATA_H
-"""
-
-with open("model_data.h", 'w') as f:
-    f.write(c_code)
-
-print("HOÀN TẤT TOÀN BỘ QUY TRÌNH!")
+# ==========================================
+# MAIN EXECUTION FLOW
+# ==========================================
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Edge AI Training & Quantization Pipeline")
+    parser.add_argument('--model', type=str, default='resnet18', 
+                        choices=['vgg11', 'vgg16', 'resnet18', 'tiny-yolo', 'yolo-fastest', 'efficientnet-lite'],
+                        help="Chọn kiến trúc mạng CNN")
+    parser.add_argument('--dataset', type=str, default='inria', 
+                        choices=['inria', 'cats_dogs'],
+                        help="Chọn tập dữ liệu huấn luyện (INRIA Person hoặc Chó/Mèo)")
+    parser.add_argument('--epochs', type=int, default=50, help="Số epoch huấn luyện")
+    parser.add_argument('--export_dir', type=str, default='./export', help="Thư mục lưu model INT8")
+    
+    args = parser.parse_args()
+    os.makedirs(args.export_dir, exist_ok=True)
+    
+    print("="*50)
+    print("   QUY TRÌNH BIÊN DỊCH MODEL CHO FPGA KRIA KV260   ")
+    print("="*50)
+    
+    # 1. Load Dataset
+    train_data, val_data, num_classes = load_dataset(args.dataset, batch_size=32, img_size=(224, 224))
+    
+    # 2. Xây dựng và Huấn luyện (Training)
+    model = build_model(args.model, num_classes)
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    
+    print(f"[*] Đang thực thi quá trình huấn luyện giả lập ({args.epochs} Epochs)...")
+    # model.fit(train_data, validation_data=val_data, epochs=args.epochs)
+    
+    # 3. Lượng tử hóa và Xuất file (Quy ước đặt tên: Model_Dataset_INT8.bin)
+    export_filename = os.path.join(args.export_dir, f"{args.model}_{args.dataset}_int8.bin")
+    export_to_int8(model, export_filename)
+    
+    print("\n[!!!] Pipeline hoàn tất. Bạn có thể copy file .bin vào thẻ nhớ cho SoC Zynq đọc!")

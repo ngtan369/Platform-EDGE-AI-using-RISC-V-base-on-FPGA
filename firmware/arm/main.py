@@ -1,133 +1,122 @@
-import cv2
-import numpy as np
 import os
-import mmap
 import time
-
-"../../training/model_data.h"
-#import Weight from model trained
-model_data.h ="../../training/model_data.h"
-
-# ==============================================================================
-# 1. CẤU HÌNH BẢN ĐỒ BỘ NHỚ (Phải khớp với Vivado & C Firmware)
-# ==============================================================================
-# Địa chỉ Base của thanh ghi giao tiếp AXI Lite (Khối điều khiển)
-# (Ví dụ: Vivado gán khối cpu_wrapper ở địa chỉ này)
-AXI_REGS_BASE = 0x40000000 
-AXI_REGS_SIZE = 0x1000       # Cấp 4KB cho các thanh ghi
-
-# Các Offset thanh ghi (Khớp 100% với main.c của RISC-V)
-OFF_CMD_ARM    = 0x00        # ARM ghi 1 để Start
-OFF_STATUS_RV  = 0x04        # RISC-V ghi 2 khi Done
-OFF_BBOX_XMIN  = 0x08
-OFF_BBOX_YMIN  = 0x0C
-OFF_BBOX_XMAX  = 0x10
-OFF_BBOX_YMAX  = 0x14
-
-# Địa chỉ Base của vùng RAM dùng chung chứa ảnh (Khối BRAM hoặc DDR)
-SHARED_RAM_BASE = 0x80000000
-IMG_WIDTH, IMG_HEIGHT = 128, 128 # Kích thước ảnh input của AI
-SHARED_RAM_SIZE = IMG_WIDTH * IMG_HEIGHT * 3 # 3 kênh màu RGB
-
-# Các cờ trạng thái (Flags)
-CMD_START   = 1
-STATUS_DONE = 2
-
-# ==============================================================================
-# 2. KHỞI TẠO KẾT NỐI VẬT LÝ (Dùng /dev/mem của Linux)
-# ==============================================================================
-print("Đang mở kết nối vật lý tới FPGA...")
-f = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
-
-# "Cắm vòi rồng" vào vùng thanh ghi điều khiển
-mem_regs = mmap.mmap(f, AXI_REGS_SIZE, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE, offset=AXI_REGS_BASE)
-
-# "Cắm vòi rồng" vào vùng RAM chứa ảnh
-mem_ram = mmap.mmap(f, SHARED_RAM_SIZE, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE, offset=SHARED_RAM_BASE)
+import numpy as np
+from pynq import Overlay, MMIO
 
 # ==========================================
-# 3. VÒNG LẶP CHÍNH (MAIN LOOP) - ĐẠO DIỄN LÊN SÀN
+# CẤU HÌNH HỆ THỐNG (Vivado Address Editor)
 # ==========================================
-# Mở Camera (MIPI trên Kria thường là device 0 hoặc 1)
-cap = cv2.VideoCapture(0)
+BITSTREAM_FILE = "harvard_soc.bit"      # Tên file bitstream
+RISCV_FIRMWARE = "riscv_code.bin"       # File code C đã biên dịch của lõi RISC-V
+MODEL_WEIGHTS  = "vgg16_cats_dogs_int8.bin" # File INT8 bạn vừa train ở bước trước
 
-# Cấu hình độ phân giải camera bự để xem cho sướng (ví dụ 720p)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+# Kích thước BRAM
+BRAM_SIZE = 65536 
+# Mailbox: 4 byte cuối cùng của D-BRAM
+MAILBOX_OFFSET = BRAM_SIZE - 4  
 
-print("Hệ thống đã sẵn sàng. Nhấn 'q' để thoát.")
+# Mã trạng thái Mailbox (Giữa ARM và RISC-V)
+STATUS_IDLE       = 0x00000000
+STATUS_RISCV_DONE = 0x00001111
+STATUS_CNN_DONE   = 0x00003333
 
-while True:
-    # BƯỚC 1: Đọc 1 khung hình từ Camera
-    ret, frame_raw = cap.read()
-    if not ret: break
+def load_bin_to_bram(bram_ctrl, filepath, offset=0):
+    """Hàm đọc file nhị phân và đẩy trực tiếp vào BRAM qua AXI"""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"[!] Không tìm thấy file: {filepath}")
+    
+    print(f"[*] Đang nạp {filepath} vào bộ nhớ...")
+    with open(filepath, "rb") as f:
+        data = f.read()
+        # Ghi từng chunk 4-byte (32-bit) vào BRAM
+        for i in range(0, len(data), 4):
+            chunk = data[i:i+4]
+            # Padding nếu file không chia hết cho 4
+            if len(chunk) < 4:
+                chunk += b'\x00' * (4 - len(chunk))
+            
+            # Convert bytes sang số nguyên 32-bit (Little Endian)
+            val = int.from_bytes(chunk, byteorder='little')
+            bram_ctrl.write(offset + i, val)
+    print(f"    -> Đã nạp xong {len(data)} bytes.")
 
-    # BƯỚC 2: Tiền xử lý ảnh (Pre-processing)
-    # Resize ảnh bự về kích thước 128x128 mà AI cần
-    frame_resized = cv2.resize(frame_raw, (IMG_WIDTH, IMG_HEIGHT))
-    # Chuyển sang RGB (OpenCV mặc định là BGR)
-    frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-    # Chuyển sang dạng mảng byte INT8 (Lượng tử hóa ảnh input)
-    frame_int8 = (frame_rgb.astype(np.float32) / 127.5 - 1.0) * 127
-    frame_int8 = frame_int8.astype(np.int8)
+# ==========================================
+# LUỒNG THỰC THI CHÍNH CỦA ARM (HOST PS)
+# ==========================================
+if __name__ == '__main__':
+    print("="*50)
+    print(" HỆ THỐNG EDGE AI: DUAL-CORE (ARM + RISC-V) ")
+    print("="*50)
 
-    # BƯỚC 3: Đổ ảnh vào RAM dùng chung cho RISC-V đọc
-    # Copy dữ liệu từ mảng Python vào vùng nhớ mmap
-    mem_ram.seek(0)
-    mem_ram.write(frame_int8.tobytes())
+    # 1. NẠP BITSTREAM CHO FPGA (Cấu hình toàn bộ phần cứng)
+    print("\n[1] Đang nạp Bitstream cấu hình kiến trúc Harvard...")
+    overlay = Overlay(BITSTREAM_FILE)
+    
+    # 2. ÁNH XẠ BỘ NHỚ BRAM
+    # Lấy ra 2 khối AXI BRAM Controller đã cấu hình ở cổng A
+    # (Lưu ý: Tên biến phải khớp CỰC KỲ CHÍNH XÁC với tên khối trong Vivado Block Design)
+    i_bram = overlay.axi_bram_ctrl_0  # Instruction BRAM
+    d_bram = overlay.axi_bram_ctrl_1  # Data BRAM
 
-    # BƯỚC 4: Ra lệnh cho RISC-V "CÀY" MA TRẬN
-    # Ghi số 1 (CMD_START) vào thanh ghi Offset 0x00
-    mem_regs.seek(OFF_CMD_ARM)
-    mem_regs.write(int(CMD_START).to_bytes(4, byteorder='little'))
+    # 3. NẠP DỮ LIỆU VÀO "TỦ 2 CỬA"
+    print("\n[2] Nạp Code Lệnh và Trọng số INT8...")
+    # Xóa sạch Mailbox trước khi chạy để tránh dính rác từ lần chạy trước
+    d_bram.write(MAILBOX_OFFSET, STATUS_IDLE)
+    
+    # Nạp code C của vi điều khiển vào I-BRAM
+    load_bin_to_bram(i_bram, RISCV_FIRMWARE, offset=0x0)
+    
+    # Nạp dữ liệu mô hình vào D-BRAM (Giả sử quy ước nhét ở địa chỉ offset 0x0000)
+    load_bin_to_bram(d_bram, MODEL_WEIGHTS, offset=0x0)
+    
+    # Tương tự, nếu có ảnh đầu vào (Input Image), bạn nạp vào một offset khác:
+    # load_bin_to_bram(d_bram, "cat_image_224x224.bin", offset=0x8000)
 
-    # BƯỚC 5: Chờ RISC-V tính xong (Polling)
+    # 4. KÍCH HOẠT RISC-V (Bấm nút Start)
+    print("\n[3] Gửi tín hiệu Reset để đánh thức RISC-V...")
+    # Thông thường, bạn sẽ gán 1 cổng AXI GPIO vào chân `rst_ni` của RISC-V.
+    # Giả sử tên khối là axi_gpio_0, kênh 1.
+    if hasattr(overlay, 'axi_gpio_0'):
+        rst_gpio = overlay.axi_gpio_0.channel1
+        rst_gpio.write(0, 0x0) # Kéo xuống 0 (Giữ reset)
+        time.sleep(0.1)
+        rst_gpio.write(0, 0x1) # Kéo lên 1 (Nhả reset cho RISC-V chạy)
+    else:
+        print("    [!] Cảnh báo: Không tìm thấy khối GPIO điều khiển Reset RISC-V.")
+
+    # 5. CHỜ THƯ BÁO CÁO TỪ RISC-V (Polling Mailbox)
+    print("\n[4] ARM đang chuyển sang chế độ ngủ chờ (Polling)...")
+    start_time = time.time()
+    
     while True:
-        mem_regs.seek(OFF_STATUS_RV)
-        # Đọc 4 byte trạng thái
-        status = int.from_ascii(mem_regs.read(4), byteorder='little')
-        if status == STATUS_DONE:
-            break # Đã xong!
-        # Tạm nghỉ 1 chút để không làm quá tải CPU ARM
-        time.sleep(0.001) 
+        # Liên tục nhìn vào 4 byte cuối của D-BRAM
+        status = d_bram.read(MAILBOX_OFFSET)
+        
+        if status == STATUS_RISCV_DONE:
+            print("    -> RISC-V báo cáo: Khởi động thành công!")
+            # Xóa thư cũ để chờ thư mới
+            d_bram.write(MAILBOX_OFFSET, STATUS_IDLE) 
+            
+        elif status == STATUS_CNN_DONE:
+            end_time = time.time()
+            print(f"    -> RISC-V báo cáo: GIA TỐC CNN CHẠY XONG! (Mất {(end_time - start_time)*1000:.2f} ms)")
+            break # Thoát vòng lặp chờ
+            
+        time.sleep(0.001) # Nghỉ 1ms để tránh ARM bị quá tải CPU (100% load)
 
-    # BƯỚC 6: Đọc kết quả tọa độ từ FPGA
-    mem_regs.seek(OFF_BBOX_XMIN)
-    raw_xmin = int.from_bytes(mem_regs.read(4), byteorder='little', signed=True)
-    mem_regs.seek(OFF_BBOX_YMIN)
-    raw_ymin = int.from_bytes(mem_regs.read(4), byteorder='little', signed=True)
-    mem_regs.seek(OFF_BBOX_XMAX)
-    raw_xmax = int.from_bytes(mem_regs.read(4), byteorder='little', signed=True)
-    mem_regs.seek(OFF_BBOX_YMAX)
-    raw_ymax = int.from_bytes(mem_regs.read(4), byteorder='little', signed=True)
-
-    # BƯỚC 7: Hậu xử lý (Post-processing) và Vẽ khung
-    # Giải lượng tử hóa tọa độ (Chuyển INT8 về dải 0.0 -> 1.0)
-    # (Công thức đảo ngược của việc train AI ban nãy)
-    norm_xmin = (raw_xmin / 127.0 + 1.0) / 2.0
-    norm_ymin = (raw_ymin / 127.0 + 1.0) / 2.0
-    norm_xmax = (raw_xmax / 127.0 + 1.0) / 2.0
-    norm_ymax = (raw_ymax / 127.0 + 1.0) / 2.0
-
-    # Nhân ngược lại với kích thước ảnh thực tế (1280x720) để ra pixel
-    scr_h, scr_w, _ = frame_raw.shape
-    p1 = (int(norm_xmin * scr_w), int(norm_ymin * scr_h))
-    p2 = (int(norm_xmax * scr_w), int(norm_ymax * scr_h))
-
-    # Vẽ khung hình chữ nhật màu đỏ lên ảnh gốc
-    cv2.rectangle(frame_raw, p1, p2, (0, 0, 255), 3)
-    cv2.putText(frame_raw, 'Human Detected', (p1[0], p1[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
-
-    # BƯỚC 8: Hiển thị ra màn hình
-    cv2.imshow("Kria AI Human Localization", frame_raw)
-
-    # Nhấn 'q' để thoát vòng lặp
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# Dọn dẹp tài nguyên
-cap.release()
-cv2.destroyAllWindows()
-mem_regs.close()
-mem_ram.close()
-os.close(f)
+    # 6. ĐỌC KẾT QUẢ VÀ HẬU XỬ LÝ (Post-processing)
+    print("\n[5] Đọc kết quả từ Data BRAM...")
+    # Giả sử kết quả (ví dụ 2 số nguyên đại diện cho % Chó/Mèo) nằm ở Offset 0x4000
+    RESULT_OFFSET = 0x4000
+    class_0_score = d_bram.read(RESULT_OFFSET)
+    class_1_score = d_bram.read(RESULT_OFFSET + 4)
+    
+    print(f"    Class 0 Score (Cat): {class_0_score}")
+    print(f"    Class 1 Score (Dog): {class_1_score}")
+    
+    if class_0_score > class_1_score:
+        print("\n=> This is cat")
+    else:
+        print("\n=> This is dog")
+        
+    print("\n Run completed 100%!")
