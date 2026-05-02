@@ -1,17 +1,3 @@
-<div align="center">
-  <img src="https://pakdd.org/archive/pakdd2015/images/543px-Logo-hcmut.svg.png" alt="HCMUT Logo" width="150">
-  
-  # HO CHI MINH CITY UNIVERSITY OF TECHNOLOGY
-  ## FACULTY OF COMPUTER SCIENCE & ENGINEERING
-  
-  ### 📚 Capstone Project (Spring 2025)
-  ### 👨‍🏫 Mentor: Dr. Pham Quoc Cuong (HCMUT - VNU)
-</div>
-
-<br>
-
----
-
 # Heterogeneous Edge-AI Acceleration Platform on FPGA (Kria KV260)
 
 ## 🎯 Objectives
