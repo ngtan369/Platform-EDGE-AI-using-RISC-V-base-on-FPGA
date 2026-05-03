@@ -1,122 +1,225 @@
+"""
+ARM host controller — file-based binary classification on KV260.
+
+Pipeline:
+  1. Load bitstream + RISC-V firmware (vào I-BRAM Port B @ 0xA000_0000).
+  2. Đọc file ảnh từ SD card → resize 128×128 → quantize INT8 dùng
+     scale/zero_point từ <weights>.bin.meta.json (do training/main.py xuất).
+  3. Allocate DDR buffer (pynq.allocate, cache-coherent qua HPC0_FPD).
+  4. Ghi physical_address + dataset_id vào D-BRAM Port B @ 0xB004_0000.
+  5. Set CMD_START tại conv_cnn S00_AXI @ 0xB001_0000 (RISC-V poll bit này
+     qua D-BRAM ở cùng offset shared).
+  6. Poll STATUS đến DONE, đọc RESULT_CLASS, in label.
+
+Memory map khớp Vivado Address Editor sau khi fix validate (xem CLAUDE.md).
+"""
 import os
+import sys
+import json
 import time
+import argparse
 import numpy as np
-from pynq import Overlay, MMIO
+import cv2
+from pynq import Overlay, allocate
 
 # ==========================================
-# CẤU HÌNH HỆ THỐNG (Vivado Address Editor)
+# CẤU HÌNH (xem CLAUDE.md "Memory Map")
 # ==========================================
-BITSTREAM_FILE = "harvard_soc.bit"      # Tên file bitstream
-RISCV_FIRMWARE = "riscv_code.bin"       # File code C đã biên dịch của lõi RISC-V
-MODEL_WEIGHTS  = "vgg16_cats_dogs_int8.bin" # File INT8 bạn vừa train ở bước trước
+# Block names trong overlay — phải khớp tên trong Vivado Block Design
+BRAM_IBRAM_PORTB = "axi_bram_ctrl_2"   # ARM ghi firmware.bin vào đây
+BRAM_DBRAM_PORTB = "axi_bram_ctrl_3"   # ARM ↔ RISC-V shared regs
+CONV_CNN_BLOCK   = "conv_cnn_0"        # AXI-Lite control regs
 
-# Kích thước BRAM
-BRAM_SIZE = 65536 
-# Mailbox: 4 byte cuối cùng của D-BRAM
-MAILBOX_OFFSET = BRAM_SIZE - 4  
+# Shared D-BRAM register layout (phải khớp firmware/riscv/main.c)
+REG_CMD_FROM_ARM   = 0x00
+REG_STATUS_TO_ARM  = 0x04
+REG_DATASET_ID     = 0x08
+REG_RESULT_CLASS   = 0x0C
+REG_RESULT_CONF    = 0x10
+REG_IFM_PHYS_ADDR  = 0x18
+REG_OFM_PHYS_ADDR  = 0x1C
 
-# Mã trạng thái Mailbox (Giữa ARM và RISC-V)
-STATUS_IDLE       = 0x00000000
-STATUS_RISCV_DONE = 0x00001111
-STATUS_CNN_DONE   = 0x00003333
+# Cờ trạng thái
+CMD_START    = 0x01
+STATUS_IDLE  = 0x00
+STATUS_BUSY  = 0x01
+STATUS_DONE  = 0x02
 
-def load_bin_to_bram(bram_ctrl, filepath, offset=0):
-    """Hàm đọc file nhị phân và đẩy trực tiếp vào BRAM qua AXI"""
+POLL_TIMEOUT_S = 5.0    # tối đa chờ RISC-V
+
+
+# ==========================================
+# HELPERS
+# ==========================================
+def load_bin_to_bram(bram_ctrl, filepath: str, offset: int = 0):
+    """Ghi file nhị phân vào BRAM qua AXI BRAM Controller."""
     if not os.path.exists(filepath):
-        raise FileNotFoundError(f"[!] Không tìm thấy file: {filepath}")
-    
-    print(f"[*] Đang nạp {filepath} vào bộ nhớ...")
+        raise FileNotFoundError(filepath)
     with open(filepath, "rb") as f:
         data = f.read()
-        # Ghi từng chunk 4-byte (32-bit) vào BRAM
-        for i in range(0, len(data), 4):
-            chunk = data[i:i+4]
-            # Padding nếu file không chia hết cho 4
-            if len(chunk) < 4:
-                chunk += b'\x00' * (4 - len(chunk))
-            
-            # Convert bytes sang số nguyên 32-bit (Little Endian)
-            val = int.from_bytes(chunk, byteorder='little')
-            bram_ctrl.write(offset + i, val)
-    print(f"    -> Đã nạp xong {len(data)} bytes.")
+    if len(data) % 4 != 0:
+        data += b"\x00" * (4 - (len(data) % 4))
+    for i in range(0, len(data), 4):
+        val = int.from_bytes(data[i:i+4], byteorder="little")
+        bram_ctrl.write(offset + i, val)
+    print(f"[*] Loaded {filepath} ({len(data)} B) → BRAM @ +0x{offset:X}")
 
-# ==========================================
-# LUỒNG THỰC THI CHÍNH CỦA ARM (HOST PS)
-# ==========================================
-if __name__ == '__main__':
-    print("="*50)
-    print(" HỆ THỐNG EDGE AI: DUAL-CORE (ARM + RISC-V) ")
-    print("="*50)
 
-    # 1. NẠP BITSTREAM CHO FPGA (Cấu hình toàn bộ phần cứng)
-    print("\n[1] Đang nạp Bitstream cấu hình kiến trúc Harvard...")
-    overlay = Overlay(BITSTREAM_FILE)
-    
-    # 2. ÁNH XẠ BỘ NHỚ BRAM
-    # Lấy ra 2 khối AXI BRAM Controller đã cấu hình ở cổng A
-    # (Lưu ý: Tên biến phải khớp CỰC KỲ CHÍNH XÁC với tên khối trong Vivado Block Design)
-    i_bram = overlay.axi_bram_ctrl_0  # Instruction BRAM
-    d_bram = overlay.axi_bram_ctrl_1  # Data BRAM
+def load_quant_meta(weights_path: str) -> dict:
+    """Đọc <weights>.bin.meta.json do training/main.py xuất."""
+    meta_path = weights_path + ".meta.json"
+    if not os.path.exists(meta_path):
+        raise FileNotFoundError(
+            f"Thiếu metadata file: {meta_path}\n"
+            "Chạy lại training/main.py để xuất scale/zero_point."
+        )
+    with open(meta_path) as f:
+        return json.load(f)
 
-    # 3. NẠP DỮ LIỆU VÀO "TỦ 2 CỬA"
-    print("\n[2] Nạp Code Lệnh và Trọng số INT8...")
-    # Xóa sạch Mailbox trước khi chạy để tránh dính rác từ lần chạy trước
-    d_bram.write(MAILBOX_OFFSET, STATUS_IDLE)
-    
-    # Nạp code C của vi điều khiển vào I-BRAM
-    load_bin_to_bram(i_bram, RISCV_FIRMWARE, offset=0x0)
-    
-    # Nạp dữ liệu mô hình vào D-BRAM (Giả sử quy ước nhét ở địa chỉ offset 0x0000)
-    load_bin_to_bram(d_bram, MODEL_WEIGHTS, offset=0x0)
-    
-    # Tương tự, nếu có ảnh đầu vào (Input Image), bạn nạp vào một offset khác:
-    # load_bin_to_bram(d_bram, "cat_image_224x224.bin", offset=0x8000)
 
-    # 4. KÍCH HOẠT RISC-V (Bấm nút Start)
-    print("\n[3] Gửi tín hiệu Reset để đánh thức RISC-V...")
-    # Thông thường, bạn sẽ gán 1 cổng AXI GPIO vào chân `rst_ni` của RISC-V.
-    # Giả sử tên khối là axi_gpio_0, kênh 1.
-    if hasattr(overlay, 'axi_gpio_0'):
-        rst_gpio = overlay.axi_gpio_0.channel1
-        rst_gpio.write(0, 0x0) # Kéo xuống 0 (Giữ reset)
-        time.sleep(0.1)
-        rst_gpio.write(0, 0x1) # Kéo lên 1 (Nhả reset cho RISC-V chạy)
-    else:
-        print("    [!] Cảnh báo: Không tìm thấy khối GPIO điều khiển Reset RISC-V.")
+def preprocess_image(img_path: str, meta: dict) -> np.ndarray:
+    """
+    Đọc ảnh → resize → quantize INT8 theo input_scale/input_zero_point.
 
-    # 5. CHỜ THƯ BÁO CÁO TỪ RISC-V (Polling Mailbox)
-    print("\n[4] ARM đang chuyển sang chế độ ngủ chờ (Polling)...")
-    start_time = time.time()
-    
+    Trả về ndarray INT8 layout (H, W, C) đã sẵn sàng DMA.
+    """
+    if not os.path.exists(img_path):
+        raise FileNotFoundError(img_path)
+
+    bgr = cv2.imread(img_path, cv2.IMREAD_COLOR)
+    if bgr is None:
+        raise ValueError(f"cv2 không decode được ảnh: {img_path}")
+    rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+
+    H, W = meta["input"]["fpga_size"]
+    rgb = cv2.resize(rgb, (W, H), interpolation=cv2.INTER_AREA)
+
+    # Normalize giống lúc training (Keras applications: 0..1 hoặc preprocess riêng).
+    # Để generic, ta dùng 0..1 (chia 255). Nếu model dùng preprocess khác,
+    # đổi đoạn này theo `meta['model']`.
+    x_float = rgb.astype(np.float32) / 255.0
+
+    # Quantize: q = round(x / scale) - zero_point  (lưu ý dấu trừ — TFLite convention)
+    scale = meta["input"]["scale"]
+    zp    = meta["input"]["zero_point"]
+    q = np.round(x_float / scale) + zp
+    q = np.clip(q, -128, 127).astype(np.int8)
+
+    return q  # (H, W, 3) int8
+
+
+def poll_status(d_bram, expected: int, timeout_s: float):
+    """Spin-wait STATUS_TO_ARM == expected, hoặc raise TimeoutError."""
+    deadline = time.time() + timeout_s
     while True:
-        # Liên tục nhìn vào 4 byte cuối của D-BRAM
-        status = d_bram.read(MAILBOX_OFFSET)
-        
-        if status == STATUS_RISCV_DONE:
-            print("    -> RISC-V báo cáo: Khởi động thành công!")
-            # Xóa thư cũ để chờ thư mới
-            d_bram.write(MAILBOX_OFFSET, STATUS_IDLE) 
-            
-        elif status == STATUS_CNN_DONE:
-            end_time = time.time()
-            print(f"    -> RISC-V báo cáo: GIA TỐC CNN CHẠY XONG! (Mất {(end_time - start_time)*1000:.2f} ms)")
-            break # Thoát vòng lặp chờ
-            
-        time.sleep(0.001) # Nghỉ 1ms để tránh ARM bị quá tải CPU (100% load)
+        s = d_bram.read(REG_STATUS_TO_ARM)
+        if s == expected:
+            return
+        if time.time() > deadline:
+            raise TimeoutError(
+                f"RISC-V không phản hồi (status=0x{s:08X}, expected=0x{expected:08X})"
+            )
+        time.sleep(0.0005)
 
-    # 6. ĐỌC KẾT QUẢ VÀ HẬU XỬ LÝ (Post-processing)
-    print("\n[5] Đọc kết quả từ Data BRAM...")
-    # Giả sử kết quả (ví dụ 2 số nguyên đại diện cho % Chó/Mèo) nằm ở Offset 0x4000
-    RESULT_OFFSET = 0x4000
-    class_0_score = d_bram.read(RESULT_OFFSET)
-    class_1_score = d_bram.read(RESULT_OFFSET + 4)
-    
-    print(f"    Class 0 Score (Cat): {class_0_score}")
-    print(f"    Class 1 Score (Dog): {class_1_score}")
-    
-    if class_0_score > class_1_score:
-        print("\n=> This is cat")
+
+# ==========================================
+# MAIN
+# ==========================================
+def main():
+    p = argparse.ArgumentParser(description="Edge-AI ARM host controller (KV260)")
+    p.add_argument("--bitstream", required=True, help="Path tới .bit file")
+    p.add_argument("--firmware",  required=True, help="RISC-V firmware.bin")
+    p.add_argument("--weights",   required=True,
+                   help="<model>_<dataset>_int8.bin (cần có file .meta.json đi kèm)")
+    p.add_argument("--image",     required=True, help="Ảnh đầu vào (.jpg/.png)")
+    args = p.parse_args()
+
+    print("=" * 60)
+    print(" Edge-AI Classification — ARM host controller ")
+    print("=" * 60)
+
+    meta = load_quant_meta(args.weights)
+    labels      = meta["labels"]
+    dataset_id  = meta["dataset_id"]
+    print(f"[*] Model={meta['model']}  Dataset={meta['dataset']} (id={dataset_id})")
+    print(f"    Labels: {labels}")
+    print(f"    Input quant: scale={meta['input']['scale']:.6g}, zp={meta['input']['zero_point']}")
+
+    # 1. Load bitstream
+    print(f"\n[1] Loading bitstream {args.bitstream}")
+    overlay = Overlay(args.bitstream)
+
+    i_bram = getattr(overlay, BRAM_IBRAM_PORTB)
+    d_bram = getattr(overlay, BRAM_DBRAM_PORTB)
+    conv   = getattr(overlay, CONV_CNN_BLOCK)
+
+    # 2. Load RISC-V firmware vào I-BRAM Port B (RISC-V boot vector @ 0x0000_0000)
+    print(f"\n[2] Loading RISC-V firmware {args.firmware}")
+    # Clear shared regs trước khi RISC-V boot, để nó bắt đầu sạch
+    d_bram.write(REG_CMD_FROM_ARM,   0)
+    d_bram.write(REG_STATUS_TO_ARM,  STATUS_IDLE)
+    d_bram.write(REG_DATASET_ID,     0)
+    d_bram.write(REG_RESULT_CLASS,   0)
+    d_bram.write(REG_RESULT_CONF,    0)
+    d_bram.write(REG_IFM_PHYS_ADDR,  0)
+    d_bram.write(REG_OFM_PHYS_ADDR,  0)
+    load_bin_to_bram(i_bram, args.firmware, offset=0)
+
+    # (Tuỳ block design): nếu có axi_gpio_0 nối vào rst_ni của RISC-V, pulse reset.
+    # Nếu RISC-V chạy ngay khi BRAM có code thì có thể bỏ bước này.
+    if hasattr(overlay, "axi_gpio_0"):
+        rst = overlay.axi_gpio_0.channel1
+        rst.write(0, 0)
+        time.sleep(0.01)
+        rst.write(0, 1)
+        print("[*] RISC-V reset released")
     else:
-        print("\n=> This is dog")
-        
-    print("\n Run completed 100%!")
+        print("[*] Không có axi_gpio_0 — RISC-V tự chạy theo bitstream default")
+
+    # 3. Preprocess + allocate DDR buffer
+    print(f"\n[3] Preprocess image: {args.image}")
+    ifm_int8 = preprocess_image(args.image, meta)
+    print(f"    Output shape: {ifm_int8.shape} dtype={ifm_int8.dtype}")
+
+    ifm_buf = allocate(shape=ifm_int8.shape, dtype=np.int8)
+    ifm_buf[:] = ifm_int8
+    ifm_buf.flush()
+    print(f"    DDR phys addr = 0x{ifm_buf.physical_address:08X}, size={ifm_buf.nbytes} B")
+
+    # 4. Ghi shared regs cho RISC-V
+    d_bram.write(REG_DATASET_ID,    dataset_id)
+    d_bram.write(REG_IFM_PHYS_ADDR, ifm_buf.physical_address)
+    # OFM tuỳ chọn — chưa cấp nếu inference engine chưa cần
+
+    # 5. Kick — set CMD_START
+    print("\n[4] Kick RISC-V (CMD_START)")
+    start = time.perf_counter()
+    d_bram.write(REG_CMD_FROM_ARM, CMD_START)
+
+    # 6. Chờ DONE
+    try:
+        poll_status(d_bram, STATUS_DONE, POLL_TIMEOUT_S)
+    except TimeoutError as e:
+        print(f"[!] {e}")
+        ifm_buf.freebuffer()
+        sys.exit(1)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+
+    # 7. Đọc kết quả
+    cls  = d_bram.read(REG_RESULT_CLASS) & 0xFF
+    conf = d_bram.read(REG_RESULT_CONF)  & 0xFF
+    label = labels[cls] if cls < len(labels) else f"<unknown:{cls}>"
+    conf_pct = (conf / 127.0) * 100.0
+
+    print("\n" + "=" * 60)
+    print(f" Prediction: {label}  (class={cls}, confidence≈{conf_pct:.1f}%)")
+    print(f" Latency:    {elapsed_ms:.2f} ms")
+    print("=" * 60)
+
+    # Cleanup
+    d_bram.write(REG_CMD_FROM_ARM, 0)
+    ifm_buf.freebuffer()
+
+
+if __name__ == "__main__":
+    main()

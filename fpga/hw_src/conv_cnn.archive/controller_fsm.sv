@@ -1,4 +1,4 @@
-// Tên file: controller_fsm.sv
+// file: controller_fsm.sv
 // Chức năng: Điều phối luồng dữ liệu 4 vòng lặp (C_out, Y, X, C_in) cho Standard Convolution
 
 module controller_fsm (

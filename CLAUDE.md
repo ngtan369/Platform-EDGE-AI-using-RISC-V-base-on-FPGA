@@ -11,7 +11,8 @@ Heterogeneous Edge-AI Acceleration Platform targeting the Xilinx Kria KV260 (`xc
 ```
 training/        # Python — model training, INT8 quantization, C-header weight export
 fpga/
-  hw_src/        # SystemVerilog RTL — RISC-V wrapper, OBI→AXI bridge, CNN accelerator
+  hw_src/        # SystemVerilog RTL — RISC-V wrapper (riscv_top.sv), OBI→AXI bridge, axi_pkg/obi_pkg
+                 # NOTE: conv_cnn RTL ĐÃ chuyển vào ip_repo/conv_cnn_1_0/{hdl,src}/ (source-of-truth)
   cv32e40p/      # Git submodule — OpenHW RV32IMC core (https://github.com/ngtan369/cv32e40p)
   ip_repo/       # Packaged Vivado IPs (conv_cnn_1_0, riscv_axi_1_0)
   vivado_pj/     # Vivado project (open in GUI to synthesize/implement)
@@ -65,9 +66,20 @@ Open `fpga/vivado_pj/vivado_pj.xpr` in Vivado. Add sources from `fpga/hw_src/` a
 
 ### RTL Simulation
 Use Vivado's built-in simulator (xvlog/xsim) or ModelSim against the testbenches:
-- `fpga/hw_src/conv_cnn/tb_conv_core.sv`
-- `fpga/hw_src/conv_cnn/tb_conv_cnn.v`
+- `fpga/ip_repo/conv_cnn_1_0/src/tb_conv_cnn_v1_0.sv` — AXI-Lite control test (skeleton, doesn't verify datapath)
+- `fpga/ip_repo/conv_cnn_1_0/src/tb_conv_core.sv` — STALE: instantiates old port list, won't compile against current `conv_core.sv`
 - `fpga/cv32e40p/example_tb/` — reference bare-metal RISC-V test
+
+**Conv_CNN source-of-truth:** `fpga/ip_repo/conv_cnn_1_0/{hdl,src}/`
+- `hdl/` — AXI wrappers do Vivado IP Packager sinh: `conv_cnn_v1_0.v` (top), `conv_cnn_v1_0_S00_AXI.v`, `conv_cnn_v1_0_S00_AXIS.v`, `conv_cnn_v1_0_M00_AXIS.v`
+- `src/` — RTL datapath modules: `conv_core.sv`, `controller_fsm.sv`, `line_buffer.sv`, `window_3x3.sv`, `pe_mac.sv`, `max_pool.sv` + 2 testbenches
+
+**Workflow:** Tạo Vivado project riêng (RTL only) trỏ source vào `ip_repo/conv_cnn_1_0/{hdl,src}/`, sửa trực tiếp + simulate ở đó. Sau khi xong:
+1. Mở `ip_repo/conv_cnn_1_0` IP project → `Re-package IP` (bump version nếu đổi port).
+2. Trong `vivado_pj` BD project: `IP Catalog` → `Refresh` → nếu cần thì `Reports → Report IP Status → Upgrade Selected`.
+3. `Validate Design` → `Generate Bitstream`.
+
+> `fpga/hw_src/conv_cnn/` là bản backup cũ, **không còn edit**. Nếu drift so với `ip_repo/`, tin `ip_repo/`.
 
 ### Submodule Init
 ```bash
@@ -76,59 +88,270 @@ git submodule update --init
 
 ## Architecture
 
-### Data Flow (DDR + AXI-Stream + AXI-DMA)
-```
-Camera → ARM (main.py)
-  → preprocess INT8 image + load INT8 weights into PS-DDR
-  → set CMD_START at 0x40000000 (control register on conv_cnn S00_AXI)
+### Data Flow (DDR-centric: AXI-DMA via S_AXI_HPC0_FPD)
+> **Scope hiện tại:** Binary classification từ **file ảnh trên SD card** (chưa camera real-time).
+> Output: `class_id ∈ {0,1}` + confidence. INRIA → 0=no_person, 1=person; cats_dogs → 0=cat, 1=dog.
 
-RISC-V (main.c)
-  → polls CMD register
-  → programs axi_dma_0 (S_AXI_LITE) descriptors:
-       MM2S: DDR (image/weights/IFM) → M_AXIS_MM2S → conv_cnn S00_AXIS
-       S2MM: conv_cnn M00_AXIS       → S_AXIS_S2MM → DDR (OFM)
-  → starts conv_cnn (S00_AXI control), waits on irq or polls status
-  → loops layer-by-layer: re-program DMA, stream weights+IFM, collect OFM
-  → after final layer, writes bounding box / class to shared regs
-  → sets STATUS_DONE at 0x40000004
+```
+ARM (firmware/arm/main.py on Ubuntu KV260)
+  → đọc file .jpg/.png từ SD card (cv2.imread)
+  → resize 224×224 (training input) → 128×128 (FPGA input)
+  → quantize FP32/uint8 pixel → INT8:
+        q = round(x_float / input_scale) - input_zero_point
+     (input_scale, input_zero_point lấy từ TFLite metadata sau PTQ)
+  → cache-coherent DDR buffers via pynq.allocate (CMA region):
+        ifm_buf, weight_buf, ofm_buf  (each has .physical_address)
+  → ghi INT8 IFM vào ifm_buf, INT8 weights vào weight_buf
+  → ghi shared regs vào D-BRAM Port B (0xB0040000):
+        REG_DATASET_ID, REG_IFM_PHYS_ADDR, REG_OFM_PHYS_ADDR
+  → set CMD_START at conv_cnn S00_AXI (0xB0010000 — same offset PS & RISC-V view)
+
+RISC-V (main.c, executes from I-BRAM at 0x0000_0000)
+  → polls REG_CMD_FROM_ARM @ 0xB004_0000 / waits on IRQ
+  → reads ifm/weight physical addresses from D-BRAM Port A (0xB0040000)
+  → for each layer: program axi_dma_0 (S_AXI_LITE @ 0xB0000000) descriptors:
+       MM2S: DDR (ifm_phys / weight_phys) ─► M_AXIS_MM2S ─► conv_cnn S00_AXIS
+       S2MM: conv_cnn M00_AXIS ─► S_AXIS_S2MM ─► DDR (ofm_phys)
+       (cả hai DMA master đi qua smartconnect_1 → S_AXI_HPC0_FPD → DDR)
+  → kick conv_cnn (CNN_BASE_ADDR @ 0xB0010000), poll done bit
+  → loop layer-by-layer; layer cuối: argmax 2 logits → (class_id, confidence)
+  → ghi REG_RESULT_CLASS + REG_RESULT_CONFIDENCE vào D-BRAM
+  → set STATUS_DONE
 
 ARM
-  → reads result, draws OpenCV overlay
+  → đọc REG_RESULT_CLASS từ D-BRAM Port B, map sang label string:
+       INRIA: ["no_person", "person"][class_id]
+       cats_dogs: ["cat", "dog"][class_id]
+  → in ra console / overlay lên ảnh / log ra file
 ```
 
-### Block Design (Vivado, see `fpga/vivado_pj/`)
+**Phân biệt 2 loại quantization** (tránh nhầm lẫn):
+| Loại | Khi nào | Object | Ai làm |
+|------|--------|--------|--------|
+| Weight quantization | 1 lần, lúc PTQ trong `training/main.py` | FP32 weights → INT8 + scale/zp | Pipeline training, ghi vào `model_*.bin` / `model_data.h` |
+| Input quantization | **Mỗi frame** | uint8 pixel → INT8 dùng `input_scale`,`input_zero_point` | ARM, trước khi DMA |
+
+Có thể loại bỏ bước input quant ở ARM bằng cách **fuse vào layer đầu** trong `conv_cnn` (accept uint8, subtract zero_point trong PE) — đây là design choice hardware, hiện chưa làm.
+
+**Cache coherency:** S_AXI_HPC0_FPD is configured **coherent** (Smart Cache via CCI-400) — ARM writes via cached buffer, DMA reads see latest data without explicit `__clean_dcache()`. If switched to non-coherent HP0_FPD instead, software must flush ARM cache before each DMA kick.
+
+### Block Design (Vivado, see `fpga/vivado_pj/` and `fpga/schematic.png`)
 | IP | Role |
 |----|------|
-| `zynq_ultra_ps_e_0` | Zynq UltraScale+ PS — provides DDR, two `M_AXI_HPM*_FPD` ports for control, `S_AXI_HP*_FPD` for DMA back into DDR |
-| `riscv_top_0` | CV32E40P wrapper; `m_axi_instr` → instruction BRAM, `m_axi_data` → AXI interconnect (peripherals) |
-| `conv_cnn_0` (v1.1) | CNN accelerator. `S00_AXI` = control/status, `S00_AXIS` = IFM+weights stream in, `M00_AXIS` = OFM stream out, `irq` = done interrupt |
-| `axi_dma_0` | DDR ↔ AXI-Stream bridge. MM2S feeds conv_cnn; S2MM drains it |
-| `axi_bram_ctrl_0` + `blk_mem_gen_2` | RISC-V instruction memory (firmware.bin, 64 KB) |
-| `axi_bram_ctrl_1` + `blk_mem_gen_1` | Data scratchpad / RISC-V .data section |
+| `zynq_ultra_ps_e_0` | Zynq UltraScale+ PS. Master ports: `M_AXI_HPM0_FPD` (→ I-BRAM Port B for firmware reload), `M_AXI_HPM1_FPD` (→ DMA control + conv_cnn control + D-BRAM Port B). Slave port: `S_AXI_HPC0_FPD` (← AXI DMA reads/writes DDR, cache-coherent) |
+| `riscv_top_0` | CV32E40P wrapper; `m_axi_instr` → I-BRAM Port A, `m_axi_data` → D-BRAM Port A + DMA control + conv_cnn control |
+| `conv_cnn_0` (v1.1, Pre-Production) | CNN accelerator. `S00_AXI` = control/status, `S00_AXIS` = IFM+weights stream in, `M00_AXIS` = OFM stream out, `irq` = done interrupt |
+| `axi_dma_0` | DDR ↔ AXI-Stream bridge. MM2S reads IFM/weights from DDR → conv_cnn; S2MM writes OFM from conv_cnn → DDR. Both M_AXI ports route via `smartconnect_1` to `S_AXI_HPC0_FPD` |
+| `axi_bram_ctrl_0` (PortA) + `axi_bram_ctrl_2` (PortB) + `blk_mem_gen_2` | **I-BRAM dual-port**, 64 KB. Port A = RISC-V instr fetch, Port B = ARM firmware reload |
+| `axi_bram_ctrl_1` (PortA) + `axi_bram_ctrl_3` (PortB) + `blk_mem_gen_1` | **D-BRAM dual-port**, 256 KB. Port A = RISC-V data, Port B = ARM shared mem (handshake regs, layer descriptors, quant params) |
 | `axi_interconnect_0` | Routes PS + RISC-V control writes to peripherals |
-| `smartconnect_1` | High-throughput crossbar between DMA masters and PS HP ports (DDR access) |
+| `smartconnect_1` | Crossbar: DMA M_AXI_MM2S/S2MM ↔ `S_AXI_HPC0_FPD`; HPM1_FPD ↔ DMA control + conv_cnn control + D-BRAM Port B |
+
+#### BRAM Topology — Planned Dual-Port Upgrade
+Both BRAMs are physically dual-port (RAMB36 on Ultrascale+) but currently configured single-port. Planned upgrade:
+| BRAM | Size | Port A | Port B | Rationale |
+|------|------|--------|--------|-----------|
+| `blk_mem_gen_2` (I-BRAM) | 64 KB | RISC-V `m_axi_instr` | PS via M_AXI_HPM | ARM loads/reloads firmware.bin without halting RISC-V |
+| `blk_mem_gen_1` (D-BRAM) | 256 KB | RISC-V `m_axi_data` | PS via M_AXI_HPM | Zero-latency ARM↔RISC-V handshake; holds .data/.bss/stack + DMA descriptors + per-channel quant params cache |
+
+**Resource budget on KV260 (xck26, 144 RAMB36 = 648 KB total BRAM):**
+- I-BRAM 64 KB ≈ 16 RAMB36
+- D-BRAM 256 KB ≈ 64 RAMB36 (Vivado may map to URAM for blocks ≥ 32 KB)
+- Combined ≈ 56% of BRAM budget, leaving ~64 RAMB36 + all 64 URAMs for future weight buffer / line buffer expansion in conv_cnn IP
+
+Each upgraded BRAM needs **two** `axi_bram_ctrl` instances (one per port). Configure `blk_mem_gen` write mode to "Write First". Software must enforce coherency (separate write regions per master, or semaphore at fixed address).
 
 ### Key RTL Modules
 | File | Role |
 |------|------|
-| `hw_src/riscv_top.sv` | RISC-V core wrapper; exposes two AXI4-Lite master ports |
+| `hw_src/riscv_top.sv` | RISC-V core wrapper; exposes `m_axi_instr` + `m_axi_data` AXI4-Lite master ports |
 | `hw_src/obi_to_axi.sv` | Protocol bridge: CV32E40P OBI → AXI4-Lite |
-| `hw_src/conv_cnn/conv_core.sv` | CNN accelerator FSM; drives 9 MAC arrays |
-| `hw_src/conv_cnn/pe_mac.sv` | Single processing element with multiply-accumulate |
-| `hw_src/conv_cnn/line_buffer.sv` | Sliding-window line buffer feeding the 3×3 window |
+| `hw_src/axi_pkg.sv`, `hw_src/obi_pkg.sv` | Shared type/parameter packages |
+| `ip_repo/conv_cnn_1_0/src/conv_core.sv` | Top of accelerator: instantiates FSM + line_buffer + window_3x3 + 9 PE_MACs + adder tree + ReLU + max_pool, exposes AXI-Stream IO |
+| `ip_repo/conv_cnn_1_0/src/controller_fsm.sv` | 4-loop nested FSM (Cout → Y → X → Cin) driving `mac_en`, `acc_clear`, `bias_relu_en`, `out_valid`, `done` |
+| `ip_repo/conv_cnn_1_0/src/line_buffer.sv` | Configurable BRAM-backed 2-row buffer (MAX_WIDTH=256), produces 3-pixel column. `active_width` from S00_AXI register |
+| `ip_repo/conv_cnn_1_0/src/window_3x3.sv` | Shift register turning 3-pixel column into 3×3 window (9 INT8 pixels) |
+| `ip_repo/conv_cnn_1_0/src/pe_mac.sv` | Pipelined INT8×INT8 MAC with 32-bit accumulator (DSP48E2-mappable, MREG + PREG) |
+| `ip_repo/conv_cnn_1_0/src/max_pool.sv` | 2×2 stride-2 max pool, optional via `pool_en`, BRAM-backed row buffer |
+
+### Conv_CNN IP — Internal Datapath
+```
+S00_AXIS (IFM, INT8) ──► line_buffer ──► window_3x3 ──► 9× pe_mac ──► adder tree (32b)
+                                                              ▲
+                                                       w00..w22 (currently static input ports)
+
+  adder tree (32b) ──► [bias add — TODO] ──► ReLU + saturate INT8 ──► [max_pool 2×2] ──► M00_AXIS
+
+  controller_fsm: drives mac_en, acc_clear, bias_relu_en, out_valid based on (Cout, Y, X, Cin) counters
+  S00_AXI register file: start, num_cin, num_cout, active_width, pool_en, status
+```
+
+### Conv_CNN IP — Known Limitations / TODO
+The IP is in pre-production state. These are tracked issues, in priority order:
+
+**P0 — Functional bugs (datapath produces wrong output):**
+1. `s_ready = m_ready` in `conv_core.sv:39` bypasses FSM back-pressure → pipeline desync. Should be FSM-driven
+2. `controller_fsm` advances `cnt_cin` regardless of `s_valid` → MAC double-counts when stream stalls
+3. Adder tree `total_sum` registered in same `always_ff` as ReLU → 1-cycle stale comparison
+4. `window_3x3` doesn't clear at row boundary → garbage convolution at x=0,1 of every row
+5. When `pool_en=1`, FSM still uses full `active_width` instead of `active_width/2` for OFM size
+
+**P1 — Architectural gaps (needed for standard CNNs):**
+6. `num_cout` hardcoded to 1 in `conv_core.sv:50` — must wire from S00_AXI register
+7. No weight buffer / weight stream protocol — `w00..w22` are static input ports. Need internal BRAM + load path (header packet on S00_AXIS, separate AXIS, or AXI-Lite weight writes)
+8. No bias adder — `bias_relu_en` signal exists but datapath only ReLUs
+9. Requantization is unsigned 8-bit clip `[0,255]` — TFLite INT8 needs `saturate((sum * M) >> shift + zero_point)` to `[-128, 127]`
+10. No zero-padding logic — output spatial dims = (W−2)×(H−2)
+
+**P2 — Verification:**
+11. `tb_conv_core.sv` references obsolete port list (no AXIS, `rst` not `rst_n`); won't compile
+12. `tb_conv_cnn_v1_0.sv` only exercises AW/W AXI-Lite channels; doesn't inject S00_AXIS or check M00_AXIS
 
 ### Memory Map
-| Address | Owner | Purpose |
-|---------|-------|---------|
-| `0x00000000` | RISC-V | Instruction BRAM (firmware.bin, 64 KB) |
-| `0x40000000` | ARM↔RISC-V | conv_cnn control: CMD (start), STATUS, layer config |
-| `0x40000004` | RISC-V writes | Status (0=idle, 1=busy, 2=done) |
-| `0x40000008–0x14` | RISC-V writes | Bounding box / classification result |
-| `0x4xxx_xxxx` | RISC-V writes | axi_dma_0 S_AXI_LITE control (descriptor regs) |
-| PS-DDR (`0x000_xxxx_xxxx` HP-mapped) | ARM allocates | INT8 weights, IFM (input feature map), OFM (output feature map) — accessed by DMA, not by RISC-V directly |
+
+**RISC-V view (`m_axi_instr` + `m_axi_data`, 32-bit address):**
+| Address | Size | Slave | Purpose |
+|---------|------|-------|---------|
+| `0x0000_0000` | 64 KB | I-BRAM Port A (`axi_bram_ctrl_0`) | Instruction fetch — `.text`, `.rodata`. RISC-V boot vector |
+| `0xB000_0000` | 64 KB | `axi_dma_0/S_AXI_LITE` | DMA descriptor registers (MM2S_SA, MM2S_LENGTH, S2MM_DA, S2MM_LENGTH, CTRL/STATUS) |
+| `0xB001_0000` | 64 KB | `conv_cnn_0/S00_AXI` | conv_cnn control: CMD, STATUS, num_cin, num_cout, active_width, pool_en, BBox result regs |
+| `0xB004_0000` | 256 KB | D-BRAM Port A (`axi_bram_ctrl_1`) | `.data`, `.bss`, stack, shared handshake regs |
+
+> Note: RISC-V data peripherals/BRAM được đặt cùng dải `0xB0xx_xxxx` với PS view để cùng địa chỉ logic — ARM và RISC-V có thể trao đổi pointer/offset trực tiếp. I-BRAM phải ở `0x0` cho RISC-V boot vector.
+
+**PS view (ARM, via M_AXI_HPM0/HPM1_FPD):**
+| Address | Size | Slave | Purpose |
+|---------|------|-------|---------|
+| `0xA000_0000` | 64 KB | I-BRAM Port B (`axi_bram_ctrl_2`, HPM0) | ARM nạp/reload firmware.bin |
+| `0xB000_0000` | 64 KB | `axi_dma_0/S_AXI_LITE` (HPM1) | (Optional) ARM kicks DMA directly |
+| `0xB001_0000` | 64 KB | `conv_cnn_0/S00_AXI` (HPM1) | ARM writes CMD_START, reads STATUS/BBox |
+| `0xB004_0000` | 256 KB | D-BRAM Port B (`axi_bram_ctrl_3`, HPM1) | ARM ↔ RISC-V shared mem (layout chi tiết bên dưới) |
+
+**Shared D-BRAM register layout (offset từ `0xB0040000`):**
+| Offset | Size | Name | Direction | Mô tả |
+|--------|------|------|-----------|-------|
+| `+0x00` | 4 B | `CMD_FROM_ARM` | ARM → RISC-V | `0x01` = START, `0x00` = idle |
+| `+0x04` | 4 B | `STATUS_TO_ARM` | RISC-V → ARM | `0x00` IDLE / `0x01` BUSY / `0x02` DONE |
+| `+0x08` | 4 B | `DATASET_ID` | ARM → RISC-V | `0` = INRIA person, `1` = cats_dogs |
+| `+0x0C` | 4 B | `RESULT_CLASS` | RISC-V → ARM | argmax `∈ {0, 1}` |
+| `+0x10` | 4 B | `RESULT_CONF` | RISC-V → ARM | confidence Q1.7 (0..127) |
+| `+0x18` | 4 B | `IFM_PHYS_ADDR` | ARM → RISC-V | DDR phys addr của INT8 IFM (DMA source) |
+| `+0x1C` | 4 B | `OFM_PHYS_ADDR` | ARM → RISC-V | DDR phys addr cho OFM cuối (tuỳ chọn) |
+| `+0x20...` | — | layer descriptors / quant params cache | ARM → RISC-V | (TBD khi triển khai inference engine) |
+| `+0x3FFFC` | 4 B | `MAILBOX` | bidirectional | tuỳ chọn (debug ping) |
+
+
+**DMA view (`axi_dma_0/Data_MM2S` + `Data_S2MM`, via S_AXI_HPC0_FPD, cache-coherent):**
+| Address | Size | Slave | Purpose |
+|---------|------|-------|---------|
+| `0x0000_0000` | 2 GB | DDR_LOW (PS DDR controller) | IFM / weights / OFM buffers allocated by ARM (CMA / pynq.allocate) |
+
+Update both this table and `firmware/riscv/linked.ld` whenever Vivado Address Editor changes.
+
+### Block Design — Address Editor Validation Issues (RESOLVED)
+> **Trạng thái:** ✅ Đã fix (validate sạch, 0 errors / 0 critical warnings). Giữ section này để tham chiếu nếu lỗi tái diễn sau khi sửa BD.
+
+Trước khi fix, validate báo 2 errors + 4 critical warnings, đều xuất phát từ cùng 1 root cause: **SmartConnect đang định tuyến `axi_dma_0/Data_MM2S` và `Data_S2MM` đến `axi_bram_ctrl_1` (D-BRAM Port A)** thay vì chỉ tới DDR qua `S_AXI_HPC0_FPD`. Đồng thời `axi_bram_ctrl_3` (D-BRAM Port B) chưa được assign cho mọi master cần dùng nó.
+
+| # | Code | Diagnostic | Root cause |
+|---|------|-----------|-----------|
+| 1 | BD 41-1267 | `conv_cnn_0/S00_AXI` map ở `0xB001_0000` (PS) **và** `0x4001_0000` (RISC-V) | Cùng slave phải có cùng offset từ tất cả master AXI cùng đến nó |
+| 2 | BD 41-1267 | `axi_bram_ctrl_1/S_AXI/Mem0` map ở `0xB004_0000` (DMA MM2S) **và** `0x1000_0000` (RISC-V) | DMA không được phép thấy `axi_bram_ctrl_1` — đó là Port A của RISC-V, không phải shared mem |
+| 3 | BD 5-938 | Memory Depth fail cho `axi_bram_ctrl_1` (disjoint `{0x1000_0000, 0xB004_0000}`) | Hệ quả của #2 — Vivado không tính được depth khi 1 BRAM bị 2 đoạn rời |
+| 4 | BD 41-1356 | `axi_bram_ctrl_3/S_AXI/Mem0` chưa assign cho `riscv_top_0/m_axi_data` | RISC-V không cần ghi Port B → **Exclude** thay vì assign |
+| 5 | BD 41-1356 | `axi_bram_ctrl_3/S_AXI/Mem0` chưa assign cho `axi_dma_0/Data_S2MM` | DMA không được phép tới BRAM (đi DDR) → **Exclude** |
+| 6 | BD 41-1273 | `pre_propagate` TCL fail | Hệ quả của #1–5 |
+
+**Fix đã áp dụng (đã validate sạch):**
+1. **Đồng bộ offset RISC-V ↔ PS** (fix BD 41-1267): đổi RISC-V `m_axi_data` sang dải `0xB0xx_xxxx` để khớp PS:
+   - `axi_dma_0/S_AXI_LITE`: `0x4000_0000` → `0xB000_0000`
+   - `conv_cnn_0/S00_AXI`: `0x4001_0000` → `0xB001_0000`
+   - `axi_bram_ctrl_1/S_AXI`: `0x1000_0000` → `0xB004_0000`
+2. **Exclude DMA → BRAM** (fix BD 41-1267 #2 + BD 5-938): dưới `axi_dma_0/Data_MM2S` và `Data_S2MM` Exclude cả `axi_bram_ctrl_1/S_AXI` và `axi_bram_ctrl_3/S_AXI`. DMA giữ lại `HPC0_DDR_LOW` + `HPC0_QSPI` (+ `HPC0_LPS_OCM` cho S2MM).
+3. **Exclude `axi_bram_ctrl_3` khỏi RISC-V** (fix BD 41-1356): RISC-V chỉ ghi Port A; Port B là của ARM.
+4. **Đồng bộ linker + firmware base addresses**: cập nhật [firmware/riscv/linked.ld](firmware/riscv/linked.ld) (DRAM `ORIGIN` 0x10000000 → 0xB0040000) và bất kỳ `#define BASE_*` nào trong `firmware/riscv/`.
+
+**Lưu ý SmartConnect routing:** Nguyên nhân DMA từng "thấy" `axi_bram_ctrl_1` ở `0xB004_0000` là vì cả `axi_dma_0/M_AXI_MM2S/S2MM` và `M_AXI_HPM1_FPD` cùng đi vào `smartconnect_1`, mà SmartConnect mặc định cho phép mọi master tới mọi slave nó kết nối. Đã fix bằng Exclude trong Address Editor (cách (i)). Nếu sau này muốn dọn topology cho rõ ràng có thể tách 2 SmartConnect: một cho HPM1_FPD↔peripherals, một cho DMA↔HPC0_FPD.
 
 ### RISC-V BRAM Linker Layout (`firmware/riscv/linked.ld`)
-Origin `0x00000000`, 64 KB. Sections in order: `.text`, `.rodata`, `.data`, `.bss`, stack.
+Split layout (must match Vivado Address Editor):
+```
+MEMORY {
+    IRAM (rx)  : ORIGIN = 0x00000000, LENGTH = 64K    /* I-BRAM: .text, .rodata */
+    DRAM (rwx) : ORIGIN = 0xB0040000, LENGTH = 256K   /* D-BRAM: .data, .bss, stack */
+}
+```
+Stack top at `ORIGIN(DRAM) + LENGTH(DRAM)` = `0xB008_0000`.
+
+### Visual Memory Map (after BD fix)
+
+```
+RISC-V CV32E40P 32-bit address space (4 GB)
+─────────────────────────────────────────────────────────────────────────────
+0x0000_0000 ┌──────────────────────────┐  ┐
+            │  I-BRAM Port A (64 KB)   │  │ instr fetch (m_axi_instr)
+            │  axi_bram_ctrl_0         │  │ .text, .rodata, vectors
+0x0001_0000 ├──────────────────────────┤  ┘
+            │     ... unmapped ...     │
+0x2000_0000 ╞══════════════════════════╡  ┐
+            │  HPC0_DDR_LOW  (512 MB)  │  │ DMA target only
+            │  PS DDR — IFM/W/OFM      │  │ (RISC-V can read but rarely does)
+0x3FFF_FFFF ╞══════════════════════════╡  ┘
+            │     ... unmapped ...     │
+0xB000_0000 ╞══════════════════════════╡  ┐
+            │  axi_dma_0 S_AXI_LITE    │  │ DMA control regs
+            │             (64 KB)      │  │ MM2S_SA, S2MM_DA, CTRL/STATUS
+0xB001_0000 ├──────────────────────────┤  │ peripherals
+            │  conv_cnn_0 S00_AXI      │  │ via M_AXI_HPM1_FPD path
+            │             (64 KB)      │  │ CMD, STATUS, num_cin/cout, BBox
+0xB002_0000 ├──────────────────────────┤  │
+            │     ... gap ...          │  │
+0xB004_0000 ├──────────────────────────┤  │
+            │  D-BRAM Port A (256 KB)  │  │ data (m_axi_data)
+            │  axi_bram_ctrl_1         │  │ .data, .bss
+            │  ───── stack grows ↓ ──  │  │ stack top = 0xB008_0000
+0xB008_0000 ╞══════════════════════════╡  ┘
+            │     ... unmapped ...     │
+0xC000_0000 ╞══════════════════════════╡
+            │  HPC0_QSPI    (512 MB)   │  rarely used
+0xDFFF_FFFF ╞══════════════════════════╡
+0xFF00_0000 ╞══════════════════════════╡
+            │  HPC0_LPS_OCM  (16 MB)   │  rarely used
+0xFFFF_FFFF └──────────────────────────┘
+
+ARM PS view (`zynq_ultra_ps_e_0/Data`)
+─────────────────────────────────────────────────────────────────────────────
+0xA000_0000 ┌──────────────────────────┐  via M_AXI_HPM0_FPD
+            │  I-BRAM Port B (64 KB)   │  ARM ghi/reload firmware.bin
+            │  axi_bram_ctrl_2         │  → đẩy vào blk_mem_gen_2 Port B
+0xA000_FFFF └──────────────────────────┘
+0xB000_0000 ┌──────────────────────────┐  via M_AXI_HPM1_FPD → smartconnect_1
+            │  axi_dma_0 S_AXI_LITE    │  (optional) ARM kick DMA trực tiếp
+0xB001_0000 ├──────────────────────────┤
+            │  conv_cnn_0 S00_AXI      │  ARM ghi CMD_START, đọc STATUS/BBox
+0xB002_0000 ├──────────────────────────┤
+            │     ... gap ...          │
+0xB004_0000 ├──────────────────────────┤
+            │  D-BRAM Port B (256 KB)  │  ARM ↔ RISC-V shared mem
+            │  axi_bram_ctrl_3         │  layer descriptors, phys ptrs, results
+0xB008_0000 └──────────────────────────┘
+            (cùng địa chỉ logic như RISC-V Port A — tiện lock-step debug)
+
+DMA view (`axi_dma_0/Data_MM2S` + `Data_S2MM`, qua S_AXI_HPC0_FPD)
+─────────────────────────────────────────────────────────────────────────────
+Chỉ thấy DDR — KHÔNG thấy BRAM (đã Exclude):
+  0x2000_0000 — 0x3FFF_FFFF  HPC0_DDR_LOW   (IFM / weights / OFM buffers)
+  0xC000_0000 — 0xDFFF_FFFF  HPC0_QSPI      (ít dùng)
+  0xFF00_0000 — 0xFFFF_FFFF  HPC0_LPS_OCM   (ít dùng, S2MM only)
+
+Physical BRAM blocks (dual-port)
+─────────────────────────────────────────────────────────────────────────────
+blk_mem_gen_2 (I-BRAM, 64 KB)         blk_mem_gen_1 (D-BRAM, 256 KB)
+  Port A ← axi_bram_ctrl_0 (RISC-V)     Port A ← axi_bram_ctrl_1 (RISC-V)
+            @ 0x0000_0000                         @ 0xB004_0000
+  Port B ← axi_bram_ctrl_2 (ARM)        Port B ← axi_bram_ctrl_3 (ARM)
+            @ 0xA000_0000                         @ 0xB004_0000
+```
 
 ## On-Board Deployment (Kria KV260, Ubuntu 22.04)
 ```bash

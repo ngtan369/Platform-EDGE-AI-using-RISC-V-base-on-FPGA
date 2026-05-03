@@ -1,4 +1,5 @@
 import os
+import json
 import argparse
 import numpy as np
 import tensorflow as tf
@@ -67,27 +68,73 @@ def build_model(model_name, num_classes, input_shape=(224, 224, 3)):
 # ==========================================
 # 3. INT8 QUANTIZATION & EXPORT
 # ==========================================
-def export_to_int8(keras_model, output_path):
+def export_to_int8(keras_model, output_path, dataset_name, model_name, fpga_input_size=(128, 128)):
     """
     Quy trình PTQ: Lượng tử hóa mô hình xuống INT8 cho BRAM.
+
+    Xuất 2 file cạnh nhau:
+      <output_path>          : .bin TFLite INT8 model (weights + ops)
+      <output_path>.meta.json : input/output scale + zero_point + label map
+                                ARM đọc file này lúc runtime để quantize ảnh.
     """
     print("[*] Bắt đầu quá trình Lượng tử hóa Post-Training (PTQ) INT8...")
-    
+
     converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.representative_dataset = representative_data_gen
-    
+
     # Ép IO xuống INT8 để giao tiếp qua AXI không cần khối chuyển đổi Float
     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
     converter.inference_input_type = tf.int8
     converter.inference_output_type = tf.int8
-    
+
     tflite_quant_model = converter.convert()
-    
+
     with open(output_path, 'wb') as f:
         f.write(tflite_quant_model)
-    
     print(f"[+] DONE! File trọng số INT8 đã sẵn sàng tại: {output_path}")
+
+    # Trích xuất input/output quant params để ARM dùng runtime
+    interp = tf.lite.Interpreter(model_content=tflite_quant_model)
+    interp.allocate_tensors()
+    in_detail  = interp.get_input_details()[0]
+    out_detail = interp.get_output_details()[0]
+
+    in_scale,  in_zp  = in_detail['quantization']    # (scale: float, zp: int)
+    out_scale, out_zp = out_detail['quantization']
+
+    LABEL_MAPS = {
+        'inria':     ['no_person', 'person'],
+        'cats_dogs': ['cat', 'dog'],
+    }
+    DATASET_IDS = {'inria': 0, 'cats_dogs': 1}
+
+    meta = {
+        'model':      model_name,
+        'dataset':    dataset_name,
+        'dataset_id': DATASET_IDS[dataset_name],
+        'labels':     LABEL_MAPS[dataset_name],
+        'input': {
+            'shape':      list(in_detail['shape']),
+            'dtype':      str(np.dtype(in_detail['dtype'])),
+            'scale':      float(in_scale),
+            'zero_point': int(in_zp),
+            'fpga_size':  list(fpga_input_size),  # ARM resize tới size này trước khi quant
+        },
+        'output': {
+            'shape':      list(out_detail['shape']),
+            'dtype':      str(np.dtype(out_detail['dtype'])),
+            'scale':      float(out_scale),
+            'zero_point': int(out_zp),
+        },
+    }
+
+    meta_path = output_path + '.meta.json'
+    with open(meta_path, 'w') as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+    print(f"[+] Quant metadata: {meta_path}")
+    print(f"    input:  scale={in_scale:.6g}, zero_point={in_zp}")
+    print(f"    output: scale={out_scale:.6g}, zero_point={out_zp}")
 
 # ==========================================
 # MAIN EXECUTION FLOW
@@ -122,6 +169,8 @@ if __name__ == '__main__':
     
     # 3. Lượng tử hóa và Xuất file (Quy ước đặt tên: Model_Dataset_INT8.bin)
     export_filename = os.path.join(args.export_dir, f"{args.model}_{args.dataset}_int8.bin")
-    export_to_int8(model, export_filename)
+    export_to_int8(model, export_filename,
+                   dataset_name=args.dataset,
+                   model_name=args.model)
     
     print("\n[!!!] Pipeline hoàn tất. Bạn có thể copy file .bin vào thẻ nhớ cho SoC Zynq đọc!")

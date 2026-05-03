@@ -2,94 +2,104 @@
 #include "../training/model_data.h"
 
 // ==============================================================================
-// 1. BẢN ĐỒ BỘ NHỚ (MEMORY MAP) - ĐÃ NÂNG CẤP CHO BÀI TOÁN TỌA ĐỘ
+// 1. BẢN ĐỒ BỘ NHỚ (MEMORY MAP) - khớp Vivado Address Editor (post-fix)
 // ==============================================================================
-#define CAMERA_RAM_BASE   0x80000000 
-#define ARM_COMM_BASE     0x40000000 
+// D-BRAM Port A (256 KB) — shared với ARM qua Port B ở cùng offset 0xB004_0000.
+// ARM ghi vào Port B: dataset id, physical addr của IFM/W/OFM buffers trong DDR,
+// kết quả classification. RISC-V đọc/ghi qua Port A.
+#define ARM_COMM_BASE     0xB0040000
 
-// Lõi RISC-V tự quy ước:
-#define MAILBOX_ADDR 0x8000FFFC 
+// AXI peripherals (cùng offset trong PS view và RISC-V view)
+#define DMA_BASE          0xB0000000   // axi_dma_0/S_AXI_LITE — DMA descriptors
+#define CNN_BASE_ADDR     0xB0010000   // conv_cnn_0/S00_AXI
 
-// Khi RISC-V tính toán xong YOLO/ResNet, nó gửi thư:
-*(volatile uint32_t*)MAILBOX_ADDR = 0x1111; // 0x1111 mã hóa cho "Đã xong!"
+// Mailbox tuỳ chọn — đặt cuối D-BRAM shared
+#define MAILBOX_ADDR      (ARM_COMM_BASE + 0x3FFFC)   // 0xB007_FFFC
 
-// Các thanh ghi điều khiển hệ thống
-#define REG_CMD_FROM_ARM  (*(volatile uint32_t*)(ARM_COMM_BASE + 0x00))
-#define REG_STATUS_TO_ARM (*(volatile uint32_t*)(ARM_COMM_BASE + 0x04))
+// Pipeline (xem CLAUDE.md "Data Flow"):
+//   ARM đọc ảnh từ SD card → resize 128×128 → quantize INT8 (theo input_scale,
+//   input_zero_point từ TFLite metadata) → ghi vào DDR ifm_buf (pynq.allocate).
+//   ARM ghi ifm_phys + dataset_id vào D-BRAM, set CMD_START.
+//   RISC-V program DMA (DMA_BASE) → conv_cnn (CNN_BASE_ADDR) loop từng layer →
+//   argmax → ghi REG_RESULT_CLASS + REG_RESULT_CONFIDENCE → STATUS_DONE.
 
-// 4 THANH GHI MỚI CHỨA TỌA ĐỘ BẬC (BOUNDING BOX)
-// Lõi ARM sẽ đọc 4 thanh ghi này để vẽ khung bằng thư viện OpenCV
-#define REG_BBOX_XMIN     (*(volatile int32_t*)(ARM_COMM_BASE + 0x08))
-#define REG_BBOX_YMIN     (*(volatile int32_t*)(ARM_COMM_BASE + 0x0C))
-#define REG_BBOX_XMAX     (*(volatile int32_t*)(ARM_COMM_BASE + 0x10))
-#define REG_BBOX_YMAX     (*(volatile int32_t*)(ARM_COMM_BASE + 0x14))
+// ----- Shared D-BRAM register layout (offsets từ ARM_COMM_BASE) -----
+//  +0x00  CMD_FROM_ARM   uint32   (CMD_START / 0)
+//  +0x04  STATUS_TO_ARM  uint32   (IDLE / BUSY / DONE)
+//  +0x08  DATASET_ID     uint32   (0=INRIA person, 1=cats_dogs)
+//  +0x0C  RESULT_CLASS   uint32   (0 hoặc 1)
+//  +0x10  RESULT_CONF    uint32   (Q1.7 confidence sau softmax/argmax, 0..127)
+//  +0x18  IFM_PHYS_ADDR  uint32   (DDR physical addr cho DMA)
+//  +0x1C  OFM_PHYS_ADDR  uint32   (tuỳ chọn — buffer DDR cho output cuối)
+// ---------------------------------------------------------------------
 
-// Các cờ trạng thái (Flags)
+#define REG_CMD_FROM_ARM    (*(volatile uint32_t*)(ARM_COMM_BASE + 0x00))
+#define REG_STATUS_TO_ARM   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x04))
+#define REG_DATASET_ID      (*(volatile uint32_t*)(ARM_COMM_BASE + 0x08))
+#define REG_RESULT_CLASS    (*(volatile uint32_t*)(ARM_COMM_BASE + 0x0C))
+#define REG_RESULT_CONF     (*(volatile uint32_t*)(ARM_COMM_BASE + 0x10))
+#define REG_IFM_PHYS_ADDR   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x18))
+#define REG_OFM_PHYS_ADDR   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x1C))
+
+// Cờ trạng thái
 #define CMD_START         0x01
 #define STATUS_IDLE       0x00
 #define STATUS_BUSY       0x01
 #define STATUS_DONE       0x02
 
+// Dataset / class label mapping (ARM dùng cùng enum)
+#define DATASET_INRIA     0   // class 0 = no_person, 1 = person
+#define DATASET_CATS_DOGS 1   // class 0 = cat,        1 = dog
+
 // ==============================================================================
 // 2. TRIỂN KHAI CÁC HÀM CỐT LÕI
 // ==============================================================================
 
-#define CNN_BASE_ADDR 0x40000000 // Địa chỉ AXI của CNN trong tầm nhìn của RISC-V
-
 void run_cnn_layer(int width, int cin, int use_pool) {
-    // 1. Cấu hình kích thước ảnh (slv_reg0)
     *(volatile uint32_t*)(CNN_BASE_ADDR + 0) = width;
-    
-    // 2. Cấu hình số kênh (slv_reg3 - nếu bạn đã map chân này)
     *(volatile uint32_t*)(CNN_BASE_ADDR + 12) = cin;
 
-    // 3. Ra lệnh Start và bật Pool (slv_reg1)
-    // Giả sử bit 0 là start, bit 1 là pool_en
     uint32_t control = 0x01 | (use_pool << 1);
     *(volatile uint32_t*)(CNN_BASE_ADDR + 4) = control;
 
-    // 4. Đợi phần cứng báo Done (slv_reg2) thông qua Polling hoặc ngắt IRQ
-    while( (*(volatile uint32_t*)(CNN_BASE_ADDR + 8) & 0x01) == 0 );
+    while ((*(volatile uint32_t*)(CNN_BASE_ADDR + 8) & 0x01) == 0);
 }
 
 void initialize_model() {
     REG_STATUS_TO_ARM = STATUS_IDLE;
-    REG_BBOX_XMIN = 0;
-    REG_BBOX_YMIN = 0;
-    REG_BBOX_XMAX = 0;
-    REG_BBOX_YMAX = 0;
+    REG_RESULT_CLASS  = 0;
+    REG_RESULT_CONF   = 0;
 }
 
 void wait_for_input_data() {
     while (REG_CMD_FROM_ARM != CMD_START) {
-        // Chờ ARM ném ảnh vào RAM và ra lệnh Start
+        // Spin: chờ ARM ghi xong IFM vào DDR và set CMD_START
     }
     REG_STATUS_TO_ARM = STATUS_BUSY;
 }
 
-void run_inference(int8_t* image_pointer, int8_t* output_box) {
-    // --- NƠI RISC-V CÀY MA TRẬN ---
-    // Thuật toán mạng Neural Network tính toán ở đây
-    // ...
-    
-    // Giả lập AI đã tính xong và nhả ra 4 tọa độ INT8.
-    // (Vì sigmoid xuất ra dải 0 -> 1, khi lượng tử hóa sang INT8 nó sẽ nằm ở dải -128 đến 127)
-    // Ví dụ giả lập cái khung nằm ở giữa ảnh:
-    output_box[0] = -64;  // xmin (~0.25)
-    output_box[1] = -64;  // ymin (~0.25)
-    output_box[2] = 64;   // xmax (~0.75)
-    output_box[3] = 64;   // ymax (~0.75)
+// Chạy toàn bộ inference. ifm_phys = DDR address để DMA stream.
+// Trả về: class_id [0..1], confidence [0..127] (Q1.7).
+void run_inference(uint32_t ifm_phys, uint32_t* out_class, uint32_t* out_conf) {
+    // --- TODO: layer-by-layer driver ---
+    //   for each layer in model_data:
+    //     program DMA MM2S: src=ifm_phys (or intermediate OFM), len=...
+    //     program DMA S2MM: dst=ofm_phys, len=...
+    //     run_cnn_layer(width, cin, use_pool)
+    //     swap ifm_phys ↔ ofm_phys
+    //   final layer: argmax 2 logits → class_id, confidence
+    (void)ifm_phys;
+
+    // Giả lập kết quả tạm
+    *out_class = 1;     // ví dụ: phát hiện "person" / "dog"
+    *out_conf  = 96;    // ~0.75 ở thang Q1.7
 }
 
-void process_output(int8_t* predicted_box) {
-    // 1. Đẩy 4 tọa độ INT8 ra 4 thanh ghi AXI (ép kiểu lên 32-bit cho ARM dễ đọc)
-    REG_BBOX_XMIN = (int32_t)predicted_box[0];
-    REG_BBOX_YMIN = (int32_t)predicted_box[1];
-    REG_BBOX_XMAX = (int32_t)predicted_box[2];
-    REG_BBOX_YMAX = (int32_t)predicted_box[3];
-    
-    // 2. Xóa lệnh Start và phất cờ Done
-    REG_CMD_FROM_ARM = 0x00;
+void report_classification(uint32_t class_id, uint32_t confidence) {
+    REG_RESULT_CLASS  = class_id;
+    REG_RESULT_CONF   = confidence;
+
+    REG_CMD_FROM_ARM  = 0x00;
     REG_STATUS_TO_ARM = STATUS_DONE;
 }
 
@@ -98,15 +108,15 @@ void process_output(int8_t* predicted_box) {
 // ==============================================================================
 int main() {
     initialize_model();
-    int8_t* camera_buffer = (int8_t*)CAMERA_RAM_BASE;
-    int8_t bounding_box[4]; // Mảng chứa 4 kết quả từ AI
 
     while (1) {
         wait_for_input_data();
-        // Gọi AI bắt tọa độ
-        run_inference(camera_buffer, bounding_box);
-        // Gửi tọa độ lên cho "sếp" ARM vẽ khung
-        process_output(bounding_box);
+
+        uint32_t ifm_phys = REG_IFM_PHYS_ADDR;
+        uint32_t class_id = 0, confidence = 0;
+
+        run_inference(ifm_phys, &class_id, &confidence);
+        report_classification(class_id, confidence);
     }
     return 0;
 }

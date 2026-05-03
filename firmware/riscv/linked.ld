@@ -1,39 +1,56 @@
-/* Định nghĩa vùng nhớ BRAM */
+/* CV32E40P bare-metal linker script — split I/D BRAM layout
+ *
+ * Phải khớp với Vivado Address Editor:
+ *   IRAM  (axi_bram_ctrl_0, I-BRAM Port A) → 0x0000_0000, 64 KB   — instr fetch
+ *   DRAM  (axi_bram_ctrl_1, D-BRAM Port A) → 0xB004_0000, 256 KB  — data/stack
+ *
+ * Peripheral base (cho .c source, không phải linker):
+ *   axi_dma_0/S_AXI_LITE  = 0xB000_0000
+ *   conv_cnn_0/S00_AXI    = 0xB001_0000
+ */
+
 MEMORY
 {
-    ram (rwx) : ORIGIN = 0x00000000, LENGTH = 64K /* Tùy chỉnh theo size BRAM của bạn */
+    IRAM (rx)  : ORIGIN = 0x00000000, LENGTH = 64K
+    DRAM (rwx) : ORIGIN = 0xB0040000, LENGTH = 256K
 }
+
+ENTRY(_start)
 
 SECTIONS
 {
-    /* Lớp code thực thi */
     .text : {
         . = ALIGN(4);
-        *(.text.vectors) /* Vector bảng ngắt nằm đầu tiên */
+        *(.text.vectors)        /* reset/trap vectors first */
         *(.text*)
         . = ALIGN(4);
-    } > ram
+    } > IRAM
 
-    /* Dữ liệu hằng số (Trọng số AI nằm ở đây) */
     .rodata : {
         . = ALIGN(4);
         *(.rodata*)
         . = ALIGN(4);
-    } > ram
+    } > IRAM
 
-    /* Dữ liệu có giá trị khởi tạo */
     .data : {
         . = ALIGN(4);
+        _data_start = .;
         *(.data*)
         . = ALIGN(4);
-    } > ram
+        _data_end = .;
+    } > DRAM
 
-    /* Dữ liệu không khởi tạo (Biến tạm) */
     .bss : {
         . = ALIGN(4);
+        _bss_start = .;
         *(.bss*)
+        *(COMMON)
         . = ALIGN(4);
-    } > ram
+        _bss_end = .;
+    } > DRAM
 
-    _stack_top = ORIGIN(ram) + LENGTH(ram);
+    . = ALIGN(16);
+    _heap_start = .;
+
+    _stack_top = ORIGIN(DRAM) + LENGTH(DRAM);   /* 0xB008_0000 */
 }

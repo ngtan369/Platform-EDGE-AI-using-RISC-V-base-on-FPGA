@@ -1,11 +1,11 @@
 {
   "schema": "xilinx.com:schema:json_instance:1.0",
   "ip_inst": {
-    "xci_name": "kria_soc_axi_bram_ctrl_0_0",
-    "cell_name": "axi_bram_ctrl_0",
+    "xci_name": "kria_soc_axi_bram_ctrl_2_0",
+    "cell_name": "axi_bram_ctrl_2",
     "component_reference": "xilinx.com:ip:axi_bram_ctrl:4.1",
     "ip_revision": "13",
-    "gen_directory": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_axi_bram_ctrl_0_0",
+    "gen_directory": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_axi_bram_ctrl_2_0",
     "parameters": {
       "component_parameters": {
         "DATA_WIDTH": [ { "value": "32", "resolve_type": "user", "format": "long", "usage": "all" } ],
@@ -17,7 +17,7 @@
         "USE_ECC": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "FAULT_INJECT": [ { "value": "0", "resolve_type": "user", "format": "long", "enabled": false, "usage": "all" } ],
         "ECC_ONOFF_RESET_VALUE": [ { "value": "0", "resolve_type": "user", "format": "long", "enabled": false, "usage": "all" } ],
-        "Component_Name": [ { "value": "kria_soc_axi_bram_ctrl_0_0", "resolve_type": "user", "usage": "all" } ],
+        "Component_Name": [ { "value": "kria_soc_axi_bram_ctrl_2_0", "resolve_type": "user", "usage": "all" } ],
         "BMG_INSTANCE": [ { "value": "EXTERNAL", "value_permission": "bd", "resolve_type": "user", "usage": "all" } ],
         "MEM_DEPTH": [ { "value": "16384", "value_src": "propagated", "value_permission": "bd", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "READ_LATENCY": [ { "value": "1", "resolve_type": "user", "format": "long", "usage": "all" } ],
@@ -60,7 +60,7 @@
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
         "IPREVISION": [ { "value": "13" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_axi_bram_ctrl_0_0" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_axi_bram_ctrl_2_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "../../ipshared" } ],
         "SWVERSION": [ { "value": "2025.2.1" } ],
@@ -255,5 +255,5 @@
       }
     }
   },
-  "checksum": "022a506c"
+  "checksum": "16098e95"
 }
