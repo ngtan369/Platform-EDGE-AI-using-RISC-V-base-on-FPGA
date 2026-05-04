@@ -68,7 +68,7 @@ def load_meta(weights_path: str) -> dict:
     meta_path = weights_path + ".meta.json"
     if not os.path.exists(meta_path):
         raise FileNotFoundError(
-            f"Thiếu metadata: {meta_path}\nChạy lại training/main.py để xuất."
+            f"Thiếu metadata: {meta_path}\nChạy lại training/train.py để xuất."
         )
     with open(meta_path) as f:
         return json.load(f)

@@ -55,30 +55,29 @@ def representative_data_gen():
 # ============================================================================
 def build_vgg_tiny(num_classes, input_shape=(128, 128, 3)):
     """
-    Fully-convolutional Tiny-VGG cho FPGA accelerator chỉ hỗ trợ 3×3 + ReLU + maxpool.
-    Last layer là Conv 3×3 cout=num_classes (KHÔNG có Dense head) — ARM tự GAP + argmax
-    sau khi nhận OFM cuối từ DDR.
+    Fully-convolutional Tiny-VGG cho FPGA accelerator (v2.0 alpha = 3×3 stride 1 only).
+    KHÔNG có MaxPool — RTL v2.0 alpha chưa implement (deferred to Phase B as stride-2 conv).
+    Last layer là Conv 3×3 cout=num_classes (KHÔNG có Dense head) — ARM tự GAP + argmax.
 
-    Geometry với input 128×128 (valid padding, no padding zero):
+    Geometry với input 128×128 (valid padding, all stride 1):
        128×128×3 → conv 3×3 cout=8        → 126×126×8
-                 → conv 3×3 cout=16, pool → 62×62×16
-                 → conv 3×3 cout=32, pool → 30×30×32
-                 → conv 3×3 cout=64, pool → 14×14×64
-                 → conv 3×3 cout=N (no act) → 12×12×N    ← ARM GAP + argmax
-    Tổng: 5 conv layers (vừa với accelerator hiện tại sau P0+P1 fix).
+                 → conv 3×3 cout=16       → 124×124×16
+                 → conv 3×3 cout=32       → 122×122×32
+                 → conv 3×3 cout=64       → 120×120×64
+                 → conv 3×3 cout=N (no act) → 118×118×N    ← ARM GAP + argmax
+
+    Trade-off: feature maps lớn hơn (no spatial reduction qua maxpool) →
+    số cycle/inference tăng (~500 ms worst layer L3). Capstone Phase A vẫn chạy.
+    Phase B sẽ thay maxpool bằng stride-2 conv để khôi phục 30 ms target.
     """
     inputs = tf.keras.Input(shape=input_shape)
     x = layers.Conv2D(8,  3, activation='relu', padding='valid')(inputs)
     x = layers.Conv2D(16, 3, activation='relu', padding='valid')(x)
-    x = layers.MaxPooling2D(2)(x)
     x = layers.Conv2D(32, 3, activation='relu', padding='valid')(x)
-    x = layers.MaxPooling2D(2)(x)
     x = layers.Conv2D(64, 3, activation='relu', padding='valid')(x)
-    x = layers.MaxPooling2D(2)(x)
     # Final conv: no activation (logits), cout = num_classes — fully-conv head
     x = layers.Conv2D(num_classes, 3, activation=None, padding='valid')(x)
-    # GAP + softmax đặt ở "post-process" (ARM làm sau khi đọc DDR)
-    # Để TFLite biết đầu ra của graph, ta vẫn add GAP+softmax (ARM dùng GAP shape):
+    # GAP + softmax in TFLite graph (ARM fold these post-RTL)
     x = layers.GlobalAveragePooling2D()(x)
     outputs = layers.Softmax()(x)
     return models.Model(inputs, outputs, name='vgg_tiny')
@@ -319,7 +318,7 @@ def emit_layer_table(tflite_bytes: bytes,
         #ifndef LAYER_TABLE_H
         #define LAYER_TABLE_H
 
-        /* AUTO-GENERATED bởi training/main.py — DO NOT EDIT.
+        /* AUTO-GENERATED bởi training/train.py — DO NOT EDIT.
          * Re-generate sau mỗi lần re-train. */
 
         #include "layer_desc.h"

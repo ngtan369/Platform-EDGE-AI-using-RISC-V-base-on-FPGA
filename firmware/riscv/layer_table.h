@@ -4,7 +4,7 @@
 /* ============================================================================
  * STUB layer_table.h — manual placeholder để firmware compile được.
  *
- * Bước 3 (training/main.py emitter) sẽ overwrite file này bằng output thật từ
+ * Bước 3 (training/train.py emitter) sẽ overwrite file này bằng output thật từ
  * TFLite graph parse. Layer ở đây là 1 conv 3×3 dummy chỉ để link không thiếu
  * symbol — KHÔNG phản ánh model thật.
  * ============================================================================ */

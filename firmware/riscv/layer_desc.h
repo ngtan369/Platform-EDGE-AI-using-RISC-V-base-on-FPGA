@@ -7,7 +7,7 @@
  * layer_desc_t — contract giữa training compiler (Python) và RISC-V firmware.
  *
  * Pipeline:
- *   1. training/main.py parse TFLite graph → emit:
+ *   1. training/train.py parse TFLite graph → emit:
  *        - layer_table.h  : `const layer_desc_t LAYERS[]`
  *        - weights.bin    : INT8 weights + biases packed
  *   2. ARM load weights.bin vào DDR (pynq.allocate) → ghi DDR base phys addr

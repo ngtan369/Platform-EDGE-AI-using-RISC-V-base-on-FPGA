@@ -156,7 +156,7 @@ ARM
 **Phân biệt 2 loại quantization** (tránh nhầm lẫn):
 | Loại | Khi nào | Object | Ai làm |
 |------|--------|--------|--------|
-| Weight quantization | 1 lần, lúc PTQ trong `training/main.py` | FP32 weights → INT8 + scale/zp | Pipeline training, ghi vào `model_*.bin` / `model_data.h` |
+| Weight quantization | 1 lần, lúc PTQ trong `training/train.py` | FP32 weights → INT8 + scale/zp | Pipeline training, ghi vào `model_*.bin` / `model_data.h` |
 | Input quantization | **Mỗi frame** | uint8 pixel → INT8 dùng `input_scale`,`input_zero_point` | ARM, trước khi DMA |
 
 Có thể loại bỏ bước input quant ở ARM bằng cách **fuse vào layer đầu** trong `conv_cnn` (accept uint8, subtract zero_point trong PE) — đây là design choice hardware, hiện chưa làm.
@@ -202,38 +202,84 @@ Each upgraded BRAM needs **two** `axi_bram_ctrl` instances (one per port). Confi
 | `ip_repo/conv_cnn_1_0/src/pe_mac.sv` | Pipelined INT8×INT8 MAC with 32-bit accumulator (DSP48E2-mappable, MREG + PREG) |
 | `ip_repo/conv_cnn_1_0/src/max_pool.sv` | 2×2 stride-2 max pool, optional via `pool_en`, BRAM-backed row buffer |
 
-### Conv_CNN IP — Internal Datapath
+### Conv_CNN v2.0 — Architecture (in-progress redesign)
+
+> **Trạng thái**: v1.x (Sobel-only, port hardcode weights) đang được rewrite thành v2.0 — TFLite INT8 INT8 conv 3×3 đầy đủ.
+
+**v2.0 Datapath**:
 ```
-S00_AXIS (IFM, INT8) ──► line_buffer ──► window_3x3 ──► 9× pe_mac ──► adder tree (32b)
-                                                              ▲
-                                                       w00..w22 (currently static input ports)
-
-  adder tree (32b) ──► [bias add — TODO] ──► ReLU + saturate INT8 ──► [max_pool 2×2] ──► M00_AXIS
-
-  controller_fsm: drives mac_en, acc_clear, bias_relu_en, out_valid based on (Cout, Y, X, Cin) counters
-  S00_AXI register file: start, num_cin, num_cout, active_width, pool_en, status
+weights.bin (DDR) ──► AXIS prefix per-layer ──► weight_buf (BRAM)
+                                                      │ read by [cnt_cout, cnt_cin]
+                                                      │ filter[3×3], bias[int32]
+                                                      ▼
+ifm AXIS ──► line_buffer (2×MAX_W×cin BRAM) ──► window_3x3 (3×3×cin) ──► 9× pe_mac ──► adder tree
+                                                                                              │
+                                                                                              ▼ acc(int32)
+                                                                                       requantize.sv
+                                                                            (bias_add → ×M_q31 → >>shift → +zp → sat → [ReLU])
+                                                                                              │
+                                                                                              ▼
+                                                                                  [maxpool 2×2 optional]
+                                                                                              │
+                                                                                              ▼ ofm AXIS
 ```
 
-### Conv_CNN IP — Known Limitations / TODO
-The IP is in pre-production state. These are tracked issues, in priority order:
+**Dataflow** (3 vòng lặp lồng, all-serial):
+```
+load_weights_for_layer()                                  // 1 lần per layer
+for (y_in, x_in raster scan input pixel position):        // outer
+    for (cin_in 0..num_cin-1): receive 1 IFM sample       // channel-interleaved per pixel
+    if (x_in >= 2 && y_in >= 2):                          // window valid (VALID padding)
+        for (cnt_cout 0..num_cout-1):                     // middle
+            mac_clear; for (cnt_cin 0..num_cin-1) mac_enable   // inner: dot9
+            requant_in_valid; wait REQUANT_LATENCY; emit M_AXIS
+```
 
-**P0 — Functional bugs (datapath produces wrong output):**
-1. `s_ready = m_ready` in `conv_core.sv:39` bypasses FSM back-pressure → pipeline desync. Should be FSM-driven
-2. `controller_fsm` advances `cnt_cin` regardless of `s_valid` → MAC double-counts when stream stalls
-3. Adder tree `total_sum` registered in same `always_ff` as ReLU → 1-cycle stale comparison
-4. `window_3x3` doesn't clear at row boundary → garbage convolution at x=0,1 of every row
-5. When `pool_en=1`, FSM still uses full `active_width` instead of `active_width/2` for OFM size
+**Cycles per output pixel** ≈ `num_cout × (num_cin + REQUANT_LATENCY + 1_emit)`. Với vgg-tiny worst (L3, cin=32, cout=64): ~2300 cycles/pixel × 12544 pixel ≈ 290 ms tại 100 MHz. Khoảng ~30 fps cho 5 layer — đủ demo.
 
-**P1 — Architectural gaps (needed for standard CNNs):**
-6. `num_cout` hardcoded to 1 in `conv_core.sv:50` — must wire from S00_AXI register
-7. No weight buffer / weight stream protocol — `w00..w22` are static input ports. Need internal BRAM + load path (header packet on S00_AXIS, separate AXIS, or AXI-Lite weight writes)
-8. No bias adder — `bias_relu_en` signal exists but datapath only ReLUs
-9. Requantization is unsigned 8-bit clip `[0,255]` — TFLite INT8 needs `saturate((sum * M) >> shift + zero_point)` to `[-128, 127]`
-10. No zero-padding logic — output spatial dims = (W−2)×(H−2)
+**Tài nguyên KV260**:
+- 9 PE × 1 cin/cycle = 9 DSP (đã có)
+- weight_buf 36 KB ≈ 9 RAMB36, line_buffer 16 KB ≈ 4 RAMB36, requantize 64-bit barrel shifter ~1 DSP
+- Tổng: ≪ KV260 budget (144 RAMB, 1248 DSP) — còn vô số tài nguyên cho V3.0 parallel cout sau
 
-**P2 — Verification:**
-11. `tb_conv_core.sv` references obsolete port list (no AXIS, `rst` not `rst_n`); won't compile
-12. `tb_conv_cnn_v1_0.sv` only exercises AW/W AXI-Lite channels; doesn't inject S00_AXIS or check M00_AXIS
+### Conv_CNN v2.0 — S00_AXI register map (32-byte, 8 × 32-bit registers)
+
+| Offset | Name | RW | Layout |
+|--------|------|----|--------|
+| `0x00` | GEOMETRY | RW | `width[15:0]`, `height[31:16]` |
+| `0x04` | CTRL | RW | bit0=`start`, bit1=`pool_en`, bit2=`mode_load` (1=weight load, 0=infer), bit3=`has_relu` |
+| `0x08` | STATUS | RO | bit0=`done` |
+| `0x0C` | CHANNELS | RW | `num_cin[15:0]`, `num_cout[31:16]` |
+| `0x10` | M_Q31 | RW | `M_q31[30:0]` (Q31 multiplier, unsigned) |
+| `0x14` | SHIFT_ZP | RW | `shift[5:0]`, `output_zp[15:8]` (signed int8) |
+| `0x18..0x1C` | reserved | — | available for future fields |
+
+Per-layer programming sequence (RISC-V driver `process_one_layer()`):
+```
+1. Write GEOMETRY, CHANNELS, M_Q31, SHIFT_ZP                   (layer config)
+2. Write CTRL.mode_load=1, CTRL.start=1                        (load mode)
+3. Stream weights+biases to S00_AXIS via DMA                   (pre-loaded blob in DDR)
+4. Poll STATUS.done == 1, then CTRL.start=0, CTRL.mode_load=0  (load complete)
+5. Set CTRL.pool_en, CTRL.has_relu, CTRL.start=1               (infer mode)
+6. Stream IFM to S00_AXIS, OFM appears on M00_AXIS via DMA
+7. Poll STATUS.done == 1, then CTRL.start=0
+```
+
+### Conv_CNN v2.0 — File status
+
+| File | v1.x → v2.0 status |
+|------|------|
+| `src/conv_pkg.sv` | ✅ NEW — parameter package (MAX_WIDTH, MAX_CIN, MAX_COUT, widths, latencies) |
+| `src/requantize.sv` | ✅ NEW — TFLite INT8 requantize (bias + Q31 mul + shift + zp + saturate + ReLU), 3-stage pipelined |
+| `src/controller_fsm.sv` | ✅ REWRITE — 6 counters, 6 states; channel-interleaved per pixel + serial cnt_cout; outputs row_advance cho line_buffer |
+| `src/line_buffer.sv` | ✅ REWRITE — 2 BRAM bank × MAX_W × MAX_CIN, read-before-write, parity-toggled; 1-cycle BRAM read latency |
+| `src/window_3x3.sv` | ✅ REWRITE — 3×3×MAX_CIN register array, shift cols on `shift_cols`, combinational 9-pixel read theo `cnt_cin` |
+| `src/weight_buf.sv` | ✅ NEW — 9 BRAM × MAX_COUT × MAX_CIN INT8 weights + LUTRAM bias INT32; write port (caller load), read port `(r_cout, r_cin)` → 9 weights + bias 1-cycle latency |
+| `src/conv_core.sv` | ✅ REWRITE — top integration: load FSM (AXIS→weight_buf), infer FSM call, pipeline alignment registers, adder tree, requantize. ~270 LoC |
+| `src/pe_mac.sv` | ✅ KEEP — INT8×INT8 MAC pipelined (DSP48 mappable) |
+| `src/max_pool.sv` | ⚠️ UPDATE — fix output stride khi pool_en (P0.5) |
+| `hdl/conv_cnn_v1_0_S00_AXI.v` | ✅ EXTEND — bumped ADDR_WIDTH 4→5, slv_reg0..7 wired ra width/height/ctrl/status/num_cin-cout/M_q31/shift/zp |
+| `hdl/conv_cnn_v1_0.v` | ✅ REWRITE — top wrapper integrate new AXI register file + conv_core, remove hardcoded Sobel weights, AXIS data/8 byte truyền thẳng |
 
 ### Memory Map
 
@@ -389,7 +435,7 @@ blk_mem_gen_2 (I-BRAM, 64 KB)         blk_mem_gen_1 (D-BRAM, 256 KB)
 Architecture đã chọn (xem chi tiết ngữ cảnh trong các phần trước):
 
 ```
-LAYER 4 — TOOLCHAIN     training/main.py emit layer_table.h + weights.bin (Python, PC)
+LAYER 4 — TOOLCHAIN     training/train.py emit layer_table.h + weights.bin (Python, PC)
 LAYER 3 — HOST          firmware/arm/main.py: I/O, preprocess, argmax (Python, ARM Linux)
 LAYER 2 — ORCHESTRATOR  firmware/riscv/main.c: layer-by-layer DMA driver (bare-metal C)
 LAYER 1 — DATA PLANE    fpga/ip_repo/conv_cnn_1_0/: 3×3 conv + pool (RTL)
@@ -401,20 +447,43 @@ Trạng thái triển khai theo các bước (mỗi bước ≈ 1 commit):
 |------|-------|-----------|
 | 1 | **Layer 4 contract** — `firmware/riscv/layer_desc.h` định nghĩa `layer_desc_t` struct (geometry + quant params + DDR offsets) | ✅ Done |
 | 2 | **Layer 2 interpreter** — `main.c` refactor thành `process_one_layer()` driver, đọc `LAYERS[]`, ping-pong DDR buffer A/B; stub `layer_table.h` 1 layer dummy để compile | ✅ Done |
-| 3 | **Layer 4 emitter** — `training/main.py` parse TFLite Conv2D ops → emit `firmware/riscv/layer_table.h` + `<model>.weights.bin`; thêm `--model vgg-tiny` fully-conv 5 layers; ARM main.py allocate ping-pong + GAP/argmax từ DDR | ✅ Done |
-| 4 | RTL P0 #1 — fix `s_ready=m_ready` bypass back-pressure (`conv_core.sv:39`) | ⏳ |
-| 5 | RTL P0 #2 — FSM phải gate `cnt_cin` theo `s_valid` (controller_fsm.sv) | ⏳ |
-| 6 | RTL P0 #3 — adder tree không cùng `always_ff` với ReLU (timing bug) | ⏳ |
-| 7 | RTL P0 #4 — `window_3x3` clear ở row boundary | ⏳ |
-| 8 | RTL P0 #5 — FSM dùng `active_width/2` khi `pool_en=1` | ⏳ |
-| 9 | RTL P1.7 — **weight buffer** + load protocol (BRAM nội bộ, AXIS hoặc AXI-Lite) | ⏳ critical |
-| 10 | RTL P1.6 — wire `num_cout` từ S00_AXI register (slv_reg3) | ⏳ |
-| 11 | RTL P1.8 — **bias adder** trong datapath | ⏳ |
-| 12 | RTL P1.9 — đúng INT8 requantize: `saturate((sum*M)>>shift + zp)` ∈ [-128,127] | ⏳ |
-| 13 | RTL P1.10 — zero-padding option (`PAD_SAME`) | ⏳ |
-| 14 | P2 — viết testbench mới đúng port list (`tb_conv_core.sv`, `tb_conv_cnn_v1_0.sv`) | ⏳ |
-| 15 | End-to-end — Tiny-VGG cats_dogs, accuracy ≥ 80% trên test set, latency báo cáo | ⏳ goal |
-| 16 | Optimization — tăng PE từ 9 → 9×N (parallel cout) khi tài nguyên cho phép | ⏳ stretch |
+| 3 | **Layer 4 emitter** — `training/train.py` parse TFLite Conv2D ops → emit `firmware/riscv/layer_table.h` + `<model>.weights.bin`; thêm `--model vgg-tiny` fully-conv 5 layers; ARM main.py allocate ping-pong + GAP/argmax từ DDR | ✅ Done |
+| **4** | **Conv_CNN v2.0 rewrite** — coherent redesign (gộp các P0/P1 cũ vì interconnected) | 🔄 In progress |
+| 4a | `conv_pkg.sv` — parameter package (MAX_WIDTH/CIN/COUT, datatype widths, REQUANT_LATENCY) | ✅ |
+| 4b | `requantize.sv` — TFLite INT8 requantize (3-stage pipelined: bias add + Q31 mul + shift + zp + saturate + ReLU) | ✅ |
+| 4c | `controller_fsm.sv` rewrite — 6 nested counters, 6 states, channel-interleaved AXIS, serial cnt_cout | ✅ |
+| 4d | `line_buffer.sv` extend cho cin: 2×MAX_W×cin BRAM bank, read-before-write, parity toggle | ✅ |
+| 4e | `window_3x3.sv` extend: 3×3×cin reg array, shift cols on window_load_en, combinational read | ✅ |
+| 4f | `weight_buf.sv` NEW: storage 9-BRAM weights + LUTRAM bias, write/read port (load FSM ở conv_core) | ✅ |
+| 4g | `conv_core.sv` rewrite top: ráp tất cả module, AXIS load/infer demux, pipeline align + adder tree | ✅ |
+| 4h | S00_AXI extend slv_reg0..7 + top wrapper rewrite (remove Sobel hardcode, wire 12 cfg signals) | ✅ |
+| 4i | Re-package IP, update BD, regen bitstream + smoke test với Sobel-equivalent input | ⏳ |
+| 4j | Integrated testbench — TFLite golden vector compare (sai số ≤ 1 LSB) | ⏳ |
+| 5 | End-to-end — Tiny-VGG cats_dogs, accuracy ≥ 80% trên test set, latency báo cáo | ⏳ goal |
+| 6 | (Stretch B) — VGG11 + ResNet18 (cần thêm PAD_SAME + element-wise add unit) | ⏳ stretch |
+| 7 | Optimization — tăng PE từ 9 → 9×N (parallel cout) khi tài nguyên cho phép | ⏳ stretch |
+
+### Đường đi đề xuất (capstone scope, 10 tuần)
+
+```
+Phase A (tuần 1-6)  ━━━━━━ vgg-tiny end-to-end           ✅ doing now
+                            (binary classification, INRIA + cats_dogs)
+                              │
+Phase B (tuần 7-8)  ━━━━━━━ + VGG11 + ResNet18           Tier 2 ext
+                            (PAD_SAME, stride 2, skip add)
+                              │
+Phase C (tuần 9-10) ━━━━━━━ + ResNet50 + YOLOv3-Tiny     Tier 3 stretch
+                            (1×1 conv mode, leaky-ReLU, upsample)
+                              │
+                          ━━━━ STOP ━━━━
+                              │
+Future Work (post-capstone): MobileNet / EfficientNet / YOLO-Fastest
+                             (cần depthwise — datapath rework lớn, không demo)
+```
+
+**Tier 1 → 2 → 3 đều incremental** (không phá ABI v2.0): mỗi op mới = thêm enum value `activation_t` / `padding_t` / `kernel_size`, hoặc thêm 1 mode bit ở `conv_core` MUX. Layer table contract (`layer_desc.h`) đủ rộng cho cả 3 tier — không cần re-compile firmware/training pipeline khi thêm op.
+
+**Tier 4 (depthwise) là barrier**: dataflow ngược (mỗi cin → 1 output thay vì sum across cin) → cần MUX adder tree + FSM mode khác. Effort ~3-4 tuần RTL, vượt scope capstone. Ghi vào "Future Work" của report.
 
 **Anti-patterns đã loại trừ:**
 - KHÔNG cho RISC-V chạy CNN bằng software (không có FPU; verify bằng TFLite Interpreter ở PC).
