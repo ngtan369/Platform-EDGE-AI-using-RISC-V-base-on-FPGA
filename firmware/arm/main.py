@@ -3,13 +3,14 @@ ARM host controller — file-based binary classification on KV260.
 
 Pipeline:
   1. Load bitstream + RISC-V firmware (vào I-BRAM Port B @ 0xA000_0000).
-  2. Đọc file ảnh từ SD card → resize 128×128 → quantize INT8 dùng
-     scale/zero_point từ <weights>.bin.meta.json (do training/main.py xuất).
-  3. Allocate DDR buffer (pynq.allocate, cache-coherent qua HPC0_FPD).
-  4. Ghi physical_address + dataset_id vào D-BRAM Port B @ 0xB004_0000.
-  5. Set CMD_START tại conv_cnn S00_AXI @ 0xB001_0000 (RISC-V poll bit này
-     qua D-BRAM ở cùng offset shared).
-  6. Poll STATUS đến DONE, đọc RESULT_CLASS, in label.
+  2. Đọc <weights_blob>.weights.bin → DDR (pynq.allocate). Ghi phys addr vào
+     REG_WEIGHT_BASE @ +0x20.
+  3. Đọc file ảnh từ SD card → resize → quantize INT8 dùng meta.json.
+  4. Allocate 2 ping-pong DDR buffers (buf_a = preprocessed image, buf_b = scratch).
+     Ghi phys addr vào REG_IFM_PHYS_ADDR (+0x18) và REG_OFM_PHYS_ADDR (+0x1C).
+  5. Set CMD_START. RISC-V chạy layer-by-layer rồi STATUS_DONE.
+  6. ARM đọc OFM cuối từ buf_a hoặc buf_b (theo meta['fpga']['final_ofm_buf_idx']).
+  7. ARM làm GlobalAveragePool + argmax → in label.
 
 Memory map khớp Vivado Address Editor sau khi fix validate (xem CLAUDE.md).
 """
@@ -25,10 +26,8 @@ from pynq import Overlay, allocate
 # ==========================================
 # CẤU HÌNH (xem CLAUDE.md "Memory Map")
 # ==========================================
-# Block names trong overlay — phải khớp tên trong Vivado Block Design
 BRAM_IBRAM_PORTB = "axi_bram_ctrl_2"   # ARM ghi firmware.bin vào đây
 BRAM_DBRAM_PORTB = "axi_bram_ctrl_3"   # ARM ↔ RISC-V shared regs
-CONV_CNN_BLOCK   = "conv_cnn_0"        # AXI-Lite control regs
 
 # Shared D-BRAM register layout (phải khớp firmware/riscv/main.c)
 REG_CMD_FROM_ARM   = 0x00
@@ -38,6 +37,7 @@ REG_RESULT_CLASS   = 0x0C
 REG_RESULT_CONF    = 0x10
 REG_IFM_PHYS_ADDR  = 0x18
 REG_OFM_PHYS_ADDR  = 0x1C
+REG_WEIGHT_BASE    = 0x20
 
 # Cờ trạng thái
 CMD_START    = 0x01
@@ -45,14 +45,13 @@ STATUS_IDLE  = 0x00
 STATUS_BUSY  = 0x01
 STATUS_DONE  = 0x02
 
-POLL_TIMEOUT_S = 5.0    # tối đa chờ RISC-V
+POLL_TIMEOUT_S = 5.0
 
 
 # ==========================================
 # HELPERS
 # ==========================================
 def load_bin_to_bram(bram_ctrl, filepath: str, offset: int = 0):
-    """Ghi file nhị phân vào BRAM qua AXI BRAM Controller."""
     if not os.path.exists(filepath):
         raise FileNotFoundError(filepath)
     with open(filepath, "rb") as f:
@@ -65,27 +64,17 @@ def load_bin_to_bram(bram_ctrl, filepath: str, offset: int = 0):
     print(f"[*] Loaded {filepath} ({len(data)} B) → BRAM @ +0x{offset:X}")
 
 
-def load_quant_meta(weights_path: str) -> dict:
-    """Đọc <weights>.bin.meta.json do training/main.py xuất."""
+def load_meta(weights_path: str) -> dict:
     meta_path = weights_path + ".meta.json"
     if not os.path.exists(meta_path):
         raise FileNotFoundError(
-            f"Thiếu metadata file: {meta_path}\n"
-            "Chạy lại training/main.py để xuất scale/zero_point."
+            f"Thiếu metadata: {meta_path}\nChạy lại training/main.py để xuất."
         )
     with open(meta_path) as f:
         return json.load(f)
 
 
 def preprocess_image(img_path: str, meta: dict) -> np.ndarray:
-    """
-    Đọc ảnh → resize → quantize INT8 theo input_scale/input_zero_point.
-
-    Trả về ndarray INT8 layout (H, W, C) đã sẵn sàng DMA.
-    """
-    if not os.path.exists(img_path):
-        raise FileNotFoundError(img_path)
-
     bgr = cv2.imread(img_path, cv2.IMREAD_COLOR)
     if bgr is None:
         raise ValueError(f"cv2 không decode được ảnh: {img_path}")
@@ -94,22 +83,14 @@ def preprocess_image(img_path: str, meta: dict) -> np.ndarray:
     H, W = meta["input"]["fpga_size"]
     rgb = cv2.resize(rgb, (W, H), interpolation=cv2.INTER_AREA)
 
-    # Normalize giống lúc training (Keras applications: 0..1 hoặc preprocess riêng).
-    # Để generic, ta dùng 0..1 (chia 255). Nếu model dùng preprocess khác,
-    # đổi đoạn này theo `meta['model']`.
-    x_float = rgb.astype(np.float32) / 255.0
-
-    # Quantize: q = round(x / scale) - zero_point  (lưu ý dấu trừ — TFLite convention)
+    x = rgb.astype(np.float32) / 255.0
     scale = meta["input"]["scale"]
     zp    = meta["input"]["zero_point"]
-    q = np.round(x_float / scale) + zp
-    q = np.clip(q, -128, 127).astype(np.int8)
-
-    return q  # (H, W, 3) int8
+    q = np.round(x / scale) + zp
+    return np.clip(q, -128, 127).astype(np.int8)
 
 
 def poll_status(d_bram, expected: int, timeout_s: float):
-    """Spin-wait STATUS_TO_ARM == expected, hoặc raise TimeoutError."""
     deadline = time.time() + timeout_s
     while True:
         s = d_bram.read(REG_STATUS_TO_ARM)
@@ -122,15 +103,36 @@ def poll_status(d_bram, expected: int, timeout_s: float):
         time.sleep(0.0005)
 
 
+def gap_argmax(ofm_int8: np.ndarray, scale: float, zp: int):
+    """
+    GlobalAveragePool + argmax trên OFM tensor cuối (shape [H, W, C] hoặc [1, H, W, C]).
+    Convert INT8 → real value qua (q - zp) * scale rồi GAP qua trục H,W.
+    Trả về (class_id, confidence_pct).
+    """
+    if ofm_int8.ndim == 4:
+        ofm_int8 = ofm_int8[0]   # drop batch
+    real = (ofm_int8.astype(np.int32) - zp).astype(np.float32) * scale
+    logits = real.mean(axis=(0, 1))   # GAP → vector [C]
+    cls = int(np.argmax(logits))
+    # Softmax-ish confidence (numerically stable)
+    e = np.exp(logits - logits.max())
+    probs = e / e.sum()
+    return cls, float(probs[cls] * 100.0)
+
+
 # ==========================================
 # MAIN
 # ==========================================
 def main():
     p = argparse.ArgumentParser(description="Edge-AI ARM host controller (KV260)")
-    p.add_argument("--bitstream", required=True, help="Path tới .bit file")
+    p.add_argument("--bitstream", required=True)
     p.add_argument("--firmware",  required=True, help="RISC-V firmware.bin")
     p.add_argument("--weights",   required=True,
-                   help="<model>_<dataset>_int8.bin (cần có file .meta.json đi kèm)")
+                   help="<model>_<dataset>.weights.bin (cần file .meta.json đi kèm "
+                        "có tên là <model>_<dataset>_int8.bin.meta.json — nhưng cũng "
+                        "chấp nhận cùng prefix với --weights nếu match)")
+    p.add_argument("--meta",      required=False, default=None,
+                   help="Override meta.json path (default: derive from --weights)")
     p.add_argument("--image",     required=True, help="Ảnh đầu vào (.jpg/.png)")
     args = p.parse_args()
 
@@ -138,87 +140,117 @@ def main():
     print(" Edge-AI Classification — ARM host controller ")
     print("=" * 60)
 
-    meta = load_quant_meta(args.weights)
+    # Meta.json: training emit cạnh file tflite (..._int8.bin.meta.json), nhưng
+    # weights.bin là file riêng. Ưu tiên --meta nếu được chỉ định.
+    if args.meta:
+        meta_path = args.meta
+    else:
+        # Try <weights_prefix>_int8.bin.meta.json
+        prefix = args.weights.replace(".weights.bin", "")
+        candidate = prefix + "_int8.bin.meta.json"
+        meta_path = candidate if os.path.exists(candidate) else args.weights + ".meta.json"
+    if not os.path.exists(meta_path):
+        print(f"[!] Không tìm thấy meta.json (đã thử {meta_path})")
+        sys.exit(1)
+    with open(meta_path) as f:
+        meta = json.load(f)
+
     labels      = meta["labels"]
     dataset_id  = meta["dataset_id"]
+    fpga_meta   = meta["fpga"]
+    final_buf   = fpga_meta["final_ofm_buf_idx"]    # 0=buf_a, 1=buf_b
+    final_shape = fpga_meta["final_ofm_shape"]
+    final_scale = fpga_meta["final_ofm_scale"]
+    final_zp    = fpga_meta["final_ofm_zp"]
+    max_bytes   = fpga_meta["max_tensor_bytes"]
+
     print(f"[*] Model={meta['model']}  Dataset={meta['dataset']} (id={dataset_id})")
     print(f"    Labels: {labels}")
-    print(f"    Input quant: scale={meta['input']['scale']:.6g}, zp={meta['input']['zero_point']}")
+    print(f"    NUM_LAYERS={fpga_meta['num_layers']}  "
+          f"final OFM shape={final_shape} buf_idx={final_buf}")
 
-    # 1. Load bitstream
+    # ---- 1. Bitstream ----
     print(f"\n[1] Loading bitstream {args.bitstream}")
     overlay = Overlay(args.bitstream)
-
     i_bram = getattr(overlay, BRAM_IBRAM_PORTB)
     d_bram = getattr(overlay, BRAM_DBRAM_PORTB)
-    conv   = getattr(overlay, CONV_CNN_BLOCK)
 
-    # 2. Load RISC-V firmware vào I-BRAM Port B (RISC-V boot vector @ 0x0000_0000)
+    # ---- 2. Firmware + clear shared regs ----
     print(f"\n[2] Loading RISC-V firmware {args.firmware}")
-    # Clear shared regs trước khi RISC-V boot, để nó bắt đầu sạch
-    d_bram.write(REG_CMD_FROM_ARM,   0)
-    d_bram.write(REG_STATUS_TO_ARM,  STATUS_IDLE)
-    d_bram.write(REG_DATASET_ID,     0)
-    d_bram.write(REG_RESULT_CLASS,   0)
-    d_bram.write(REG_RESULT_CONF,    0)
-    d_bram.write(REG_IFM_PHYS_ADDR,  0)
-    d_bram.write(REG_OFM_PHYS_ADDR,  0)
+    for off in (REG_CMD_FROM_ARM, REG_STATUS_TO_ARM, REG_DATASET_ID,
+                REG_RESULT_CLASS, REG_RESULT_CONF,
+                REG_IFM_PHYS_ADDR, REG_OFM_PHYS_ADDR, REG_WEIGHT_BASE):
+        d_bram.write(off, 0)
     load_bin_to_bram(i_bram, args.firmware, offset=0)
 
-    # (Tuỳ block design): nếu có axi_gpio_0 nối vào rst_ni của RISC-V, pulse reset.
-    # Nếu RISC-V chạy ngay khi BRAM có code thì có thể bỏ bước này.
     if hasattr(overlay, "axi_gpio_0"):
         rst = overlay.axi_gpio_0.channel1
-        rst.write(0, 0)
-        time.sleep(0.01)
-        rst.write(0, 1)
+        rst.write(0, 0); time.sleep(0.01); rst.write(0, 1)
         print("[*] RISC-V reset released")
-    else:
-        print("[*] Không có axi_gpio_0 — RISC-V tự chạy theo bitstream default")
 
-    # 3. Preprocess + allocate DDR buffer
-    print(f"\n[3] Preprocess image: {args.image}")
+    # ---- 3. Weights blob → DDR ----
+    print(f"\n[3] Loading weights blob {args.weights}")
+    with open(args.weights, "rb") as f:
+        wbytes = f.read()
+    wbuf = allocate(shape=(len(wbytes),), dtype=np.uint8)
+    wbuf[:] = np.frombuffer(wbytes, dtype=np.uint8)
+    wbuf.flush()
+    print(f"    Weights: {len(wbytes)} B  phys=0x{wbuf.physical_address:08X}")
+    d_bram.write(REG_WEIGHT_BASE, wbuf.physical_address)
+
+    # ---- 4. Image preprocess + ping-pong buffers ----
+    print(f"\n[4] Preprocess image: {args.image}")
     ifm_int8 = preprocess_image(args.image, meta)
-    print(f"    Output shape: {ifm_int8.shape} dtype={ifm_int8.dtype}")
+    print(f"    Input: shape={ifm_int8.shape} dtype={ifm_int8.dtype}")
 
-    ifm_buf = allocate(shape=ifm_int8.shape, dtype=np.int8)
-    ifm_buf[:] = ifm_int8
-    ifm_buf.flush()
-    print(f"    DDR phys addr = 0x{ifm_buf.physical_address:08X}, size={ifm_buf.nbytes} B")
+    pp_size = max(max_bytes, int(np.prod(ifm_int8.shape)))
+    buf_a = allocate(shape=(pp_size,), dtype=np.int8)
+    buf_b = allocate(shape=(pp_size,), dtype=np.int8)
 
-    # 4. Ghi shared regs cho RISC-V
+    flat = ifm_int8.reshape(-1)
+    buf_a[:flat.size] = flat
+    buf_a.flush()
+    print(f"    buf_a (IFM):    phys=0x{buf_a.physical_address:08X}  size={pp_size} B")
+    print(f"    buf_b (scratch): phys=0x{buf_b.physical_address:08X}")
+
+    d_bram.write(REG_IFM_PHYS_ADDR, buf_a.physical_address)
+    d_bram.write(REG_OFM_PHYS_ADDR, buf_b.physical_address)
     d_bram.write(REG_DATASET_ID,    dataset_id)
-    d_bram.write(REG_IFM_PHYS_ADDR, ifm_buf.physical_address)
-    # OFM tuỳ chọn — chưa cấp nếu inference engine chưa cần
 
-    # 5. Kick — set CMD_START
-    print("\n[4] Kick RISC-V (CMD_START)")
+    # ---- 5. Kick + poll ----
+    print("\n[5] Kick RISC-V (CMD_START)")
     start = time.perf_counter()
     d_bram.write(REG_CMD_FROM_ARM, CMD_START)
-
-    # 6. Chờ DONE
     try:
         poll_status(d_bram, STATUS_DONE, POLL_TIMEOUT_S)
     except TimeoutError as e:
         print(f"[!] {e}")
-        ifm_buf.freebuffer()
+        for b in (wbuf, buf_a, buf_b): b.freebuffer()
         sys.exit(1)
-    elapsed_ms = (time.perf_counter() - start) * 1000
+    latency_ms = (time.perf_counter() - start) * 1000
 
-    # 7. Đọc kết quả
-    cls  = d_bram.read(REG_RESULT_CLASS) & 0xFF
-    conf = d_bram.read(REG_RESULT_CONF)  & 0xFF
+    # ---- 6. Đọc final OFM từ ping-pong buffer đúng ----
+    final_buf_obj = buf_a if final_buf == 0 else buf_b
+    final_buf_obj.invalidate()    # đảm bảo CPU đọc latest từ DDR
+
+    H, W, C = final_shape[-3:]    # shape có thể là [1,H,W,C] hoặc [H,W,C]
+    nbytes  = H * W * C
+    ofm_flat = np.frombuffer(final_buf_obj[:nbytes], dtype=np.int8)
+    ofm = ofm_flat.reshape(H, W, C)
+
+    # ---- 7. GAP + argmax ----
+    cls, conf_pct = gap_argmax(ofm, final_scale, final_zp)
     label = labels[cls] if cls < len(labels) else f"<unknown:{cls}>"
-    conf_pct = (conf / 127.0) * 100.0
 
     print("\n" + "=" * 60)
     print(f" Prediction: {label}  (class={cls}, confidence≈{conf_pct:.1f}%)")
-    print(f" Latency:    {elapsed_ms:.2f} ms")
+    print(f" Latency:    {latency_ms:.2f} ms")
     print("=" * 60)
 
     # Cleanup
     d_bram.write(REG_CMD_FROM_ARM, 0)
-    ifm_buf.freebuffer()
+    for b in (wbuf, buf_a, buf_b):
+        b.freebuffer()
 
 
 if __name__ == "__main__":

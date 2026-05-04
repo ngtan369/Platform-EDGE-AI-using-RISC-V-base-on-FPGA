@@ -30,15 +30,36 @@ cd training
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# CLI args: --model [vgg11|vgg16|resnet18|tiny-yolo|yolo-fastest|efficientnet-lite]
-#           --dataset [inria|cats_dogs]
-#           --epochs <int>          (default: 50)
+# CLI args: --model [vgg-tiny | vgg11 | vgg16 | resnet18 | tiny-yolo | yolo-fastest | efficientnet-lite]
+#           --dataset [inria | cats_dogs]
+#           --epochs <int>     (default: 10)
 #           --export_dir <path>     (default: ./export)
-python3 main.py --model resnet18 --dataset inria
+python3 main.py --model vgg-tiny --dataset cats_dogs
 
-# Output: ./export/{model}_{dataset}_int8.bin  (PTQ INT8, TFLite format)
-# Note: training uses 224×224 input; FPGA inference uses 128×128 (resize on ARM before write to BRAM)
+# Output:
+#   ./export/vgg-tiny_cats_dogs_int8.bin               (TFLite reference)
+#   ./export/vgg-tiny_cats_dogs_int8.bin.meta.json     (ARM runtime metadata)
+#   ./export/vgg-tiny_cats_dogs.weights.bin            (INT8 weights blob — DDR loadable)
+#   ../firmware/riscv/layer_table.h                    (overwrites stub — re-build firmware!)
+#
+# Note: training input là 128×128 cho vgg-tiny (khớp FPGA pipeline).
+#       Các model legacy (vgg16/resnet18/...) train 224×224 NHƯNG export sang
+#       layer_table.h sẽ FAIL — chứa op chưa hỗ trợ (1×1, DW, residual, BN, ...).
 ```
+
+#### Khuyến nghị model: `vgg-tiny` (fully-convolutional)
+```
+Input 128×128×3
+├─ Conv 3×3, cout=8,  ReLU         → 126×126×8
+├─ Conv 3×3, cout=16, ReLU + Pool  → 62×62×16
+├─ Conv 3×3, cout=32, ReLU + Pool  → 30×30×32
+├─ Conv 3×3, cout=64, ReLU + Pool  → 14×14×64
+└─ Conv 3×3, cout=N (no act)       → 12×12×N    (N = num_classes = 2)
+                                     ↑
+                       ARM đọc OFM cuối → GAP → softmax → argmax
+```
+- Không có Dense head — last conv `cout=num_classes`, ARM tự GAP+argmax (giảm ops cần FPGA hỗ trợ).
+- 5 conv layer, ~30K params INT8, fits dễ trong DDR.
 
 #### Supported Models
 | Model | Backbone | Task |
@@ -380,7 +401,7 @@ Trạng thái triển khai theo các bước (mỗi bước ≈ 1 commit):
 |------|-------|-----------|
 | 1 | **Layer 4 contract** — `firmware/riscv/layer_desc.h` định nghĩa `layer_desc_t` struct (geometry + quant params + DDR offsets) | ✅ Done |
 | 2 | **Layer 2 interpreter** — `main.c` refactor thành `process_one_layer()` driver, đọc `LAYERS[]`, ping-pong DDR buffer A/B; stub `layer_table.h` 1 layer dummy để compile | ✅ Done |
-| 3 | **Layer 4 emitter** — `training/main.py` parse TFLite graph → emit `layer_table.h` + `weights.bin`; thêm `--model vgg-tiny` (5–7 layer 3×3) thay VGG16/ResNet50V2 | ⏳ Next |
+| 3 | **Layer 4 emitter** — `training/main.py` parse TFLite Conv2D ops → emit `firmware/riscv/layer_table.h` + `<model>.weights.bin`; thêm `--model vgg-tiny` fully-conv 5 layers; ARM main.py allocate ping-pong + GAP/argmax từ DDR | ✅ Done |
 | 4 | RTL P0 #1 — fix `s_ready=m_ready` bypass back-pressure (`conv_core.sv:39`) | ⏳ |
 | 5 | RTL P0 #2 — FSM phải gate `cnt_cin` theo `s_valid` (controller_fsm.sv) | ⏳ |
 | 6 | RTL P0 #3 — adder tree không cùng `always_ff` với ReLU (timing bug) | ⏳ |

@@ -21,17 +21,16 @@
  * load runtime nên không cần re-compile.
  * ============================================================================ */
 
-typedef enum : uint8_t {
-    ACT_NONE  = 0,
-    ACT_RELU  = 1,
-    ACT_RELU6 = 2,
-    /* future: leaky-relu, hard-swish, sigmoid */
-} activation_t;
+/* Dùng typedef + #define thay vì `enum : uint8_t` (C23/GNU only) cho portable */
+typedef uint8_t activation_t;
+#define ACT_NONE   ((activation_t)0)
+#define ACT_RELU   ((activation_t)1)
+#define ACT_RELU6  ((activation_t)2)
+/* future: leaky-relu, hard-swish, sigmoid */
 
-typedef enum : uint8_t {
-    PAD_VALID = 0,   /* output = (W − k + 1) */
-    PAD_SAME  = 1,   /* zero-pad để giữ W */
-} padding_t;
+typedef uint8_t padding_t;
+#define PAD_VALID  ((padding_t)0)   /* output = (W − k + 1) */
+#define PAD_SAME   ((padding_t)1)   /* zero-pad để giữ W */
 
 typedef struct __attribute__((packed)) {
     /* ---- DDR offsets (ARM cộng DDR base → physical addr) ---- */
