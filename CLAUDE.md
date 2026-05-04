@@ -108,18 +108,25 @@ ARM (firmware/arm/main.py on Ubuntu KV260)
 
 RISC-V (main.c, executes from I-BRAM at 0x0000_0000)
   → polls REG_CMD_FROM_ARM @ 0xB004_0000 / waits on IRQ
-  → reads ifm/weight physical addresses from D-BRAM Port A (0xB0040000)
-  → for each layer: program axi_dma_0 (S_AXI_LITE @ 0xB0000000) descriptors:
-       MM2S: DDR (ifm_phys / weight_phys) ─► M_AXIS_MM2S ─► conv_cnn S00_AXIS
-       S2MM: conv_cnn M00_AXIS ─► S_AXIS_S2MM ─► DDR (ofm_phys)
-       (cả hai DMA master đi qua smartconnect_1 → S_AXI_HPC0_FPD → DDR)
-  → kick conv_cnn (CNN_BASE_ADDR @ 0xB0010000), poll done bit
-  → loop layer-by-layer; layer cuối: argmax 2 logits → (class_id, confidence)
-  → ghi REG_RESULT_CLASS + REG_RESULT_CONFIDENCE vào D-BRAM
-  → set STATUS_DONE
+  → reads buf_a (REG_IFM_PHYS_ADDR), buf_b (REG_OFM_PHYS_ADDR), weight_base
+  → for i in 0..NUM_LAYERS-1:
+        L = &LAYERS[i]                            (compiled-in layer descriptor)
+        in  = (i & 1) ? buf_b : buf_a             (ping-pong DDR scratch)
+        out = (i & 1) ? buf_a : buf_b
+        program axi_dma_0:
+            MM2S: DDR (in)  ─► conv_cnn S00_AXIS
+            S2MM: conv_cnn M00_AXIS ─► DDR (out)
+        configure conv_cnn S00_AXI (active_width, pool_en, …)
+        kick start, poll done
+        (TODO P1.7: stream weights = weight_base + L->weight_offset trước IFM)
+  → set STATUS_DONE  (RISC-V không đọc DDR được — ARM tự argmax)
+
+ARM (sau STATUS_DONE)
+  → đọc OFM cuối từ DDR (buf_a nếu NUM_LAYERS chẵn, buf_b nếu lẻ)
+  → np.argmax 2 logits → (class_id, confidence)
 
 ARM
-  → đọc REG_RESULT_CLASS từ D-BRAM Port B, map sang label string:
+  → map class_id sang label string:
        INRIA: ["no_person", "person"][class_id]
        cats_dogs: ["cat", "dog"][class_id]
   → in ra console / overlay lên ảnh / log ra file
@@ -235,10 +242,13 @@ The IP is in pre-production state. These are tracked issues, in priority order:
 | `+0x08` | 4 B | `DATASET_ID` | ARM → RISC-V | `0` = INRIA person, `1` = cats_dogs |
 | `+0x0C` | 4 B | `RESULT_CLASS` | RISC-V → ARM | argmax `∈ {0, 1}` |
 | `+0x10` | 4 B | `RESULT_CONF` | RISC-V → ARM | confidence Q1.7 (0..127) |
-| `+0x18` | 4 B | `IFM_PHYS_ADDR` | ARM → RISC-V | DDR phys addr của INT8 IFM (DMA source) |
-| `+0x1C` | 4 B | `OFM_PHYS_ADDR` | ARM → RISC-V | DDR phys addr cho OFM cuối (tuỳ chọn) |
-| `+0x20...` | — | layer descriptors / quant params cache | ARM → RISC-V | (TBD khi triển khai inference engine) |
+| `+0x18` | 4 B | `IFM_PHYS_ADDR` | ARM → RISC-V | DDR phys addr buffer A (input ảnh, dùng làm scratch ping-pong) |
+| `+0x1C` | 4 B | `OFM_PHYS_ADDR` | ARM → RISC-V | DDR phys addr buffer B (scratch ping-pong / final output) |
+| `+0x20` | 4 B | `WEIGHT_BASE` | ARM → RISC-V | DDR phys addr của weights blob (`weights.bin`); RISC-V cộng `LAYERS[i].weight_offset` ra phys addr per layer |
+| `+0x24...` | — | (reserved) | — | dành cho mở rộng (per-layer scratch override, IRQ mailbox, …) |
 | `+0x3FFFC` | 4 B | `MAILBOX` | bidirectional | tuỳ chọn (debug ping) |
+
+**Layer table:** `LAYERS[]` (mảng `layer_desc_t`) hiện được **link-compile vào RISC-V firmware** (read-only, nằm trong `.rodata` ở I-BRAM). Đổi model ⇒ re-train + re-emit `firmware/riscv/layer_table.h` + re-compile firmware. Tương lai có thể đẩy `LAYERS[]` ra D-BRAM để đổi model không cần re-compile.
 
 
 **DMA view (`axi_dma_0/Data_MM2S` + `Data_S2MM`, via S_AXI_HPC0_FPD, cache-coherent):**
@@ -352,6 +362,45 @@ blk_mem_gen_2 (I-BRAM, 64 KB)         blk_mem_gen_1 (D-BRAM, 256 KB)
   Port B ← axi_bram_ctrl_2 (ARM)        Port B ← axi_bram_ctrl_3 (ARM)
             @ 0xA000_0000                         @ 0xB004_0000
 ```
+
+## Build Plan / Roadmap
+
+Architecture đã chọn (xem chi tiết ngữ cảnh trong các phần trước):
+
+```
+LAYER 4 — TOOLCHAIN     training/main.py emit layer_table.h + weights.bin (Python, PC)
+LAYER 3 — HOST          firmware/arm/main.py: I/O, preprocess, argmax (Python, ARM Linux)
+LAYER 2 — ORCHESTRATOR  firmware/riscv/main.c: layer-by-layer DMA driver (bare-metal C)
+LAYER 1 — DATA PLANE    fpga/ip_repo/conv_cnn_1_0/: 3×3 conv + pool (RTL)
+```
+
+Trạng thái triển khai theo các bước (mỗi bước ≈ 1 commit):
+
+| Bước | Mô tả | Trạng thái |
+|------|-------|-----------|
+| 1 | **Layer 4 contract** — `firmware/riscv/layer_desc.h` định nghĩa `layer_desc_t` struct (geometry + quant params + DDR offsets) | ✅ Done |
+| 2 | **Layer 2 interpreter** — `main.c` refactor thành `process_one_layer()` driver, đọc `LAYERS[]`, ping-pong DDR buffer A/B; stub `layer_table.h` 1 layer dummy để compile | ✅ Done |
+| 3 | **Layer 4 emitter** — `training/main.py` parse TFLite graph → emit `layer_table.h` + `weights.bin`; thêm `--model vgg-tiny` (5–7 layer 3×3) thay VGG16/ResNet50V2 | ⏳ Next |
+| 4 | RTL P0 #1 — fix `s_ready=m_ready` bypass back-pressure (`conv_core.sv:39`) | ⏳ |
+| 5 | RTL P0 #2 — FSM phải gate `cnt_cin` theo `s_valid` (controller_fsm.sv) | ⏳ |
+| 6 | RTL P0 #3 — adder tree không cùng `always_ff` với ReLU (timing bug) | ⏳ |
+| 7 | RTL P0 #4 — `window_3x3` clear ở row boundary | ⏳ |
+| 8 | RTL P0 #5 — FSM dùng `active_width/2` khi `pool_en=1` | ⏳ |
+| 9 | RTL P1.7 — **weight buffer** + load protocol (BRAM nội bộ, AXIS hoặc AXI-Lite) | ⏳ critical |
+| 10 | RTL P1.6 — wire `num_cout` từ S00_AXI register (slv_reg3) | ⏳ |
+| 11 | RTL P1.8 — **bias adder** trong datapath | ⏳ |
+| 12 | RTL P1.9 — đúng INT8 requantize: `saturate((sum*M)>>shift + zp)` ∈ [-128,127] | ⏳ |
+| 13 | RTL P1.10 — zero-padding option (`PAD_SAME`) | ⏳ |
+| 14 | P2 — viết testbench mới đúng port list (`tb_conv_core.sv`, `tb_conv_cnn_v1_0.sv`) | ⏳ |
+| 15 | End-to-end — Tiny-VGG cats_dogs, accuracy ≥ 80% trên test set, latency báo cáo | ⏳ goal |
+| 16 | Optimization — tăng PE từ 9 → 9×N (parallel cout) khi tài nguyên cho phép | ⏳ stretch |
+
+**Anti-patterns đã loại trừ:**
+- KHÔNG cho RISC-V chạy CNN bằng software (không có FPU; verify bằng TFLite Interpreter ở PC).
+- KHÔNG tự viết DMA engine — dùng `axi_dma_0` Xilinx.
+- KHÔNG cố làm "CNN-agnostic"/DPU — cố định 3×3 + bias + ReLU + pool, làm đúng và nhanh.
+- KHÔNG dùng VGG16/ResNet50V2 từ `tf.keras.applications` cho demo (quá lớn, có ops chưa hỗ trợ).
+- KHÔNG dùng OS trên RISC-V (bare-metal, fits 64 KB I-BRAM).
 
 ## On-Board Deployment (Kria KV260, Ubuntu 22.04)
 ```bash
