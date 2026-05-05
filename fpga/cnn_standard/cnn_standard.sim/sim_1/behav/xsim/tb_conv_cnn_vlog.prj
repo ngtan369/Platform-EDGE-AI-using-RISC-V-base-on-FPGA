@@ -4,11 +4,13 @@ verilog xil_defaultlib  --include "E:/Xil/2025.2.1/Vivado/data/rsb/busdef" \
 "../../../../../ip_repo/conv_cnn_1_0/hdl/conv_cnn_v1_0_S00_AXI.v" \
 
 sv xil_defaultlib  --include "E:/Xil/2025.2.1/Vivado/data/rsb/busdef" \
+"../../../../../ip_repo/conv_cnn_1_0/src/conv_pkg.sv" \
 "../../../../../ip_repo/conv_cnn_1_0/src/controller_fsm.sv" \
 "../../../../../ip_repo/conv_cnn_1_0/src/conv_core.sv" \
 "../../../../../ip_repo/conv_cnn_1_0/src/line_buffer.sv" \
-"../../../../../ip_repo/conv_cnn_1_0/src/max_pool.sv" \
 "../../../../../ip_repo/conv_cnn_1_0/src/pe_mac.sv" \
+"../../../../../ip_repo/conv_cnn_1_0/src/requantize.sv" \
+"../../../../../ip_repo/conv_cnn_1_0/src/weight_buf.sv" \
 "../../../../../ip_repo/conv_cnn_1_0/src/window_3x3.sv" \
 "../../../../../ip_repo/conv_cnn_1_0/src/tb_conv_cnn_v1_0.sv" \
 

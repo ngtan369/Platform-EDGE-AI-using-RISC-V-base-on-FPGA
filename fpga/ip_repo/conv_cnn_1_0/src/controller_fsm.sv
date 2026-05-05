@@ -66,10 +66,11 @@ module controller_fsm
     typedef enum logic [2:0] {
         S_IDLE         = 3'd0,
         S_ACCEPT_CIN   = 3'd1,   // s_ready=1, gom cin samples cho 1 pixel
-        S_COMPUTE      = 3'd2,   // mac_enable=1, đếm cnt_cin
-        S_WAIT_REQUANT = 3'd3,   // chờ pipeline requantize
-        S_EMIT         = 3'd4,   // m_valid=1
-        S_DONE_S       = 3'd5
+        S_LATCH_WIN    = 3'd2,   // 1-cycle wait cho line_buffer→window col 2 update
+        S_COMPUTE      = 3'd3,   // mac_enable=1, đếm cnt_cin
+        S_WAIT_REQUANT = 3'd4,   // chờ pipeline requantize
+        S_EMIT         = 3'd5,   // m_valid=1
+        S_DONE_S       = 3'd6
     } state_t;
 
     state_t state, next_state;
@@ -140,9 +141,16 @@ module controller_fsm
                     // row_advance: last cin của last x của row vừa nhận xong
                     if (last_x_in) row_advance = 1'b1;
                     if (window_valid)
-                        next_state = S_COMPUTE;
+                        next_state = S_LATCH_WIN;
                     // else: fall-through stay in S_ACCEPT_CIN (counter advance below)
                 end
+            end
+
+            // ------------- LATCH_WIN -------------
+            // 1-cycle wait: line_buffer's BRAM read + sample register cần thêm
+            // 1 cycle để window col 2 có giá trị mới trước khi compute đọc.
+            S_LATCH_WIN: begin
+                next_state = S_COMPUTE;
             end
 
             // ------------- COMPUTE -------------

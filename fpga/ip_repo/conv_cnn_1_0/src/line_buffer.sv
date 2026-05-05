@@ -49,6 +49,15 @@ module line_buffer
     (* ram_style = "block" *) logic [DATA_W-1:0] bank_x [0:BANK_DEPTH-1];
     (* ram_style = "block" *) logic [DATA_W-1:0] bank_y [0:BANK_DEPTH-1];
 
+    // Sim-only init (Vivado synth bỏ qua initial blocks lên BRAM ở mức bit-default-0).
+    // Đảm bảo không X-propagation khi bank_x/bank_y chưa được ghi.
+    initial begin
+        for (int i = 0; i < BANK_DEPTH; i++) begin
+            bank_x[i] = '0;
+            bank_y[i] = '0;
+        end
+    end
+
     logic [BANK_ADDR_W-1:0] addr;
     assign addr = (x_pos << CIN_ADDR_W) | cin_idx;
 

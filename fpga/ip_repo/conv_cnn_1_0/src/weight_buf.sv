@@ -52,6 +52,16 @@ module weight_buf
     (* ram_style = "distributed" *)
     logic signed [BIAS_W-1:0]   b_mem [0:MAX_COUT-1];
 
+    // Sim-only init để tránh X propagation
+    initial begin
+        for (int k = 0; k < K_TAPS; k++)
+            for (int co = 0; co < MAX_COUT; co++)
+                for (int ci = 0; ci < MAX_CIN; ci++)
+                    w_mem[k][co][ci] = '0;
+        for (int co = 0; co < MAX_COUT; co++)
+            b_mem[co] = '0;
+    end
+
     // -------------------------------------------------------------------------
     // Write — synchronous, one weight/bias per cycle
     // -------------------------------------------------------------------------

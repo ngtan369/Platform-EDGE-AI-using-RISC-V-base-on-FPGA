@@ -255,6 +255,12 @@ module conv_core
 
     logic [DATA_W-1:0] win_pixel [0:K_TAPS-1];
 
+    // shift_cols pulses cùng cycle với sample_valid của LAST cin sample.
+    // Đảm bảo shift+write col 2 atomic — cols sau đó chứa LAST 3 input pixels.
+    // (FSM's window_load_en chỉ dùng cho state transition, không drive window.)
+    logic shift_cols_internal;
+    assign shift_cols_internal = sample_valid && (sample_cin_idx == cfg_num_cin - 1);
+
     window_3x3 u_window (
         .clk           (clk),
         .rst_n         (rst_n),
@@ -263,7 +269,7 @@ module conv_core
         .sample_top    (sample_top),
         .sample_mid    (sample_mid),
         .sample_bot    (sample_bot),
-        .shift_cols    (win_load_en),
+        .shift_cols    (shift_cols_internal),
         .cnt_cin       (cnt_cin),
         .win_pixel     (win_pixel)
     );

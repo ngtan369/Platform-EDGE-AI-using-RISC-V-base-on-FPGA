@@ -5,32 +5,21 @@ Running: E:/Xil/2025.2.1/Vivado/bin/unwrapped/win64.o/xelab.exe --incr --debug t
 Using 2 slave threads.
 Starting static elaboration
 Pass Through NonSizing Optimizer
-WARNING: [VRFC 10-3091] actual bit length 32 differs from formal bit length 4 for port 's00_axi_awaddr' [T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/tb_conv_cnn_v1_0.sv:21]
+WARNING: [VRFC 10-3091] actual bit length 32 differs from formal bit length 5 for port 's00_axi_awaddr' [T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/tb_conv_cnn_v1_0.sv:21]
 WARNING: [VRFC 10-5021] port 's00_axi_awprot' is not connected on this instance [T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/tb_conv_cnn_v1_0.sv:18]
 Completed static elaboration
 Starting simulation data flow analysis
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/conv_core.sv" Line 4. Module conv_core_default doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/controller_fsm.sv" Line 4. Module controller_fsm doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/line_buffer.sv" Line 4. Module line_buffer doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/window_3x3.sv" Line 4. Module window_3x3 doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/pe_mac.sv" Line 4. Module pe_mac doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/max_pool.sv" Line 4. Module max_pool_2x2 doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "T:/home/tan/Course/capstoneProject/fpga/ip_repo/conv_cnn_1_0/src/conv_pkg.sv" Line 9. Module conv_pkg doesn't have a timescale but at least one module in design has a timescale.
 Completed simulation data flow analysis
 Time Resolution for simulation is 1ps
+Compiling package xil_defaultlib.conv_pkg
 Compiling module xil_defaultlib.conv_cnn_v1_0_S00_AXI_default
 Compiling module xil_defaultlib.controller_fsm
-Compiling module xil_defaultlib.line_buffer
+Compiling module xil_defaultlib.line_buffer_default
 Compiling module xil_defaultlib.window_3x3
+Compiling module xil_defaultlib.weight_buf
 Compiling module xil_defaultlib.pe_mac
-Compiling module xil_defaultlib.max_pool_2x2
+Compiling module xil_defaultlib.requantize_default
 Compiling module xil_defaultlib.conv_core_default
 Compiling module xil_defaultlib.conv_cnn_v1_0
 Compiling module xil_defaultlib.tb_conv_cnn
