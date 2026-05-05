@@ -45,6 +45,14 @@ module window_3x3
     // -------------------------------------------------------------------------
     logic [DATA_W-1:0] window [0:KERNEL-1][0:KERNEL-1][0:MAX_CIN-1];
 
+    // Sim-only init to avoid X (Vivado synth treats as default-0 BRAM init)
+    initial begin
+        for (int rr = 0; rr < KERNEL; rr++)
+            for (int cc = 0; cc < KERNEL; cc++)
+                for (int kk = 0; kk < MAX_CIN; kk++)
+                    window[rr][cc][kk] = '0;
+    end
+
     // -------------------------------------------------------------------------
     // Write/shift logic
     //   Lưu ý: nếu cùng cycle có sample_valid VÀ shift_cols → ghi vào col=2 của

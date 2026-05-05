@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(timeout 10 ./tb_conv)"
+      "Bash(timeout 10 ./tb_conv)",
+      "Bash(timeout 5 ./tb_conv)"
     ]
   }
 }

@@ -457,8 +457,8 @@ Trạng thái triển khai theo các bước (mỗi bước ≈ 1 commit):
 | 4f | `weight_buf.sv` NEW: storage 9-BRAM weights + LUTRAM bias, write/read port (load FSM ở conv_core) | ✅ |
 | 4g | `conv_core.sv` rewrite top: ráp tất cả module, AXIS load/infer demux, pipeline align + adder tree | ✅ |
 | 4h | S00_AXI extend slv_reg0..7 + top wrapper rewrite (remove Sobel hardcode, wire 12 cfg signals) | ✅ |
-| 4i | Re-package IP, update BD, regen bitstream + smoke test với Sobel-equivalent input | ⏳ |
-| 4j | Integrated testbench — TFLite golden vector compare (sai số ≤ 1 LSB) | ⏳ |
+| 4i | Maxpool deferred to Phase B (stride-2 conv), vgg-tiny architecture không pool | ✅ |
+| 4j | Integrated testbench `tb_conv_core.sv` — viết xong; iverilog không support unpacked-array output port write hiệu quả → cần Vivado xsim để verify | ⏳ Vivado |
 | 5 | End-to-end — Tiny-VGG cats_dogs, accuracy ≥ 80% trên test set, latency báo cáo | ⏳ goal |
 | 6 | (Stretch B) — VGG11 + ResNet18 (cần thêm PAD_SAME + element-wise add unit) | ⏳ stretch |
 | 7 | Optimization — tăng PE từ 9 → 9×N (parallel cout) khi tài nguyên cho phép | ⏳ stretch |

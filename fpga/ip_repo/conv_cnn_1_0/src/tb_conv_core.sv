@@ -214,20 +214,13 @@ module tb_conv_core;
         $dumpvars(0, tb_conv_core);
     end
 
-    // Monitor key signals during INFER
+    // Monitor every cycle changes for r_weights[0]
     initial begin
-        @(posedge done);     // wait for LOAD done
-        $display("[%0t] === Monitoring INFER ===", $time);
-        forever begin
-            @(posedge clk);
-            if (dut.u_ctrl.state == 3'd3 || dut.u_ctrl.state == 3'd4 ||
-                dut.u_ctrl.state == 3'd5)
-                $display("[%0t] state=%0d cnt_cin=%0d cnt_cout=%0d mac_clr=%b mac_en=%b req_v=%b acc=%0d tree=%0d req_out_v=%b req_out_y=%0d m_data=%0d",
-                    $time, dut.u_ctrl.state, dut.cnt_cin, dut.cnt_cout,
-                    dut.mac_clr, dut.mac_en, dut.requant_in_valid_fsm,
-                    dut.mac_out[0], dut.tree_sum,
-                    dut.req_out_valid, dut.req_out_y, dut.m_data);
-        end
+        $monitor("[%0t] rst_n=%b st=%0d r_cout=%0d r_cin=%0d wmem000=%0d r_weights[0]=%0d r_bias=%0d",
+            $time, rst_n, dut.u_ctrl.state,
+            dut.u_wb.r_cout, dut.u_wb.r_cin,
+            dut.u_wb.w_mem[0][0][0],
+            dut.r_weights[0], dut.r_bias);
     end
 
 endmodule

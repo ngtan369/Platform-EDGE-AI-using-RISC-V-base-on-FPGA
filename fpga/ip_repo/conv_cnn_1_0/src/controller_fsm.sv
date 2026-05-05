@@ -75,6 +75,11 @@ module controller_fsm
 
     state_t state, next_state;
 
+    // Sim-only init to avoid X propagation at time 0 before reset triggers
+    initial begin
+        state = S_IDLE;
+    end
+
     // -------------------------------------------------------------------------
     // Counters
     // -------------------------------------------------------------------------
@@ -83,6 +88,12 @@ module controller_fsm
     logic [CIN_ADDR_W-1:0]      cnt_cin_r;
     logic [COUT_ADDR_W-1:0]     cnt_cout_r;
     logic [3:0]                 wait_cnt;       // 0..FSM_DRAIN_CYCLES-1
+
+    // Sim-only init
+    initial begin
+        x_in = '0; y_in = '0; cin_in = '0;
+        cnt_cin_r = '0; cnt_cout_r = '0; wait_cnt = '0;
+    end
 
     // Convenience flags
     logic last_cin_in;

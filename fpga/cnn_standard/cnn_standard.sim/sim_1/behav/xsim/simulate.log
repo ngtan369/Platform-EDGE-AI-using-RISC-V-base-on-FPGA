@@ -1,2 +1,27 @@
 Time resolution is 1 ps
---- BAT DAU GIA LAP GUI LENH START ---
+[0] rst_n=0 st=0 r_cout=0 r_cin=0 wmem000=0 r_weights[0]=0 r_bias=0
+[45000] rst_n=1 st=0 r_cout=0 r_cin=0 wmem000=0 r_weights[0]=0 r_bias=0
+[55000] === PHASE 1: LOAD weights + bias ===
+[75000] rst_n=1 st=0 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=0 r_bias=0
+[85000] rst_n=1 st=0 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[205000] LOAD done ✓
+[225000] === PHASE 2: INFER ===
+[235000] rst_n=1 st=1 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[345000] rst_n=1 st=2 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[355000] rst_n=1 st=3 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[365000] rst_n=1 st=4 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[425000] rst_n=1 st=5 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[435000] rst_n=1 st=1 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[445000] OFM[0] = 23 ✓
+[445000] rst_n=1 st=2 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[455000] rst_n=1 st=3 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[465000] rst_n=1 st=4 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[525000] rst_n=1 st=5 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[535000] rst_n=1 st=1 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[545000] OFM[1] = 27 ✓
+[565000] rst_n=1 st=2 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[575000] rst_n=1 st=3 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[585000] rst_n=1 st=4 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[645000] rst_n=1 st=5 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[655000] rst_n=1 st=6 r_cout=0 r_cin=0 wmem000=1 r_weights[0]=1 r_bias=0
+[665000] OFM[2] = 41 ✓

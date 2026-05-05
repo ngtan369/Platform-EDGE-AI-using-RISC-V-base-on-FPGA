@@ -304,6 +304,13 @@ module conv_core
     logic [DATA_W-1:0] win_pixel_q [0:K_TAPS-1];
     logic              mac_clr_q, mac_en_q;
 
+    // Sim-only init
+    initial begin
+        for (int i = 0; i < K_TAPS; i++) win_pixel_q[i] = '0;
+        mac_clr_q = 1'b0;
+        mac_en_q  = 1'b0;
+    end
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             mac_clr_q <= 1'b0;

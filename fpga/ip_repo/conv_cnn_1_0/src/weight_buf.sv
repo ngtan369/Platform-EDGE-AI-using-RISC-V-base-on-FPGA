@@ -60,26 +60,51 @@ module weight_buf
                     w_mem[k][co][ci] = '0;
         for (int co = 0; co < MAX_COUT; co++)
             b_mem[co] = '0;
+        for (int k = 0; k < K_TAPS; k++) r_weights[k] = '0;
+        r_bias = '0;
     end
 
     // -------------------------------------------------------------------------
     // Write — synchronous, one weight/bias per cycle
     // -------------------------------------------------------------------------
-    always_ff @(posedge clk) begin
-        if (we_w) w_mem[w_kk][w_cout][w_cin] <= w_data;
-        if (we_b) b_mem[b_cout]              <= b_data;
+    always @(posedge clk) begin
+        if (we_w) begin
+            w_mem[w_kk][w_cout][w_cin] <= w_data;
+        end
+        if (we_b) begin
+            b_mem[b_cout] <= b_data;
+        end
     end
 
     // -------------------------------------------------------------------------
     // Read — registered output (BRAM inference)
     //   9 BRAMs đọc song song cho cùng (r_cout, r_cin) → 9 weights/cycle.
-    //   Caller phải apply r_cout/r_cin 1 cycle trước khi cần data
-    //   (e.g., FSM driver giữ cnt_cin steady, register output ở downstream).
+    //   Caller phải apply r_cout/r_cin 1 cycle trước khi cần data.
+    //   Có rst_n để tránh đọc w_mem với index = X tại first posedge khi
+    //   FSM counters chưa kịp reset.
     // -------------------------------------------------------------------------
-    always_ff @(posedge clk) begin
-        for (int k = 0; k < K_TAPS; k++)
-            r_weights[k] <= w_mem[k][r_cout][r_cin];
-        r_bias <= b_mem[r_cout];
+    // Sync reset.
+    // Note: iverilog có known issue với unpacked-array OUTPUT-port writes; reset
+    // không hiệu quả trong sim. Synth tool (Vivado) handle correctly. Test bằng
+    // Vivado xsim hoặc verilator để verify functional correctness.
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            r_weights[0] <= '0; r_weights[1] <= '0; r_weights[2] <= '0;
+            r_weights[3] <= '0; r_weights[4] <= '0; r_weights[5] <= '0;
+            r_weights[6] <= '0; r_weights[7] <= '0; r_weights[8] <= '0;
+            r_bias <= '0;
+        end else begin
+            r_weights[0] <= w_mem[0][r_cout][r_cin];
+            r_weights[1] <= w_mem[1][r_cout][r_cin];
+            r_weights[2] <= w_mem[2][r_cout][r_cin];
+            r_weights[3] <= w_mem[3][r_cout][r_cin];
+            r_weights[4] <= w_mem[4][r_cout][r_cin];
+            r_weights[5] <= w_mem[5][r_cout][r_cin];
+            r_weights[6] <= w_mem[6][r_cout][r_cin];
+            r_weights[7] <= w_mem[7][r_cout][r_cin];
+            r_weights[8] <= w_mem[8][r_cout][r_cin];
+            r_bias <= b_mem[r_cout];
+        end
     end
 
 endmodule

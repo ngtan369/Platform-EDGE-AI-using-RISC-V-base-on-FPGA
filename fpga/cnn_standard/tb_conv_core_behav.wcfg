@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_conv_core_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="conv_pkg" />
+            <top_module name="glbl" />
+            <top_module name="tb_conv_core" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,000.001 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="180"></NameColumnWidth>
+      <ValueColumnWidth column_width="175"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="22" />
+   <wvobject fp_name="/tb_conv_core/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/rst_n" type="logic">
+      <obj_property name="ElementShortName">rst_n</obj_property>
+      <obj_property name="ObjectShortName">rst_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_start" type="logic">
+      <obj_property name="ElementShortName">cfg_start</obj_property>
+      <obj_property name="ObjectShortName">cfg_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_mode_load" type="logic">
+      <obj_property name="ElementShortName">cfg_mode_load</obj_property>
+      <obj_property name="ObjectShortName">cfg_mode_load</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_width" type="array">
+      <obj_property name="ElementShortName">cfg_width[7:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_width[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_height" type="array">
+      <obj_property name="ElementShortName">cfg_height[7:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_height[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_num_cin" type="array">
+      <obj_property name="ElementShortName">cfg_num_cin[5:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_num_cin[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_num_cout" type="array">
+      <obj_property name="ElementShortName">cfg_num_cout[5:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_num_cout[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_pool_en" type="logic">
+      <obj_property name="ElementShortName">cfg_pool_en</obj_property>
+      <obj_property name="ObjectShortName">cfg_pool_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_M_q31" type="array">
+      <obj_property name="ElementShortName">cfg_M_q31[30:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_M_q31[30:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_shift" type="array">
+      <obj_property name="ElementShortName">cfg_shift[5:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_shift[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_output_zp" type="array">
+      <obj_property name="ElementShortName">cfg_output_zp[7:0]</obj_property>
+      <obj_property name="ObjectShortName">cfg_output_zp[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/cfg_has_relu" type="logic">
+      <obj_property name="ElementShortName">cfg_has_relu</obj_property>
+      <obj_property name="ObjectShortName">cfg_has_relu</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/s_data" type="array">
+      <obj_property name="ElementShortName">s_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">s_data[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/s_valid" type="logic">
+      <obj_property name="ElementShortName">s_valid</obj_property>
+      <obj_property name="ObjectShortName">s_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/s_ready" type="logic">
+      <obj_property name="ElementShortName">s_ready</obj_property>
+      <obj_property name="ObjectShortName">s_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/m_data" type="array">
+      <obj_property name="ElementShortName">m_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">m_data[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/m_valid" type="logic">
+      <obj_property name="ElementShortName">m_valid</obj_property>
+      <obj_property name="ObjectShortName">m_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/m_ready" type="logic">
+      <obj_property name="ElementShortName">m_ready</obj_property>
+      <obj_property name="ObjectShortName">m_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/done" type="logic">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/expected" type="array">
+      <obj_property name="ElementShortName">expected[0:3][7:0]</obj_property>
+      <obj_property name="ObjectShortName">expected[0:3][7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_conv_core/n_errors" type="array">
+      <obj_property name="ElementShortName">n_errors[31:0]</obj_property>
+      <obj_property name="ObjectShortName">n_errors[31:0]</obj_property>
+   </wvobject>
+</wave_config>
