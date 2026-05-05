@@ -5,6 +5,13 @@ module riscv_top (
     input  logic rst_ni,
 
     // ========================================================
+    // External controls / status
+    // ========================================================
+    input  logic        fetch_enable_i,        // ARM control RISC-V boot/halt
+    input  logic        irq_conv_cnn_i,        // conv_cnn done IRQ → mfast0
+    output logic        core_sleep_o,          // RISC-V sleep status (WFI)
+
+    // ========================================================
     // AXI-Lite Master 0: ��?ng Instruction (Ch? �?c)
     // ========================================================
     output logic [31:0] m_axi_instr_araddr,
@@ -66,16 +73,18 @@ module riscv_top (
     } axi_rsp_t; 
 
     // --------------------------------------------------------
-    // 2. Tuy?t chi�u "Duck Typing": T? t?o Struct OBI L?ng Nhau 
+    // 2. Custom OBI structs — match obi_pkg::ObiDefaultConfig (IdWidth=1)
+    //    Lưu ý: aid/rid 1-bit để khớp với FIFO bên trong obi_to_axi.sv
+    //    (i_fifo_rid dùng dtype = logic[ObiCfg.IdWidth-1:0] = [0:0]).
     // --------------------------------------------------------
-    // Kh?i Req
+    // Khối Req
     typedef struct packed { logic [2:0] prot; logic [5:0] atop; logic [1:0] memtype; } obi_req_opt_t;
-    typedef struct packed { logic we; logic [3:0] be; logic [31:0] addr; logic [31:0] wdata; logic [3:0] aid; obi_req_opt_t a_optional; } obi_req_a_t;
+    typedef struct packed { logic we; logic [3:0] be; logic [31:0] addr; logic [31:0] wdata; logic [0:0] aid; obi_req_opt_t a_optional; } obi_req_a_t;
     typedef struct packed { logic req; obi_req_a_t a; } custom_obi_req_t;
 
-    // Kh?i Rsp
+    // Khối Rsp
     typedef struct packed { logic exokay; logic ruser; } obi_rsp_opt_t;
-    typedef struct packed { logic [31:0] rdata; logic err; logic [3:0] rid; obi_rsp_opt_t r_optional; } obi_rsp_r_t;
+    typedef struct packed { logic [31:0] rdata; logic err; logic [0:0] rid; obi_rsp_opt_t r_optional; } obi_rsp_r_t;
     typedef struct packed { logic gnt; logic rvalid; obi_rsp_r_t r; } custom_obi_resp_t;
 
     custom_obi_req_t  instr_req, data_req;
@@ -95,26 +104,34 @@ module riscv_top (
     assign data_req.a.a_optional  = '0;
 
     // --------------------------------------------------------
-    // 3. G?i l?i CPU CV32E40P
+    // 3. Gọi lõi CPU CV32E40P + IRQ wiring
+    //    irq_i[16] = MFAST0 (machine-mode fast IRQ #0) ← conv_cnn done.
+    //    Bit khác giữ '0. Reference: CV32E40P User Manual, MIP CSR layout.
     // --------------------------------------------------------
+    logic [31:0] irq_vec;
+    always_comb begin
+        irq_vec      = 32'b0;
+        irq_vec[16]  = irq_conv_cnn_i;   // MFAST0
+    end
+
     cv32e40p_top #(
-        .FPU(0),          
-        .COREV_PULP(0)    
+        .FPU(0),
+        .COREV_PULP(0)
     ) u_core (
         .clk_i           (clk_i),
         .rst_ni          (rst_ni),
         .pulp_clock_en_i (1'b1),
         .scan_cg_en_i    (1'b0),
-        .boot_addr_i     (32'h00000000), 
-        .irq_i           (32'b0),
+        .boot_addr_i     (32'h00000000),
+        .irq_i           (irq_vec),
         .irq_ack_o       (),
         .irq_id_o        (),
         .debug_req_i     (1'b0),
         .debug_havereset_o(),
         .debug_running_o (),
         .debug_halted_o  (),
-        .fetch_enable_i  (1'b1),
-        .core_sleep_o    (),
+        .fetch_enable_i  (fetch_enable_i),
+        .core_sleep_o    (core_sleep_o),
 
         // OBI Instruction 
         .instr_req_o     (instr_req.req),
@@ -138,11 +155,12 @@ module riscv_top (
     // 4. Kh?i Bridge OBI sang AXI cho L?nh (Instruction)
     // --------------------------------------------------------
     obi_to_axi #(
-        .AxiLite   (1'b1),
-        .obi_req_t (custom_obi_req_t),
-        .obi_rsp_t (custom_obi_resp_t),
-        .axi_req_t (axi_req_t),
-        .axi_rsp_t (axi_rsp_t)
+        .AxiLite     (1'b1),
+        .MaxRequests (4),                      // outstanding txn FIFO depth
+        .obi_req_t   (custom_obi_req_t),
+        .obi_rsp_t   (custom_obi_resp_t),
+        .axi_req_t   (axi_req_t),
+        .axi_rsp_t   (axi_rsp_t)
     ) bridge_instr (
         .clk_i(clk_i), .rst_ni(rst_ni),
         .obi_req_i(instr_req), .obi_rsp_o(instr_resp),
@@ -164,11 +182,12 @@ module riscv_top (
     // 5. Kh?i Bridge OBI sang AXI cho D? li?u (Data)
     // --------------------------------------------------------
     obi_to_axi #(
-        .AxiLite   (1'b1),
-        .obi_req_t (custom_obi_req_t),
-        .obi_rsp_t (custom_obi_resp_t),
-        .axi_req_t (axi_req_t),
-        .axi_rsp_t (axi_rsp_t)
+        .AxiLite     (1'b1),
+        .MaxRequests (4),                      // outstanding txn FIFO depth
+        .obi_req_t   (custom_obi_req_t),
+        .obi_rsp_t   (custom_obi_resp_t),
+        .axi_req_t   (axi_req_t),
+        .axi_rsp_t   (axi_rsp_t)
     ) bridge_data (
         .clk_i(clk_i), .rst_ni(rst_ni),
         .obi_req_i(data_req), .obi_rsp_o(data_resp),

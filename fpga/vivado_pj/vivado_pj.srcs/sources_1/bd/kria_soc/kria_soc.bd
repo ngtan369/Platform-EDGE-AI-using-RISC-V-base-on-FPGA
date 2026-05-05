@@ -1682,8 +1682,8 @@
         }
       },
       "riscv_top_0": {
-        "vlnv": "xilinx.com:user:riscv_top:1.0",
-        "ip_revision": "4",
+        "vlnv": "xilinx.com:user:riscv_top:2.0",
+        "ip_revision": "1",
         "xci_name": "kria_soc_riscv_top_0_0",
         "xci_path": "ip\\kria_soc_riscv_top_0_0\\kria_soc_riscv_top_0_0.xci",
         "inst_hier_path": "riscv_top_0",
@@ -2118,8 +2118,8 @@
         }
       },
       "conv_cnn_0": {
-        "vlnv": "xilinx.com:user:conv_cnn:1.1",
-        "ip_revision": "3",
+        "vlnv": "xilinx.com:user:conv_cnn:2.0",
+        "ip_revision": "7",
         "xci_name": "kria_soc_conv_cnn_0_2",
         "xci_path": "ip\\kria_soc_conv_cnn_0_2\\kria_soc_conv_cnn_0_2.xci",
         "inst_hier_path": "conv_cnn_0",
@@ -3215,19 +3215,19 @@
       "rst_ps8_0_99M_peripheral_aresetn": {
         "ports": [
           "rst_ps8_0_99M/peripheral_aresetn",
-          "conv_cnn_0/s00_axi_aresetn",
-          "conv_cnn_0/s00_axis_aresetn",
-          "conv_cnn_0/m00_axis_aresetn",
           "axi_bram_ctrl_0/s_axi_aresetn",
           "axi_bram_ctrl_1/s_axi_aresetn",
           "axi_dma_0/axi_resetn",
           "axi_interconnect_0/S00_ARESETN",
           "axi_interconnect_0/M00_ARESETN",
           "axi_interconnect_0/S01_ARESETN",
-          "riscv_top_0/rst_ni",
           "axi_bram_ctrl_2/s_axi_aresetn",
           "axi_interconnect_0/M01_ARESETN",
-          "axi_bram_ctrl_3/s_axi_aresetn"
+          "axi_bram_ctrl_3/s_axi_aresetn",
+          "riscv_top_0/rst_ni",
+          "conv_cnn_0/s00_axi_aresetn",
+          "conv_cnn_0/s00_axis_aresetn",
+          "conv_cnn_0/m00_axis_aresetn"
         ]
       },
       "xlconcat_0_dout": {
@@ -3245,9 +3245,6 @@
       "zynq_ultra_ps_e_0_pl_clk0": {
         "ports": [
           "zynq_ultra_ps_e_0/pl_clk0",
-          "conv_cnn_0/s00_axi_aclk",
-          "conv_cnn_0/s00_axis_aclk",
-          "conv_cnn_0/m00_axis_aclk",
           "axi_bram_ctrl_0/s_axi_aclk",
           "axi_bram_ctrl_1/s_axi_aclk",
           "axi_dma_0/s_axi_lite_aclk",
@@ -3257,7 +3254,6 @@
           "axi_interconnect_0/S00_ACLK",
           "axi_interconnect_0/M00_ACLK",
           "axi_interconnect_0/S01_ACLK",
-          "riscv_top_0/clk_i",
           "rst_ps8_0_99M/slowest_sync_clk",
           "smartconnect_1/aclk",
           "zynq_ultra_ps_e_0/maxihpm0_fpd_aclk",
@@ -3265,7 +3261,11 @@
           "axi_bram_ctrl_2/s_axi_aclk",
           "axi_interconnect_0/M01_ACLK",
           "axi_bram_ctrl_3/s_axi_aclk",
-          "zynq_ultra_ps_e_0/saxihpc0_fpd_aclk"
+          "zynq_ultra_ps_e_0/saxihpc0_fpd_aclk",
+          "riscv_top_0/clk_i",
+          "conv_cnn_0/s00_axi_aclk",
+          "conv_cnn_0/s00_axis_aclk",
+          "conv_cnn_0/m00_axis_aclk"
         ]
       },
       "zynq_ultra_ps_e_0_pl_resetn0": {

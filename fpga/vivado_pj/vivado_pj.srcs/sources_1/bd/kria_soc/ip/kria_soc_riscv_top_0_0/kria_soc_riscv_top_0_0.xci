@@ -3,8 +3,8 @@
   "ip_inst": {
     "xci_name": "kria_soc_riscv_top_0_0",
     "cell_name": "riscv_top_0",
-    "component_reference": "xilinx.com:user:riscv_top:1.0",
-    "ip_revision": "4",
+    "component_reference": "xilinx.com:user:riscv_top:2.0",
+    "ip_revision": "1",
     "gen_directory": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_riscv_top_0_0",
     "parameters": {
       "component_parameters": {
@@ -25,7 +25,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "4" } ],
+        "IPREVISION": [ { "value": "1" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_riscv_top_0_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
@@ -210,5 +210,5 @@
       }
     }
   },
-  "checksum": "6d7eb7a7"
+  "checksum": "f4417440"
 }

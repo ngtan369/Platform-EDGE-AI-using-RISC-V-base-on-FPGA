@@ -167,13 +167,18 @@ Có thể loại bỏ bước input quant ở ARM bằng cách **fuse vào layer
 | IP | Role |
 |----|------|
 | `zynq_ultra_ps_e_0` | Zynq UltraScale+ PS. Master ports: `M_AXI_HPM0_FPD` (→ I-BRAM Port B for firmware reload), `M_AXI_HPM1_FPD` (→ DMA control + conv_cnn control + D-BRAM Port B). Slave port: `S_AXI_HPC0_FPD` (← AXI DMA reads/writes DDR, cache-coherent) |
-| `riscv_top_0` | CV32E40P wrapper; `m_axi_instr` → I-BRAM Port A, `m_axi_data` → D-BRAM Port A + DMA control + conv_cnn control |
+| `riscv_top_0` | CV32E40P wrapper (FPU=0, COREV_PULP=0); 2 OBI→AXI-Lite bridges (instr + data); `m_axi_instr` → I-BRAM Port A; `m_axi_data` → D-BRAM Port A + DMA control + conv_cnn control. External ports: `fetch_enable_i` (ARM control boot/halt), `irq_conv_cnn_i` (→ MFAST0 = mip[16]), `core_sleep_o` |
 | `conv_cnn_0` (v1.1, Pre-Production) | CNN accelerator. `S00_AXI` = control/status, `S00_AXIS` = IFM+weights stream in, `M00_AXIS` = OFM stream out, `irq` = done interrupt |
 | `axi_dma_0` | DDR ↔ AXI-Stream bridge. MM2S reads IFM/weights from DDR → conv_cnn; S2MM writes OFM from conv_cnn → DDR. Both M_AXI ports route via `smartconnect_1` to `S_AXI_HPC0_FPD` |
 | `axi_bram_ctrl_0` (PortA) + `axi_bram_ctrl_2` (PortB) + `blk_mem_gen_2` | **I-BRAM dual-port**, 64 KB. Port A = RISC-V instr fetch, Port B = ARM firmware reload |
 | `axi_bram_ctrl_1` (PortA) + `axi_bram_ctrl_3` (PortB) + `blk_mem_gen_1` | **D-BRAM dual-port**, 256 KB. Port A = RISC-V data, Port B = ARM shared mem (handshake regs, layer descriptors, quant params) |
 | `axi_interconnect_0` | Routes PS + RISC-V control writes to peripherals |
 | `smartconnect_1` | Crossbar: DMA M_AXI_MM2S/S2MM ↔ `S_AXI_HPC0_FPD`; HPM1_FPD ↔ DMA control + conv_cnn control + D-BRAM Port B |
+
+**RISC-V external wires trong BD** (dây dẫn rời, không qua AXI):
+- `conv_cnn_0.irq` → `riscv_top_0.irq_conv_cnn_i` (level interrupt: high khi conv_cnn done, RISC-V dùng MFAST0/`mip[16]`)
+- `axi_gpio_0.gpio_io_o[0]` → `riscv_top_0.fetch_enable_i` (ARM control: ghi 0=halt, 1=run)
+- `riscv_top_0.core_sleep_o` → `axi_gpio_0.gpio_io_i[0]` (status để ARM poll WFI state)
 
 #### BRAM Topology — Planned Dual-Port Upgrade
 Both BRAMs are physically dual-port (RAMB36 on Ultrascale+) but currently configured single-port. Planned upgrade:
@@ -192,9 +197,26 @@ Each upgraded BRAM needs **two** `axi_bram_ctrl` instances (one per port). Confi
 ### Key RTL Modules
 | File | Role |
 |------|------|
-| `hw_src/riscv_top.sv` | RISC-V core wrapper; exposes `m_axi_instr` + `m_axi_data` AXI4-Lite master ports |
-| `hw_src/obi_to_axi.sv` | Protocol bridge: CV32E40P OBI → AXI4-Lite |
-| `hw_src/axi_pkg.sv`, `hw_src/obi_pkg.sv` | Shared type/parameter packages |
+| `hw_src/riscv_top.sv` | RISC-V core wrapper. Custom OBI struct (IdWidth=1 to match `ObiDefaultConfig`); 2× `obi_to_axi` instances với `MaxRequests=4`. Exposes `m_axi_instr` + `m_axi_data` AXI-Lite master ports + `fetch_enable_i` / `irq_conv_cnn_i` / `core_sleep_o` |
+| `hw_src/obi_to_axi.sv` | Protocol bridge: OBI → AXI4-Lite (ETH Zurich vendor code). Sử dụng `fifo_v3` để track outstanding txns. `AxiLite=1`, `MaxRequests=4` set bởi caller |
+| `hw_src/axi_pkg.sv`, `hw_src/obi_pkg.sv` | Shared type/parameter packages (vendor) |
+| `hw_src/tb_riscv_top.sv` | Smoke testbench: behavioral instr memory đáp NOP, validate fetch advance |
+
+> **Lưu ý**: sau khi sửa `riscv_top.sv` (thêm 3 ports: `fetch_enable_i`, `irq_conv_cnn_i`, `core_sleep_o`), IP `fpga/ip_repo/riscv_top_1_0/` cần **re-package** trong Vivado IP Packager (bump version 1.0 → 1.1) trước khi BD pickup được port mới.
+
+### Common pitfalls khi re-package IP
+
+**Trigger**: Synth fail với `'conv_pkg' is not declared` hoặc tương tự.
+
+**Nguyên nhân**: Khi Vivado IP Packager re-package, file mới (vd. `conv_pkg.sv`) **không tự động** được thêm vào `component.xml`. Phải manual:
+
+1. Trong "Edit in IP Packager" window:
+   - Sources → Add Sources → add file mới
+   - Verify trong tab "Package IP" → File Groups → cả Synthesis VÀ Simulation fileset đều list file
+2. **Compile order**: package files (`*_pkg.sv`) phải ở đầu fileSet (Vivado dùng order trong XML để sort). Có thể edit `component.xml` trực tiếp để move package lên đầu.
+3. Re-Package IP → bump version → Refresh in BD → Upgrade Selected.
+
+**Path issue WSL/Windows**: nếu Vivado synth fail với `Failed to create directory 'C'`, đó là do project ở WSL filesystem được mount thành drive Windows (vd. `T:`). Vivado parser nhầm `c:/...` thành Windows path. Fix bằng cách: (a) chạy Vivado for Linux trong WSL2, hoặc (b) copy project sang Windows native path (`C:\Vivado\...`).
 | `ip_repo/conv_cnn_1_0/src/conv_core.sv` | Top of accelerator: instantiates FSM + line_buffer + window_3x3 + 9 PE_MACs + adder tree + ReLU + max_pool, exposes AXI-Stream IO |
 | `ip_repo/conv_cnn_1_0/src/controller_fsm.sv` | 4-loop nested FSM (Cout → Y → X → Cin) driving `mac_en`, `acc_clear`, `bias_relu_en`, `out_valid`, `done` |
 | `ip_repo/conv_cnn_1_0/src/line_buffer.sv` | Configurable BRAM-backed 2-row buffer (MAX_WIDTH=256), produces 3-pixel column. `active_width` from S00_AXI register |
@@ -274,7 +296,7 @@ Per-layer programming sequence (RISC-V driver `process_one_layer()`):
 | `src/controller_fsm.sv` | ✅ REWRITE — 6 counters, 6 states; channel-interleaved per pixel + serial cnt_cout; outputs row_advance cho line_buffer |
 | `src/line_buffer.sv` | ✅ REWRITE — 2 BRAM bank × MAX_W × MAX_CIN, read-before-write, parity-toggled; 1-cycle BRAM read latency |
 | `src/window_3x3.sv` | ✅ REWRITE — 3×3×MAX_CIN register array, shift cols on `shift_cols`, combinational 9-pixel read theo `cnt_cin` |
-| `src/weight_buf.sv` | ✅ NEW — 9 BRAM × MAX_COUT × MAX_CIN INT8 weights + LUTRAM bias INT32; write port (caller load), read port `(r_cout, r_cin)` → 9 weights + bias 1-cycle latency |
+| `src/weight_buf.sv` | ✅ NEW — 9 RAM ĐỘC LẬP (qua `generate` block, mỗi RAM 4 KB = 1 RAMB18) cho weights + LUTRAM bias INT32; ⚠️ trước đây dùng 3D unpacked `[K_TAPS][MAX_COUT][MAX_CIN]` → Vivado fail BRAM inference, bùng 295K FFs → fix bằng cách tách thành 9 mảng 2D độc lập |
 | `src/conv_core.sv` | ✅ REWRITE — top integration: load FSM (AXIS→weight_buf), infer FSM call, pipeline alignment registers, adder tree, requantize. ~270 LoC |
 | `src/pe_mac.sv` | ✅ KEEP — INT8×INT8 MAC pipelined (DSP48 mappable) |
 | `src/max_pool.sv` | ⚠️ UPDATE — fix output stride khi pool_en (P0.5) |
