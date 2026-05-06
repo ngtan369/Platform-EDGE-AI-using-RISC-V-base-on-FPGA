@@ -34,7 +34,7 @@ pip install -r requirements.txt
 #           --dataset [inria | cats_dogs]
 #           --epochs <int>     (default: 10)
 #           --export_dir <path>     (default: ./export)
-python3 main.py --model vgg-tiny --dataset cats_dogs
+python3 train.py --model vgg-tiny --dataset cats_dogs
 
 # Output:
 #   ./export/vgg-tiny_cats_dogs_int8.bin               (TFLite reference)

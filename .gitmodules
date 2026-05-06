@@ -1,3 +1,3 @@
-[submodule "fpga/cv32e40p"]
-	path = fpga/cv32e40p
+[submodule "hw/cv32e40p"]
+	path = hw/cv32e40p
 	url = https://github.com/ngtan369/cv32e40p.git
