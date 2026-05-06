@@ -169,10 +169,10 @@ pagesize -pg 1 -db -bbox -sgen -400 -690 2500 430
    "textcolor_comment_6":""
 }
 {
-   """"""da_axi4_cnt"""""":"4",
-   """"""da_bram_cntlr_cnt"""""":"2",
-   """"""da_clkrst_cnt"""""":"11",
-   """"""da_zynq_ultra_ps_e_cnt"""""":"1"
+   """""""da_axi4_cnt""""""":"4",
+   """""""da_bram_cntlr_cnt""""""":"2",
+   """""""da_clkrst_cnt""""""":"11",
+   """""""da_zynq_ultra_ps_e_cnt""""""":"1"
 }
 {
    "/axi_bram_ctrl_0/comment_2":"comment_2",
