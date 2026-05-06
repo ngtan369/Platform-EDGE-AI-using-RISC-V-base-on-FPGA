@@ -2119,7 +2119,7 @@
       },
       "conv_cnn_0": {
         "vlnv": "xilinx.com:user:conv_cnn:2.0",
-        "ip_revision": "7",
+        "ip_revision": "10",
         "xci_name": "kria_soc_conv_cnn_0_2",
         "xci_path": "ip\\kria_soc_conv_cnn_0_2\\kria_soc_conv_cnn_0_2.xci",
         "inst_hier_path": "conv_cnn_0",

@@ -67,26 +67,35 @@ module weight_buf
     //   Mỗi RAM: MAX_COUT × MAX_CIN × WEIGHT_W = 64 × 64 × 8 = 4 KB = 1 RAMB18
     //   Tổng 9 RAM ≈ 4.5 RAMB36 (Vivado pack 2 RAMB18 vào 1 RAMB36)
     // -------------------------------------------------------------------------
+    localparam MEM_DEPTH = MAX_COUT * MAX_CIN; // 64 * 64 = 4096
+
     genvar gk;
     generate
         for (gk = 0; gk < K_TAPS; gk++) begin : g_w_mem
+            // Bùa chú ép kiểu Block RAM
             (* ram_style = "block" *)
-            logic signed [WEIGHT_W-1:0] mem [0:MAX_COUT-1][0:MAX_CIN-1];
+            logic signed [WEIGHT_W-1:0] mem [0:MEM_DEPTH-1];
 
+            // Ghép 2 đường địa chỉ (Ví dụ: 6-bit cout + 6-bit cin = 12-bit address)
+            // LƯU Ý: Phải đảm bảo (COUT_ADDR_W + CIN_ADDR_W) = $clog2(MEM_DEPTH)
+            wire [COUT_ADDR_W+CIN_ADDR_W-1:0] wr_addr = {w_cout, w_cin};
+            wire [COUT_ADDR_W+CIN_ADDR_W-1:0] rd_addr = {r_cout, r_cin};
+
+            // Khởi tạo (Chỉ dùng cho Simulation, Synthesis sẽ bỏ qua hoặc nạp từ file)
             initial begin
-                for (int co = 0; co < MAX_COUT; co++)
-                    for (int ci = 0; ci < MAX_CIN; ci++)
-                        mem[co][ci] = '0;
+                for (int i = 0; i < MEM_DEPTH; i++) mem[i] = '0;
             end
 
+            // Cổng Ghi (Write Port)
             always @(posedge clk) begin
-                if (we_w && (w_kk == gk[3:0]))
-                    mem[w_cout][w_cin] <= w_data;
+                if (we_w && (w_kk == gk[3:0])) begin
+                    mem[wr_addr] <= w_data;
+                end
             end
 
+            // Cổng Đọc (Read Port) - LOẠI BỎ HOÀN TOÀN TÍN HIỆU RESET
             always @(posedge clk) begin
-                if (!rst_n) r_weights[gk] <= '0;
-                else        r_weights[gk] <= mem[r_cout][r_cin];
+                r_weights[gk] <= mem[rd_addr]; 
             end
         end
     endgenerate
