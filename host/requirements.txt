@@ -1,0 +1,6 @@
+# Pre-installed on PYNQ image for KV260 (>= v3.0); listed here for reproducibility.
+pynq>=3.0
+numpy>=1.21
+opencv-python-headless>=4.5
+matplotlib>=3.5
+Pillow>=9.0

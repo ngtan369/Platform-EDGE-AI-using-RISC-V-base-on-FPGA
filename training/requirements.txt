@@ -1,4 +1,7 @@
-tensorflow
-numpy
-kagglehub
-opencv-python
+tensorflow>=2.13
+numpy>=1.21
+kagglehub>=0.2
+opencv-python>=4.5
+matplotlib>=3.5
+Pillow>=9.0
+ipykernel>=6.0
