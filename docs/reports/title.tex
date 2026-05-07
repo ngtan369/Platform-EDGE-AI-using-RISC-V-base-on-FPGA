@@ -1,0 +1,78 @@
+\begin{titlepage}
+
+\begin{tikzpicture}[remember picture,overlay,inner sep=0,outer sep=0]
+     \draw[line width=4pt] ([xshift=-1.5cm,yshift=-2cm]current page.north east) coordinate (A)--([xshift=1.5cm,yshift=-2cm]current page.north west) coordinate(B)--([xshift=1.5cm,yshift=2cm]current page.south west) coordinate (C)--([xshift=-1.5cm,yshift=2cm]current page.south east) coordinate(D)--cycle;
+
+     \draw ([yshift=0.5cm,xshift=-0.5cm]A)-- ([yshift=0.5cm,xshift=0.5cm]B)--
+     ([yshift=-0.5cm,xshift=0.5cm]B) --([yshift=-0.5cm,xshift=-0.5cm]B)--([yshift=0.5cm,xshift=-0.5cm]C)--([yshift=0.5cm,xshift=0.5cm]C)--([yshift=-0.5cm,xshift=0.5cm]C)-- ([yshift=-0.5cm,xshift=-0.5cm]D)--([yshift=0.5cm,xshift=-0.5cm]D)--([yshift=0.5cm,xshift=0.5cm]D)--([yshift=-0.5cm,xshift=0.5cm]A)--([yshift=-0.5cm,xshift=-0.5cm]A)--([yshift=0.5cm,xshift=-0.5cm]A);
+
+
+     \draw ([yshift=-0.3cm,xshift=0.3cm]A)-- ([yshift=-0.3cm,xshift=-0.3cm]B)--
+     ([yshift=0.3cm,xshift=-0.3cm]B) --([yshift=0.3cm,xshift=0.3cm]B)--([yshift=-0.3cm,xshift=0.3cm]C)--([yshift=-0.3cm,xshift=-0.3cm]C)--([yshift=0.3cm,xshift=-0.3cm]C)-- ([yshift=0.3cm,xshift=0.3cm]D)--([yshift=-0.3cm,xshift=0.3cm]D)--([yshift=-0.3cm,xshift=-0.3cm]D)--([yshift=0.3cm,xshift=-0.3cm]A)--([yshift=0.3cm,xshift=0.3cm]A)--([yshift=-0.3cm,xshift=0.3cm]A);
+
+\end{tikzpicture}
+
+\begin{center}
+
+%% Extra whitespace at the top.
+%\vspace*{2\bigskipamount}
+
+%%print author name
+%\begin{otherlanguage*}{vietnamese}
+\makeatletter
+{\large\titlefont\bfseries ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}\\
+{\large\titlefont\bfseries TRƯỜNG ĐẠI HỌC BÁCH KHOA}\\
+{\large\titlefont\bfseries KHOA KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH}
+
+%{\Large\titlefont\bfseries\@firstname\ {\titleshape\@lastname}}
+\makeatother
+%\end{otherlanguage*}
+
+\begin{center}
+\includegraphics[width=3cm]{hcmut.png}
+\end{center}
+
+\vspace{1 cm}
+%% Print the title.
+{\makeatletter
+\large\titlestyle ĐỒ ÁN TỐT NGHIỆP\\
+\vspace{0.5cm}
+\titlestyle\bfseries\LARGE phát triển platform edge-ai dựa trên fpga sử dụng risc-v\\
+\vspace{1cm}
+\large\titlestyle Ngành: KỸ THUẬT MÁY TÍNH\\
+\titlestyle Hội đồng: xx
+\makeatother}
+
+\vspace{0.75cm}
+
+\begin{table}[h!]
+\begin{tabular}{lll}
+\hspace{1cm}
+& \hspace{-0.5 cm} \vspace{0.25cm} \textbf{Người hướng dẫn}: &\\
+& PGS. TS. Phạm Quốc Cường &- Trường ĐHBK\\
+\vspace{0.25cm} & <Name> &- <affiliation>\\ 
+& \hspace{-0.5 cm} \vspace{0.25cm} \textbf{Người Phản biên}: &\\
+\vspace{0.25cm} & Assoc. Prof. Dr. <name> &- HCMUT\\
+& \hspace{-0.5 cm} \vspace{0.25cm} \textbf{Sinh viên thực hiện}: &\\
+\vspace{0.25cm} & Nguyễn Trung Tân &- 2213063\\
+\vspace{0.25cm} & Trần Minh Tâm &- 2213039\\
+\end{tabular}
+\end{table}
+
+\vfill
+
+%{\Large\titlefont\bfseries NHÀ XUẤT BẢN ĐẠI HỌC QUỐC GIA}\\
+{\titlefont\bfseries THÀNH PHỐ HỒ CHÍ MINH - THÁNG 5 NĂM 2026}
+\end{center}
+
+\cleardoublepage
+\thispagestyle{empty}
+
+
+\clearpage
+\thispagestyle{empty}
+%% The following line is dictated by the promotieregelement.
+%\noindent Dit proefschrift is goedgekeurd door de promotor:
+
+\end{titlepage}
+

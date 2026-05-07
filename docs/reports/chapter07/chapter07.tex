@@ -1,0 +1,36 @@
+\chapter{Kết luận và Hướng phát triển}
+\label{chp:conclusion}
+
+\section{Kết luận}
+
+\subsection{Đạt được}
+Đồ án đã nghiên cứu và triển khai thành công một hệ thống vi mạch nhúng SoC (System-on-Chip) hoàn chỉnh dựa trên phương pháp đồng thiết kế Phần cứng - Phần mềm (Hardware-Software Co-design). Hệ thống được hiện thực hóa trên nền tảng FPGA Xilinx Kria KV260 (Zynq UltraScale+), hướng tới mục tiêu gia tốc các thuật toán Trí tuệ nhân tạo tại biên (Edge AI). 
+
+Thông qua quá trình thực hiện, nhóm sinh viên đã đạt được những kết quả cốt lõi sau:
+\begin{itemize}
+    \item \textbf{Xây dựng thành công kiến trúc xử lý Đa nhân (Dual-core):} Kết hợp linh hoạt giữa sức mạnh quản lý cấp cao của lõi ARM (chạy hệ điều hành Linux/thư viện PYNQ) và khả năng xử lý thời gian thực, tiêu thụ năng lượng thấp của vi điều khiển mã nguồn mở RISC-V (chạy Bare-metal).
+    \item \textbf{Tối ưu hóa kiến trúc bộ nhớ Harvard trên FPGA:} Quy hoạch thành công hệ thống bộ nhớ Dual-Port BRAM với 64KB I-BRAM (Bộ nhớ lệnh) và 256KB D-BRAM (Bộ nhớ dữ liệu). Việc thiết lập 4 khối AXI BRAM Controller độc lập đã loại bỏ triệt để hiện tượng nghẽn cổ chai (bottleneck) khi ARM và RISC-V cùng truy xuất bộ nhớ.
+    \item \textbf{Khắc phục độ trễ dữ liệu bằng AXI HPC:} Triển khai thành công bộ điều khiển truy cập bộ nhớ trực tiếp (AXI DMA) kết nối qua cổng S\_AXI\_HPC. Điều này giúp tối đa hóa băng thông truyền tải ảnh/trọng số từ RAM DDR vào BRAM và tự động đồng bộ hóa bộ đệm (Cache Coherency) mà không cần can thiệp phức tạp bằng phần mềm.
+    \item \textbf{Lượng tử hóa và chuẩn hóa mô hình CNN:} Thực hiện thành công kỹ thuật Lượng tử hóa sau huấn luyện (Post-Training Quantization - PTQ), ép kiểu các mô hình Mạng nơ-ron tích chập (YOLO-Fastest, ResNet, VGG) từ dấu phẩy động 32-bit (FP32) xuống số nguyên 8-bit (INT8). Giải pháp này giúp giảm đáng kể dung lượng lưu trữ và tài nguyên phần cứng mà vẫn duy trì được độ chính xác có thể chấp nhận được trên các tập dữ liệu thực tế như INRIA Person và Dogs vs. Cats.
+\end{itemize}
+
+Nhìn chung, đồ án đã chứng minh tính khả thi và hiệu quả của việc tự thiết kế một bộ gia tốc AI chuyên dụng (Custom AI Accelerator) giao tiếp với softcore RISC-V trên nền tảng FPGA, thay vì phụ thuộc hoàn toàn vào các vi xử lý thương mại có sẵn.
+
+\subsection{Hạn chế của hệ thống}
+\begin{itemize}
+    \item Chỉ hỗ trợ 3×3 conv stride 1 valid padding (chưa có 1×1, depthwise, padding)
+    \item Per-tensor quantization (chưa per-axis)
+    \item Throughput còn hạn chế do all-serial cnt\_cout
+\end{itemize}
+
+\newpage
+\section{Hướng phát triển}
+Mặc dù hệ thống đã hoạt động ổn định và đáp ứng được các mục tiêu ban đầu, đồ án vẫn còn nhiều không gian để tối ưu hóa và mở rộng trong tương lai. Một số hướng phát triển cụ thể bao gồm:
+
+\begin{itemize}
+    \item \textbf{Tối ưu hóa luồng dữ liệu bằng Ping-Pong Buffering:} Mở rộng logic điều khiển DMA và RISC-V để áp dụng kỹ thuật chia gạch (Tiling) và đệm bóng bàn (Ping-Pong Buffering) trong D-BRAM. Điều này sẽ giúp che giấu hoàn toàn độ trễ truyền dữ liệu (Latency Hiding), cho phép khối CNN tính toán liên tục không có thời gian chết.
+    \item \textbf{Mở rộng tập lệnh RISC-V (Custom Instructions):} Tận dụng đặc tính mã nguồn mở của RISC-V để can thiệp vào bộ giải mã lệnh (Instruction Decoder), tạo ra các tập lệnh tùy chỉnh (Custom Instructions) dành riêng cho việc cấu hình và kích hoạt khối gia tốc CNN thay vì dùng giao tiếp Memory-Mapped I/O thông thường.
+    \item \textbf{Tích hợp Hệ điều hành thời gian thực (RTOS):} Nâng cấp phần mềm chạy trên lõi RISC-V từ dạng Bare-metal (vòng lặp vô tận) lên một hệ điều hành thời gian thực nhỏ gọn như FreeRTOS. Điều này sẽ giúp hệ thống có khả năng quản lý nhiều tác vụ đồng thời (nhận dữ liệu cảm biến, điều khiển động cơ, chạy AI) với độ trễ phản hồi xác định.
+    \item \textbf{Mở rộng hỗ trợ mô hình học sâu:} Nâng cấp kiến trúc phần cứng của khối tính toán tích chập để hỗ trợ thêm các lớp mạng phức tạp hơn như Depthwise Separable Convolution (trong MobileNet) hoặc cơ chế Attention (trong Vision Transformers), từ đó nâng cao độ chính xác cho các bài toán thị giác máy tính phức tạp.
+    \item \textbf{Xây dựng giao diện người dùng (Web UI):} Tận dụng hệ điều hành Ubuntu chạy trên lõi ARM để phát triển một máy chủ Web cục bộ. Máy chủ này sẽ tiếp nhận luồng Video trực tiếp từ USB Camera, gọi module gia tốc phần cứng dưới PL để suy diễn, và hiển thị kết quả Bounding Box trực quan lên trình duyệt web theo thời gian thực.
+\end{itemize}

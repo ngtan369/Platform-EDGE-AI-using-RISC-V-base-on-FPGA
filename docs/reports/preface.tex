@@ -1,0 +1,37 @@
+\chapter{Lời cảm ơn}
+%\addcontentsline{toc}{chapter}{Abstract}
+\setheader{Lời cảm ơn}
+
+Việc hoàn thành đồ án này không chỉ là kết quả của sự nỗ lực từ phía nhóm thực hiện, mà còn là sự kết tinh từ sự chỉ dẫn tận tình và động viên to lớn của quý thầy cô, gia đình và bạn bè.
+
+Lời tri ân sâu sắc nhất, chúng tôi xin được gửi tới Thầy Phạm Quốc Cường. Thầy không chỉ là người hướng dẫn khoa học, định hướng cho chúng tôi những lối đi đúng đắn trong mê cung kiến thức, mà còn là người truyền lửa, giúp chúng tôi kiên trì vượt qua những rào cản kỹ thuật hóc búa trong suốt quá trình thực hiện đề tài. Những kinh nghiệm quý báu mà Thầy chia sẻ thực sự là hành trang vô giá đối với chúng tôi.
+
+Chúng tôi cũng xin bày tỏ lòng biết ơn chân thành đến Quý Thầy Cô thuộc Khoa Khoa học và Kỹ thuật Máy tính, Trường Đại học Bách Khoa - ĐHQG TP.HCM. Môi trường học thuật nghiêm túc và nền tảng kiến thức vững chắc mà các Thầy Cô đã dày công vun đắp chính là bệ phóng để chúng tôi có thể tự tin giải quyết các vấn đề trong đồ án này cũng như trong sự nghiệp sau này.
+
+Cuối cùng, xin gửi lời cảm ơn đến gia đình – hậu phương vững chắc nhất, và những người bạn đã luôn sát cánh, chia sẻ khó khăn. Sự ủng hộ của mọi người chính là nguồn động lực tinh thần to lớn giúp chúng tôi đi đến cuối hành trình này.
+
+Xin chân thành cảm ơn!
+
+\chapter{Tóm tắt}
+%\addcontentsline{toc}{chapter}{Abstract}
+\setheader{Tóm tắt}
+
+Trong kỷ nguyên số hóa, Internet vạn vật (IoT) đã chuyển mình từ một khái niệm công nghệ trở thành hạ tầng thiết yếu của đời sống hiện đại. Từ các thiết bị dân dụng như Smart TV đến các mạng lưới cảm biến công nghiệp phức tạp, IoT đang tạo ra một lượng dữ liệu khổng lồ. Xu hướng tất yếu hiện nay là tích hợp Trí tuệ nhân tạo (AI) vào các thiết bị này để tạo nên AIoT (Artificial Intelligence of Things), giúp thiết bị không chỉ "kết nối" mà còn có khả năng "tư duy".
+
+Tuy nhiên, việc triển khai AI trên các thiết bị IoT truyền thống đang vấp phải "nút thắt cổ chai" về kiến trúc. Mô hình phổ biến hiện nay dựa vào việc đẩy dữ liệu lên máy chủ đám mây (Cloud Server) để xử lý tập trung. Mô hình này bộc lộ nhiều điểm yếu chí mạng: rủi ro gián đoạn dịch vụ khi mất kết nối mạng, độ trễ cao không phù hợp cho các ứng dụng thời gian thực, và gánh nặng băng thông lớn.
+
+Về mặt phần cứng, các vi xử lý (CPU) thương mại từ các hãng lớn, dù mạnh mẽ, thường gặp vấn đề về tiêu thụ năng lượng khi phải gồng gánh các tác vụ AI liên tục. Hơn nữa, tính chất đóng kín của các dòng chip này khiến các nhà phát triển gặp khó khăn trong việc tùy biến sâu để tối ưu hóa hiệu năng cho các thuật toán AI cụ thể, đồng thời rào cản chi phí bản quyền cũng là một trở ngại lớn cho đổi mới sáng tạo.
+
+Sự xuất hiện của RISC-V đã mang đến một luồng gió mới cho ngành công nghiệp bán dẫn. Là một kiến trúc tập lệnh mở (Open ISA), RISC-V phá bỏ thế độc quyền của các kiến trúc đóng, trao quyền cho các tổ chức nhỏ, các nhóm nghiên cứu và cá nhân khả năng tự thiết kế các lõi CPU chuẩn hóa. Ưu điểm vượt trội của RISC-V nằm ở tính mô-đun hóa và khả năng mở rộng. Các kỹ sư có thể tự do thêm các tập lệnh tùy chỉnh hoặc sửa đổi vi kiến trúc để phục vụ cho các tác vụ chuyên biệt mà không vướng phải rào cản pháp lý hay chi phí bản quyền đắt đỏ. Đây chính là chìa khóa để giải quyết bài toán hiệu năng/năng lượng cho các thiết bị IoT thế hệ mới.
+
+Dựa trên những phân tích trên, dự án của nhóm tập trung phát triển một nền tảng Edge-AI (AI tại biên) chuyên dụng, lấy kiến trúc RISC-V làm nòng cốt. Mục tiêu của nhóm không chỉ dừng lại ở việc sử dụng một lõi CPU đa năng. Thay vào đó, nhóm tận dụng khả năng tùy biến của RISC-V để thiết kế một hệ thống tích hợp sâu, bao gồm một lõi xử lý trung tâm được tối ưu hóa kết hợp với một bộ tăng tốc AI tùy chỉnh chạy song song trên FPGA Kria KV260.
+
+Đồ án triển khai đầy đủ bốn lớp đồng thiết kế: \textit{(i)} Lớp toolchain huấn luyện trên Host PC sinh ra layer table và blob trọng số INT8 từ mô hình Keras; \textit{(ii)} Lớp gia tốc dữ liệu (data plane) gồm bộ tăng tốc Conv-CNN v2.0 thiết kế bằng SystemVerilog, hỗ trợ tích chập $3 \times 3$ INT8 với khối requantize tuân thủ chuẩn TFLite; \textit{(iii)} Lớp điều phối (orchestrator) là firmware bare-metal chạy trên lõi RISC-V CV32E40P, đọc layer table và lập lịch DMA cho từng layer theo cơ chế ping-pong DDR; \textit{(iv)} Lớp ứng dụng host chạy trên ARM Cortex-A53 với runtime PYNQ + Jupyter notebook, đảm nhận tiền xử lý ảnh, kích hoạt RISC-V và hậu xử lý kết quả. Hệ thống được kiểm chứng qua bài toán phân loại nhị phân với mô hình \texttt{vgg-tiny} (5 layer Conv $3 \times 3$, $\sim$25.7K tham số INT8) trên hai dataset Cats vs Dogs và INRIA Person. Kết quả thực nghiệm trên KV260 cho thấy hệ thống hoạt động ổn định, xử lý chính xác giao thức bắt tay ARM~$\leftrightarrow$~RISC-V qua D-BRAM dual-port, và là nền tảng có thể mở rộng cho các kiến trúc mạng phức tạp hơn (VGG-11, ResNet-18) trong các pha phát triển tiếp theo.
+
+
+% \chapter{Abstract}
+% %\addcontentsline{toc}{chapter}{Abstract}
+% \setheader{Abstract}
+
+% Write your abstract in English here
+

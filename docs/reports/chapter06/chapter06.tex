@@ -1,0 +1,132 @@
+\chapter{Kết quả}
+\label{chp:06}
+
+Trong chương này, nhóm thực hiện trình bày các kết quả đạt được của đồ án, bao gồm hai phần chính: Đánh giá quá trình tổng hợp phần cứng (Hardware Synthesis) trên phần mềm Xilinx Vivado và đánh giá hiệu năng huấn luyện, lượng tử hóa các mô hình Mạng nơ-ron tích chập (CNN) trước khi triển khai thực tế xuống bo mạch Kria KV260.
+
+\section{Kết quả huấn luyện model}
+\label{sec:training-results}
+
+\subsection{Cấu hình thí nghiệm}
+\begin{itemize}
+    \item Hardware huấn luyện: GPU NVIDIA RTX/A100/...
+    \item Framework: TensorFlow 2.x + Keras
+    \item Optimizer: Adam, learning rate $10^{-3}$
+    \item Batch size, epochs, augmentation\dots
+\end{itemize}
+
+\subsection{Tập Cats vs Dogs}
+\begin{table}[htbp]
+    \centering
+    \caption{Accuracy Tiny-VGG trên tập Cats vs Dogs.}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Model} & \textbf{Train Acc} & \textbf{Val Acc} & \textbf{Test Acc} \\
+        \hline
+        FP32 (reference)   & ... & ... & ... \\
+        INT8 (TFLite PTQ)  & ... & ... & ... \\
+        INT8 + FPGA        & ... & ... & ... \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% Loss + accuracy curves
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/training_curves.png}
+    \caption{Đường cong loss và accuracy theo epoch.}
+\end{figure}
+
+\subsection{Tập INRIA Person}
+% Tương tự bảng + curves
+
+\subsection{Đánh giá ảnh hưởng của lượng tử hóa INT8}
+% Accuracy drop quantification
+% Per-layer activation distribution
+
+\newpage
+\section{Tổng hợp phần cứng}
+
+Quá trình tổng hợp (Synthesis) và thực thi định tuyến (Implementation) hệ thống SoC bao gồm lõi vi xử lý ARM, lõi softcore RISC-V và bộ gia tốc phần cứng CNN được thực hiện trên công cụ Vivado. Các thông số về tài nguyên, công suất và thời gian (timing) được trích xuất để đảm bảo hệ thống đáp ứng được yêu cầu thiết kế.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter06/img/bitstream.png}
+    \caption{Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}
+    \label{fig:schematic}
+\end{figure}
+
+\subsection{Tài nguyên FPGA}
+
+\begin{table}[!h]
+    \centering
+    \caption{Tài nguyên KV260 sử dụng (sau implementation).}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Resource} & \textbf{Used} & \textbf{Available} & \textbf{Util.} \\
+        \hline
+        LUT     & ... & 117120 & ...\% \\
+        FF      & ... & 234240 & ...\% \\
+        BRAM   & ... & 144     & ...\% \\
+        DSP     & ... & 1248    & ...\% \\
+        URAM    & ... & 64      & ...\% \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter06/img/util.png}
+    \caption{Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}
+    \label{fig:schematic}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter06/img/shematic.png}
+    \caption{Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}
+    \label{fig:schematic}
+\end{figure}
+
+Sau quá trình Place \& Route, hệ thống được kiểm tra luật thiết kế để đảm bảo không xảy ra xung đột tài nguyên vật lý, đặc biệt là tại khu vực cấp phát Dual-Port BRAM cho kiến trúc bộ nhớ Harvard.
+
+\begin{figure} [!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter06/img/drc.png}
+    \caption{Báo cáo kiểm tra luật thiết kế (DRC Report)}
+    \label{fig:drc}
+\end{figure}
+
+\subsection{Báo cáo timing}
+% Fmax đạt được, WNS, slack
+\newpage
+\begin{figure} [!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter06/img/timing.png}
+    \caption{Báo cáo thời gian (Timing Summary) đảm bảo không có vi phạm Slack}
+    \label{fig:timing}
+\end{figure}
+
+\newpage
+\subsection{Power estimation}
+% Vivado power report
+
+\begin{figure} [!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter06/img/power.png}
+    \caption{Báo cáo ước tính công suất tiêu thụ (Power Report) của toàn hệ thống}
+    \label{fig:power}
+\end{figure}
+
+\newpage
+\section{Kết quả chạy trên mạch thực tế}
+
+Các mô hình sau khi đạt được độ chính xác mục tiêu trên máy tính (PC) được biên dịch thành các tệp trọng số nhị phân (`.bin`) và nạp xuống FPGA. Lõi vi xử lý ARM thông qua thư viện PYNQ đóng vai trò điều phối luồng dữ liệu (DMA) và kích hoạt vi điều khiển RISC-V để điều khiển bộ gia tốc phần cứng tiến hành suy diễn.
+
+% --- Các thông số chèn vào đây khi chạy mạch thật: ---
+% 1. Khung hình/giây (FPS) đạt được.
+% 2. Độ trễ (Latency) cho một lần chạy mô hình.
+% 3. So sánh kết quả tính toán giữa mạch thật và bản giả lập trên PC.
+
+\subsection{So sánh với related work}
+% Vitis AI DPU, FINN, hls4ml
+% Tradeoff: flexibility, performance, power

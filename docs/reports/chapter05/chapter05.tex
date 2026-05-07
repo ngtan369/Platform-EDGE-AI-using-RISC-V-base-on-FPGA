@@ -1,0 +1,252 @@
+\chapter{Hiện thực và kiểm thử hệ thống}
+\label{chp:05}
+
+
+Chương này trình bày chi tiết quá trình hiện thực hóa kiến trúc phần cứng đã đề xuất ở các chương trước thành hệ thống vật lý trên nền tảng FPGA. Nội dung bao gồm việc tinh chỉnh lõi vi xử lý RISC-V, thiết kế cầu nối giao tiếp, tổng hợp bộ gia tốc phần cứng cho mạng nơ-ron, lập trình phần mềm nhúng điều khiển và quy trình huấn luyện, lượng tử hóa mô hình trí tuệ nhân tạo.
+
+\section{Tổng quan hướng hiện thực}
+Hệ thống gia tốc AI tại biên (Edge-AI) trong đồ án này được thiết kế theo phương pháp đồng thiết kế phần cứng/phần mềm (Hardware-Software Co-design) mang tính dị cấu trúc (Heterogeneous). Để đảm bảo tính linh hoạt (linh hoạt thay đổi mô hình AI mà không cần tổng hợp lại phần cứng) và hiệu năng cao, hệ thống được hiện thực hóa theo mô hình phân tầng kiến trúc (Layered Architecture) gồm 4 tầng (Layer) phối hợp chặt chẽ với nhau.
+
+\newpage
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter05/img/flowwork.png}
+    \caption{Sơ đồ tổng quan}
+    \label{fig:flowwork}
+\end{figure}
+
+\textbf{Quy ước giao tiếp giữa các tầng}
+% Bảng artifacts (4 files)
+\begin{table}[!h]
+    \centering
+    \caption{Các artifact trao đổi giữa các tầng trong pipeline.}
+    \label{tab:artifacts}
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Artifact} & \textbf{Sinh bởi} & \textbf{Tiêu thụ bởi} \\
+        \hline
+        \texttt{firmware.bin}    & RISC-V toolchain     & ARM (load vào I-BRAM)         \\
+        \texttt{weights.bin}     & training/train.py    & ARM (load vào DDR)            \\
+        \texttt{meta.json}       & training/train.py    & ARM (input quantization)      \\
+        \texttt{layer\_table.h}  & training/train.py    & RISC-V firmware (compile-in)  \\
+        \texttt{bitstream.bit}   & Vivado synth+impl    & PYNQ Overlay                  \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\newpage
+\section{Huấn luyện và lượng tử hóa mô hình AI}
+Mô hình trí tuệ nhân tạo được sử dụng trong hệ thống là mạng nơ-ron tích chập (CNN). Quy trình xử lý mô hình được thực hiện hoàn toàn ngoại tuyến (Offline) trên máy tính cá nhân qua các bước:
+\begin{itemize}
+    \item \textbf{Huấn luyện mô hình (Training):} Sử dụng thư viện học máy phổ biến (TensorFlow/Keras) để xây dựng và huấn luyện mô hình phân loại đối tượng trên các tập dữ liệu tiêu chuẩn. Mô hình sử dụng kiểu dữ liệu số thực độ chính xác 32-bit (FP32) truyền thống để đạt được độ chính xác cao nhất trong quá trình hội tụ.
+    \item \textbf{Lượng tử hóa sau huấn luyện (Post-Training Quantization - PTQ):} Do bộ gia tốc phần cứng được thiết kế cho kiểu dữ liệu số nguyên INT8 nhằm tiết kiệm tài nguyên, toàn bộ trọng số (Weights) và các tham số kích hoạt (Activations) của mô hình FP32 được ánh xạ và ép kiểu về INT8 thông qua bộ cung cấp dữ liệu hiệu chuẩn (Calibration Dataset). Quá trình này giúp giảm 4 lần dung lượng lưu trữ mô hình và tăng tốc độ suy luận phần cứng mà vẫn đảm bảo độ hao hụt độ chính xác ở mức cho phép.
+    \item \textbf{Xuất dữ liệu:} Các trọng số và siêu tham số sau khi lượng tử hóa được xuất ra dưới dạng các mảng dữ liệu ngôn ngữ C (Header files), sẵn sàng để biên dịch cùng mã nguồn Firmware và nạp trực tiếp vào bộ nhớ của hệ thống SoC.
+\end{itemize}
+
+
+\newpage
+\section{Hiện thực khối gia tốc phần cứng CNN}
+\label{sec:cnn-ip}
+
+Khắc phục lỗi suy luận BRAM" từ 300,000 FDRE xuống còn 9 BRAM nhờ làm phẳng mảng và bỏ lệnh Reset.
+
+\subsection{Tổng quan kiến trúc Conv\_CNN v2.0}
+% Datapath block diagram
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter05/img/conv_cnn_datapath.png}
+    \caption{Sơ đồ datapath conv\_cnn IP: từ AXIS in qua line buffer,
+    window, MAC array, requantize đến AXIS out.}
+    \label{fig:conv-cnn-datapath}
+\end{figure}
+
+\subsection{Tham số hóa và package \texttt{conv\_pkg.sv}}
+Toàn bộ tham số bound (\texttt{MAX\_WIDTH}, \texttt{MAX\_CIN},
+\texttt{MAX\_COUT}) và độ rộng datatype được đặt trong
+\texttt{conv\_pkg.sv}, cho phép scale tài nguyên mà không sửa từng module.
+
+% \subsection{Khối điều khiển — \texttt{controller\_fsm.sv}}
+% % FSM 7 states diagram
+% % Pseudocode 3 nested loops
+% \begin{lstlisting}[language=Verilog, caption={Trạng thái chính FSM},
+%                    label={lst:fsm}]
+% typedef enum logic [2:0] {
+%     S_IDLE, S_ACCEPT_CIN, S_LATCH_WIN,
+%     S_COMPUTE, S_WAIT_REQUANT, S_EMIT, S_DONE_S
+% } state_t;
+% \end{lstlisting}
+
+% \subsection{Bộ đệm dòng và cửa sổ — \texttt{line\_buffer.sv}, \texttt{window\_3x3.sv}}
+% % 2 BRAM bank, parity-toggle, read-before-write
+% % 3x3xMAX_CIN register array
+
+% \subsection{Bộ nhớ trọng số — \texttt{weight\_buf.sv}}
+% % 9 BRAMs storage + LUTRAM bias
+% % AXIS stream prefix loading protocol
+
+% \subsection{Mảng MAC và cây cộng — \texttt{pe\_mac.sv}}
+% % INT8 x INT8 -> INT32, DSP48E2 mapping
+% % 9 PE parallel for spatial dot-product
+
+% \subsection{Khối lượng tử hóa lại — \texttt{requantize.sv}}
+% % 3-stage pipeline
+% % Q31 multiplier + barrel shift + saturate + ReLU
+
+\subsection{Tích hợp tổng thể qua AXI}
+% S00_AXI register map (Bảng 5.x)
+% AXI-Stream IFM/OFM
+\begin{table}[htbp]
+    \centering
+    \caption{Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi).}
+    \label{tab:s00-axi-regs}
+    \begin{tabular}{|c|l|c|l|}
+        \hline
+        \textbf{Offset} & \textbf{Tên} & \textbf{R/W} & \textbf{Layout} \\
+        \hline
+        0x00 & GEOMETRY  & RW & width[15:0], height[31:16] \\
+        0x04 & CTRL      & RW & start, pool\_en, mode\_load, has\_relu \\
+        0x08 & STATUS    & RO & done \\
+        0x0C & CHANNELS  & RW & num\_cin[15:0], num\_cout[31:16] \\
+        0x10 & M\_Q31    & RW & Q31 multiplier \\
+        0x14 & SHIFT\_ZP & RW & shift[5:0], output\_zp[15:8] \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Đánh giá khối tăng tốc CONV-CNN}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter05/img/cnn_imple.png}
+    \caption{Báo cáo chạy khối CNN}
+    \label{fig:overall}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter05/img/cnn_waveform.png}
+    \caption{Kết quả chạy simulate khối CNN}
+    \label{fig:waveform}
+\end{figure}
+\newpage
+\section{Hiện thực RISC-V Soft-core}
+\subsection{Tinh chỉnh CV32E40P Core}
+Lõi vi xử lý CV32E40P mã nguồn mở nguyên bản được thiết kế với đầy đủ các tập lệnh mở rộng, bao gồm cả khối xử lý số thực dấu phẩy động (FPU - Floating Point Unit). Tuy nhiên, để tối ưu hóa tài nguyên phần cứng (LUT, FF, DSP) trên chip FPGA cho bộ tăng tốc trí tuệ nhân tạo, lõi CPU đã được tinh chỉnh lại ở mức mã nguồn RTL. 
+
+Cụ thể, toàn bộ khối xử lý số thực và các lệnh liên quan (tập lệnh mở rộng F) đã được loại bỏ. Sự tinh giản này là hoàn toàn hợp lý do toàn bộ mô hình học sâu trong hệ thống đã được lượng tử hóa xuống kiểu dữ liệu số nguyên 8-bit (INT8). Vi xử lý lúc này chỉ hoạt động với tập lệnh cơ bản RV32IMC, chịu trách nhiệm điều phối luồng điều khiển, quản lý ngắt và cấu hình thanh ghi thay vì tham gia tính toán trực tiếp. Bên cạnh đó, bộ giải mã lệnh (Instruction Decoder) cũng được tùy biến để tối ưu hóa đường truyền dữ liệu, loại bỏ các khối logic không cần thiết, giúp cải thiện tần số hoạt động tối đa (Fmax) của lõi.
+
+\subsection{Hiện thực cầu nối giao tiếp OBI sang AXI4 (OBI to AXI)}
+\label{sec:obi_axi}
+Giao thức giao tiếp bộ nhớ mặc định của lõi CV32E40P là OBI (Open Bus Interface). Tuy nhiên, nền tảng thiết kế SoC của Xilinx Vivado sử dụng chuẩn giao tiếp AMBA AXI4 làm nòng cốt. Để tích hợp thành công lõi RISC-V vào bản vẽ hệ thống cùng với khối xử lý trung tâm (PS) và các bộ nhớ đệm, một cầu nối giao tiếp (Bridge) chuyển đổi từ tín hiệu OBI sang AXI4 đã được thiết kế và hiện thực.
+
+Cầu nối này (obi\_to\_axi) bao gồm hai luồng độc lập: một luồng dành cho việc nạp lệnh (Instruction Fetch) và một luồng dành cho truy xuất dữ liệu (Data Access). Khối logic bên trong thực hiện nhiệm vụ biên dịch các tín hiệu điều khiển (như tín hiệu yêu cầu \textit{req}, tín hiệu cấp phép \textit{gnt}) của chuẩn OBI thành các kênh địa chỉ, dữ liệu và phản hồi tương ứng của chuẩn AXI4-Lite/AXI4 Full. Quá trình kiểm thử mô phỏng (Simulation) đảm bảo cầu nối không gây ra trạng thái tắc nghẽn (Deadlock) và xử lý chính xác các tín hiệu báo lỗi đường truyền.
+
+\newpage
+\section{Phát triển Firmware}
+\label{sec:software}
+
+\subsection{Pipeline huấn luyện trên Host PC}
+\label{ssec:training}
+% TF/Keras model
+% PTQ pipeline
+% Representative dataset
+% Tiny-VGG architecture detail (5 layers)
+\begin{lstlisting}[language=Python, caption={Kiến trúc Tiny-VGG đề xuất}]
+def build_vgg_tiny(num_classes, input_shape=(128,128,3)):
+    inputs = tf.keras.Input(shape=input_shape)
+    x = layers.Conv2D(8,  3, activation='relu', padding='valid')(inputs)
+    x = layers.Conv2D(16, 3, activation='relu', padding='valid')(x)
+    x = layers.Conv2D(32, 3, activation='relu', padding='valid')(x)
+    x = layers.Conv2D(64, 3, activation='relu', padding='valid')(x)
+    x = layers.Conv2D(num_classes, 3, activation=None, padding='valid')(x)
+    x = layers.GlobalAveragePooling2D()(x)
+    return models.Model(inputs, layers.Softmax()(x), name='vgg_tiny')
+\end{lstlisting}
+
+\subsection{Trình biên dịch tự sinh \texttt{layer\_table.h} và \texttt{weights.bin}}
+% TFLite parser
+% Q31 multiplier conversion (math.frexp)
+% Layer descriptor packing (40 bytes/layer)
+\begin{equation}
+    M_{q31}, n = \texttt{quantize\_multiplier}\!\left(\frac{s_{\mathrm{in}} \cdot s_{\mathrm{w}}}{s_{\mathrm{out}}}\right)
+\end{equation}
+
+\subsection{Firmware RISC-V}
+% layer-by-layer driver
+% process_one_layer() programming sequence
+linked.ld
+startup.s
+
+\subsection{Host Controller }
+% PYNQ Overlay loading
+% pynq.allocate ping-pong
+% Image preprocess + INT8 quantize
+% Final GAP + argmax
+Jupiter Notebook server
+\newpage
+\section{Tích hợp Block Design trong Vivado}
+\label{sec:bd}
+
+\begin{figure}[H] % cần \usepackage{float}
+
+\centering
+
+\includegraphics[width=\linewidth]{chapter05/img/arch.png}
+
+\caption{Sơ khối minh họa hệ thống}
+
+\label{fig:arch}
+
+\end{figure}
+
+ 
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=1.2\linewidth, angle=90]{chapter05/img/arch_vivado.png}
+
+\caption{Thiết kế khối trong vivado}
+
+\label{fig:arch_vivado}
+
+\end{figure}
+
+\newpage
+\subsection{Bản đồ bộ nhớ và Address Editor}
+% RISC-V view, ARM view, DMA view
+% BD validation issues đã giải quyết
+
+\newpage
+\subsection{Đồng bộ ARM \(\leftrightarrow\) RISC-V qua D-BRAM dual-port}
+% Bảng register layout shared region
+
+\newpage
+\section{Quy trình kiểm thử}
+\label{sec:testing}
+
+\subsection{Kiểm thử đơn vị (Unit Testbench)}
+% TB từng module: requantize, FSM, line_buffer
+% Vector test thủ công
+
+\subsection{Kiểm thử tích hợp IP}
+\label{ssec:tb-ip}
+Testbench \texttt{tb\_conv\_core.sv} mô phỏng toàn bộ luồng load + infer
+với input 4×4×1, weights toàn 1, M=0.5, kỳ vọng OFM = $\{23, 27, 41, 45\}$
+(với round-half-up).
+
+\begin{equation}
+    y_{q} = \mathrm{sat}_{\mathrm{INT8}}\!\left(
+        \left\lfloor \frac{(\sum_{i,j,c} x \cdot w + b) \cdot M_{q31} + 2^{30+n}}{2^{31+n}} \right\rfloor + z_{\mathrm{out}}
+    \right)
+\end{equation}
+
+\subsection{Đối chiếu với golden vector từ TFLite Interpreter}
+% Bit-exact comparison strategy
+% Per-tensor vs per-axis quant note
+
+\subsection{Kiểm thử trên board KV260}
+% Hardware-in-the-loop methodology
+% Dataset split (train/val/test)
+

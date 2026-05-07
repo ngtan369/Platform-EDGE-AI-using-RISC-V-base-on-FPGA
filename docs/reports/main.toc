@@ -1,0 +1,163 @@
+\babel@toc {vietnamese}{}\relax 
+\contentsline {chapter}{Danh s\'ach h\`inh v\~e}{ix}{chapter*.2}%
+\contentsline {chapter}{Danh s\'ach b\h {a}ng}{xi}{chapter*.3}%
+\contentsline {chapter}{Lời cảm ơn}{xiii}{chapter*.4}%
+\contentsline {chapter}{Tóm tắt}{xv}{chapter*.5}%
+\contentsline {chapter}{\numberline {1}Giới thiệu đề tài}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Mục tiêu đề tài}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Lý do lựa chọn}{4}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Giới hạn và phạm vi đề tài}{6}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Cấu trúc báo cáo}{8}{section.1.4}%
+\contentsline {chapter}{\numberline {2}Cơ sở lý thuyết}{9}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Kiến trúc tập lệnh RISC-V}{9}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Lịch sử hình thành}{9}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Các đặc điểm nổi bật}{10}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Cấu trúc tập lệnh cơ sở và các phần mở rộng}{10}{subsection.2.1.3}%
+\contentsline {subsubsection}{Tập lệnh số nguyên cơ sở (Base Integer ISA)}{10}{subsection.2.1.3}%
+\contentsline {subsubsection}{Định dạng lệnh (Instruction Formats)}{11}{table.2.1}%
+\contentsline {subsubsection}{Các chế độ đặc quyền}{12}{table.2.1}%
+\contentsline {subsection}{\numberline {2.1.4}So sánh kiến trúc RISC và CISC}{12}{subsection.2.1.4}%
+\contentsline {subsubsection}{Triết lý thiết kế}{12}{subsection.2.1.4}%
+\contentsline {subsubsection}{So sánh RISC và CISC}{12}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.1.5}Các phần mở rộng tiêu chuẩn (Standard Extensions)}{13}{subsection.2.1.5}%
+\contentsline {subsection}{\numberline {2.1.6}Sự phù hợp của RISC đối với Edge AI}{14}{subsection.2.1.6}%
+\contentsline {section}{\numberline {2.2}Lõi vi xử lý CV32E40P}{14}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Tổng quan và lý do lựa chọn}{14}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Cấu trúc đường ống lệnh}{15}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Giao tiếp Open Bus Interface (OBI)}{16}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Nền tảng phần cứng fpga và system-on-chip}{17}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Công nghệ fpga (field programmable gate array)}{17}{subsection.2.3.1}%
+\contentsline {subsubsection}{Khái niệm và Kiến trúc cơ bản}{17}{subsection.2.3.1}%
+\contentsline {subsubsection}{Ưu điểm trong ứng dụng AI}{17}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}System on Chip - SoC}{18}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}nền tảng Kria kv260 vision ai}{18}{subsection.2.3.3}%
+\contentsline {subsubsection}{kiến trúc system on module}{18}{subsection.2.3.3}%
+\contentsline {subsubsection}{Chip Zynq UltraScale+ MPSoC}{18}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Nguồn dữ liệu đầu vào cho hệ thống}{19}{subsection.2.3.4}%
+\contentsline {section}{\numberline {2.4}tổng quan chuẩn giao tiếp axi}{19}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Lịch sử hình thành và sự hội tụ giữa ASIC và FPGA}{19}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Cơ sở lý thuyết và Cơ chế hoạt động của AXI4}{20}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}Phân loại các biến thể AXI trên nền tảng Xilinx}{22}{subsection.2.4.3}%
+\contentsline {subsection}{\numberline {2.4.4}Tích hợp hệ thống}{23}{subsection.2.4.4}%
+\contentsline {section}{\numberline {2.5}tổng quan về trí tuệ nhân tạo (ai)}{25}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Các Mô hình AI (AI Models)}{25}{subsection.2.5.1}%
+\contentsline {subsubsection}{Mô hình Phân loại (Classification)}{25}{subsection.2.5.1}%
+\contentsline {subsubsection}{Mô hình Phát hiện đối tượng (Object Detection)}{25}{subsection.2.5.1}%
+\contentsline {subsubsection}{Mô hình Phân đoạn (Segmentation)}{25}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Training và Inference}{25}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Phân loại AI và Mối liên hệ với Deep Learning}{26}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}Edge AI}{26}{subsection.2.5.4}%
+\contentsline {subsubsection}{Khái niệm}{26}{subsection.2.5.4}%
+\contentsline {subsubsection}{Ưu điểm so với Cloud AI}{26}{subsection.2.5.4}%
+\contentsline {subsubsection}{Các Framework phổ biến cho Edge AI}{26}{subsection.2.5.4}%
+\contentsline {section}{\numberline {2.6}Mạng Nơ-ron Nhân tạo (Artificial Neural Networks)}{27}{section.2.6}%
+\contentsline {subsection}{\numberline {2.6.1}Các kiến trúc Mạng Nơ-ron phổ biến}{27}{subsection.2.6.1}%
+\contentsline {subsubsection}{Mạng Nơ-ron Truyền thẳng (Feedforward Neural Network - MLP)}{27}{subsection.2.6.1}%
+\contentsline {subsubsection}{Các kiến trúc khác}{27}{subsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.6.2}Mạng Nơ-ron Tích chập (CNN)}{27}{subsection.2.6.2}%
+\contentsline {subsubsection}{Lớp Tích chập (Convolutional Layer)}{28}{subsection.2.6.2}%
+\contentsline {subsubsection}{Hàm kích hoạt (Activation Function)}{28}{equation.2.6.1}%
+\contentsline {subsubsection}{Lớp Gộp (Pooling Layer)}{28}{equation.2.6.2}%
+\contentsline {subsection}{\numberline {2.6.3}Kỹ thuật Lượng tử hóa (Quantization)}{28}{subsection.2.6.3}%
+\contentsline {subsubsection}{Khái niệm}{29}{subsection.2.6.3}%
+\contentsline {subsubsection}{Lợi ích trên FPGA/RISC-V}{29}{equation.2.6.3}%
+\contentsline {subsection}{\numberline {2.6.4}Các kỹ thuật tối ưu hóa khác}{29}{subsection.2.6.4}%
+\contentsline {subsubsection}{Kỹ thuật Cắt tỉa }{29}{subsection.2.6.4}%
+\contentsline {subsubsection}{Kỹ thuật im2col (Image-to-Column)}{29}{subsection.2.6.4}%
+\contentsline {chapter}{\numberline {3}Các công trình nghiên cứu liên quan}{31}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Pulpissimo}{31}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Tổng quan}{31}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Các đặc điểm kỹ thuật nổi bật}{31}{subsection.3.1.2}%
+\contentsline {subsubsection}{Lõi xử lý CV32E40P (RI5CY)}{32}{subsection.3.1.2}%
+\contentsline {subsubsection}{Hệ thống bộ nhớ và uDMA}{33}{subsection.3.1.2}%
+\contentsline {section}{\numberline {3.2}Mô hình hiệu quả cho thiết bị biên}{34}{section.3.2}%
+\contentsline {paragraph}{Mạng nơ-ron Nhị phân (BNN).}{34}{section.3.2}%
+\contentsline {paragraph}{MobileNet và Depthwise Separable Convolution.}{34}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Gia tốc phần cứng trên Tập lệnh mở rộng RISC-V (ISA Extensions)}{34}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Lượng tử hóa và huấn luyện mạng nơ-ron}{36}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Cơ chế Lượng tử hóa Affine (Affine Quantization Scheme)}{36}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Suy luận chỉ dùng số học nguyên (Integer-Arithmetic-Only Inference)}{37}{subsection.3.4.2}%
+\contentsline {chapter}{\numberline {4}Thiết kế kiến trúc hệ thống}{39}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Tổng quan kiến trúc Platform}{39}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Layer 1: Hardware Layer}{40}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}layer 2: software / runtime layer}{40}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}layer 3: application layer}{41}{subsection.4.1.3}%
+\contentsline {section}{\numberline {4.2}kiến trúc dị thể}{41}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Thiết kế Processing System}{44}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Cấu hình chi tiết các phân hệ}{44}{subsection.4.3.1}%
+\contentsline {subsubsection}{Khối xử lý ứng dụng (APU Configuration)}{44}{subsection.4.3.1}%
+\contentsline {subsubsection}{Cấu hình Giao diện Bộ nhớ (DDR Configuration)}{44}{subsection.4.3.1}%
+\contentsline {subsubsection}{Cấu hình Giao diện PS-PL (Interface Configuration)}{45}{subsection.4.3.1}%
+\contentsline {subsubsection}{Cấu hình Xung nhịp (Clock Configuration)}{45}{Item.19}%
+\contentsline {section}{\numberline {4.4}Thiết kế Hệ thống Giao tiếp và Bộ nhớ (Interconnect \& Memory Hierarchy)}{46}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Cơ chế AXI SmartConnect (PS-PL Bridge)}{46}{subsection.4.4.1}%
+\contentsline {subsubsection}{Kênh Điều khiển (Control Path - AXI4-Lite)}{47}{subsection.4.4.1}%
+\contentsline {subsubsection}{Kênh Dữ liệu (Data Path - AXI4-Full)}{47}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Quy hoạch không gian bộ nhớ (System Memory Map)}{48}{subsection.4.4.2}%
+\contentsline {subsubsection}{Bố cục thanh ghi handshake trong D-BRAM Port B}{49}{table.4.1}%
+\contentsline {subsubsection}{Cơ chế Đồng bộ hóa}{49}{table.4.2}%
+\contentsline {section}{\numberline {4.5}Thiết kế Programmable Logic}{51}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Kiến trúc tổng thể Phân hệ PULP (PULP Subsystem)}{51}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Cấu hình Nhân Vi xử lý (RISC-V Core Configuration)}{52}{subsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.5.3}Hệ thống Bộ nhớ TCDM và Interconnect}{52}{subsection.4.5.3}%
+\contentsline {subsubsection}{Tổ chức Bộ nhớ Đan xen (Interleaved Memory Banking)}{52}{subsection.4.5.3}%
+\contentsline {subsubsection}{Logarithmic Interconnect}{53}{subsection.4.5.3}%
+\contentsline {subsection}{\numberline {4.5.4}Cơ chế Truy cập Bộ nhớ Trực tiếp (uDMA)}{53}{subsection.4.5.4}%
+\contentsline {section}{\numberline {4.6}Thiết kế Khối Tăng tốc phần cứng (CNN Accelerator)}{54}{section.4.6}%
+\contentsline {subsection}{\numberline {4.6.1}Kiến trúc tổng quát khối Accelerator}{54}{subsection.4.6.1}%
+\contentsline {subsection}{\numberline {4.6.2}Các thành phần chức năng chi tiết}{54}{subsection.4.6.2}%
+\contentsline {subsubsection}{Bộ đệm dòng (Line Buffer)}{54}{subsection.4.6.2}%
+\contentsline {subsubsection}{Mảng tính toán PE và adder tree}{55}{subsection.4.6.2}%
+\contentsline {subsubsection}{Khối lượng tử hóa (Requantize)}{55}{subsection.4.6.2}%
+\contentsline {subsection}{\numberline {4.6.3}Đặc tính thiết kế và tối ưu cho vgg-tiny}{55}{subsection.4.6.3}%
+\contentsline {section}{\numberline {4.7}Mô hình AI mục tiêu: vgg-tiny}{57}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}Đặc tả kiến trúc vgg-tiny}{57}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}So sánh vgg-tiny với các mô hình thông dụng}{58}{subsection.4.7.2}%
+\contentsline {subsection}{\numberline {4.7.3}Lộ trình mở rộng (Tier Roadmap)}{58}{subsection.4.7.3}%
+\contentsline {subsection}{\numberline {4.7.4}Lượng tử hóa (Quantization)}{59}{subsection.4.7.4}%
+\contentsline {subsection}{\numberline {4.7.5}Tổ chức Dữ liệu trong Bộ nhớ}{59}{subsection.4.7.5}%
+\contentsline {section}{\numberline {4.8}Luồng thực thi và Giao thức bắt tay}{59}{section.4.8}%
+\contentsline {paragraph}{Quy trình inference một ảnh}{60}{section.4.8}%
+\contentsline {chapter}{\numberline {5}Hiện thực và kiểm thử hệ thống}{63}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Tổng quan hướng hiện thực}{63}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Huấn luyện và lượng tử hóa mô hình AI}{65}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Hiện thực khối gia tốc phần cứng CNN}{66}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Tổng quan kiến trúc Conv\_CNN v2.0}{66}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Tham số hóa và package \texttt {conv\_pkg.sv}}{66}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}Tích hợp tổng thể qua AXI}{67}{subsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.3.4}Đánh giá khối tăng tốc CONV-CNN}{67}{subsection.5.3.4}%
+\contentsline {section}{\numberline {5.4}Hiện thực RISC-V Soft-core}{68}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Tinh chỉnh CV32E40P Core}{68}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Hiện thực cầu nối giao tiếp OBI sang AXI4 (OBI to AXI)}{69}{subsection.5.4.2}%
+\contentsline {section}{\numberline {5.5}Phát triển Firmware}{71}{section.5.5}%
+\contentsline {subsection}{\numberline {5.5.1}Pipeline huấn luyện trên Host PC}{71}{subsection.5.5.1}%
+\contentsline {subsection}{\numberline {5.5.2}Trình biên dịch tự sinh \texttt {layer\_table.h} và \texttt {weights.bin}}{71}{subsection.5.5.2}%
+\contentsline {subsection}{\numberline {5.5.3}Firmware RISC-V}{71}{subsection.5.5.3}%
+\contentsline {subsection}{\numberline {5.5.4}Host Controller }{71}{subsection.5.5.4}%
+\contentsline {section}{\numberline {5.6}Tích hợp Block Design trong Vivado}{72}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}Bản đồ bộ nhớ và Address Editor}{75}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}Đồng bộ ARM \(\leftrightarrow \) RISC-V qua D-BRAM dual-port}{76}{subsection.5.6.2}%
+\contentsline {section}{\numberline {5.7}Quy trình kiểm thử}{77}{section.5.7}%
+\contentsline {subsection}{\numberline {5.7.1}Kiểm thử đơn vị (Unit Testbench)}{77}{subsection.5.7.1}%
+\contentsline {subsection}{\numberline {5.7.2}Kiểm thử tích hợp IP}{77}{subsection.5.7.2}%
+\contentsline {subsection}{\numberline {5.7.3}Đối chiếu với golden vector từ TFLite Interpreter}{77}{subsection.5.7.3}%
+\contentsline {subsection}{\numberline {5.7.4}Kiểm thử trên board KV260}{77}{subsection.5.7.4}%
+\contentsline {chapter}{\numberline {6}Kết quả}{79}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Kết quả huấn luyện model}{79}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}Cấu hình thí nghiệm}{79}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}Tập Cats vs Dogs}{79}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}Tập INRIA Person}{81}{subsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.1.4}Đánh giá ảnh hưởng của lượng tử hóa INT8}{81}{subsection.6.1.4}%
+\contentsline {section}{\numberline {6.2}Tổng hợp phần cứng}{82}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}Tài nguyên FPGA}{82}{subsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.2.2}Báo cáo timing}{84}{subsection.6.2.2}%
+\contentsline {subsection}{\numberline {6.2.3}Power estimation}{85}{subsection.6.2.3}%
+\contentsline {section}{\numberline {6.3}Kết quả chạy trên mạch thực tế}{86}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}So sánh với related work}{86}{subsection.6.3.1}%
+\contentsline {chapter}{\numberline {7}Kết luận và Hướng phát triển}{89}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Kết luận}{89}{section.7.1}%
+\contentsline {subsection}{\numberline {7.1.1}Đạt được}{89}{subsection.7.1.1}%
+\contentsline {subsection}{\numberline {7.1.2}Hạn chế của hệ thống}{90}{subsection.7.1.2}%
+\contentsline {section}{\numberline {7.2}Hướng phát triển}{91}{section.7.2}%
+\contentsline {chapter}{Tài liệu tham khảo}{93}{chapter*.6}%
+\contentsfinish 

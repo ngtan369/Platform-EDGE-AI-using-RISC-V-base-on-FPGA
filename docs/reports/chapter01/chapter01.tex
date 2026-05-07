@@ -1,0 +1,97 @@
+\chapter{Giới thiệu đề tài}
+\label{chp:01}
+
+Sự bùng nổ của AI và rào cản phần cứng Trong thập kỷ qua, thế giới đã chứng kiến sự chuyển mình mạnh mẽ của cuộc Cách mạng Công nghiệp 4.0, trong đó Trí tuệ nhân tạo (AI) đóng vai trò là động lực cốt lõi. Đặc biệt, sự ra đời của các mô hình ngôn ngữ lớn (LLMs) như ChatGPT đã đánh dấu một bước ngoặt lịch sử, đưa AI từ các ứng dụng nghiên cứu hẹp sang kỷ nguyên của AI tạo sinh (Generative AI) với khả năng tác động sâu rộng đến mọi mặt của đời sống xã hội. Tuy nhiên, đi cùng với tiềm năng to lớn đó là những thách thức chưa từng có về mặt hạ tầng tính toán. Các thuật toán AI hiện đại ngày càng trở nên phức tạp, đòi hỏi khả năng xử lý dữ liệu song song khổng lồ và băng thông bộ nhớ lớn. Điều này đã đẩy các kiến trúc vi xử lý truyền thống đến giới hạn của định luật Moore, gây ra các vấn đề nghiêm trọng về tiêu thụ năng lượng và độ trễ khi triển khai trên diện rộng.\\
+\\
+Mô hình xử lý AI tập trung trên đám mây hiện nay đang bộc lộ nhiều điểm yếu, bao gồm độ trễ đường truyền, rủi ro về bảo mật dữ liệu riêng tư và sự phụ thuộc vào kết nối Internet liên tục. Do đó, xu hướng công nghệ đang dịch chuyển mạnh mẽ sang tính toán tại biên (Edge Computing). Việc đưa AI xuống chạy trực tiếp trên các thiết bị cuối (Edge devices) đòi hỏi phần cứng không chỉ mạnh mẽ mà còn phải tiết kiệm năng lượng và chi phí thấp – một bài toán khó đối với các dòng chip thương mại đóng kín (proprietary chips) hiện có trên thị trường.\\
+\\
+Sự trỗi dậy của RISC-V Giữa bối cảnh "nút thắt cổ chai" về phần cứng đó, sự xuất hiện của kiến trúc tập lệnh mở RISC-V được xem là một cuộc cách mạng trong ngành bán dẫn. Khác với các kiến trúc đóng như x86 hay ARM vốn đòi hỏi chi phí bản quyền đắt đỏ và không cho phép can thiệp sâu vào thiết kế lõi, RISC-V mang đến sự tự do hoàn toàn. Điểm ưu việt nhất của RISC-V là tính mô-đun hóa  và khả năng mở rộng. Nó cho phép các kỹ sư thiết kế có thể thêm vào các tập lệnh tùy chỉnh để tối ưu hóa đặc biệt cho các tác vụ AI cụ thể, giúp tăng hiệu suất xử lý lên nhiều lần trong khi vẫn giữ mức tiêu thụ năng lượng ở mức thấp.\\
+\\
+Sự kết hợp RISC-V và công nghệ FPGA Để hiện thực hóa sức mạnh của RISC-V mà không cần tốn kém chi phí sản xuất chip silicon ngay từ đầu, công nghệ FPGA đóng vai trò là nền tảng phát triển lý tưởng. FPGA cho phép chúng ta thiết kế, kiểm thử và tái cấu hình phần cứng một cách linh hoạt như phần mềm. Sự kết hợp giữa khả năng tùy biến của RISC-V và tính linh hoạt của FPGA tạo điều kiện thuận lợi để xây dựng các dòng chip chuyên biệt hóa dành cho AI.
+
+\section{Mục tiêu đề tài}
+Mục tiêu tổng quát của đồ án là thiết kế, hiện thực và đánh giá một Nền tảng tính toán biên (Edge-AI Platform) hoàn chỉnh trên FPGA Kria KV260, ứng dụng kiến trúc Đa xử lý Bất đối xứng (AMP - Asymmetric Multiprocessing). Hệ thống là sự kết hợp giữa khả năng quản lý linh hoạt của vi xử lý Host (ARM Cortex-A53) và sức mạnh xử lý luồng dữ liệu chuyên biệt của lõi RISC-V, tạo ra một hệ sinh thái toàn diện từ phần cứng đến phần mềm để thực thi các mạng nơ-ron nhân tạo.
+
+Các mục tiêu cụ thể bao gồm:
+\begin{itemize}
+    \item \textbf{Nghiên cứu kiến trúc SoC và lõi RISC-V:} Phân tích kiến trúc hệ thống xử lý (Processing System) của Zynq UltraScale+ và tổ chức lõi xử lý mã nguồn mở RISC-V CV32E40P. Tùy biến và triển khai thành công lõi RISC-V lên vùng logic khả trình (PL) của FPGA để hoạt động như một bộ gia tốc phần mềm (Software Accelerator) độc lập.
+
+    \item \textbf{Làm chủ và tối ưu giao tiếp Memory Map:} Thiết kế hệ thống bus liên kết (Interconnect) dựa trên chuẩn AMBA AXI4. Trọng tâm là xây dựng cơ chế giao tiếp và đồng bộ hóa dữ liệu tốc độ cao giữa lõi ARM và RISC-V thông qua bộ nhớ chia sẻ (Shared BRAM), giải quyết bài toán nút thắt cổ chai dữ liệu (Data Bottleneck).
+
+    \item \textbf{Phát triển Firmware và Quy trình Đồng thiết kế (HW/SW Co-design):} Phát triển phần mềm quản lý lớp ứng dụng trên hệ điều hành Linux (Host) và tối ưu hóa firmware C bare-metal cho lõi RISC-V. Ứng dụng các tập lệnh mở rộng để thực thi hiệu quả các phép toán ma trận của mạng CNN nhằm giảm tải cho vi xử lý trung tâm.
+
+    \item \textbf{Pipeline huấn luyện và biên dịch mô hình:} Xây dựng pipeline huấn luyện mạng \texttt{vgg-tiny} INT8 trên Host PC, kết hợp với trình biên dịch tự sinh layer table (\texttt{layer\_table.h}) và blob trọng số (\texttt{weights.bin}) -- cho phép thay đổi mô hình AI mà không cần tổng hợp lại RTL. Pipeline hỗ trợ hai dataset chuẩn: Cats vs Dogs (Kaggle) và INRIA Person.
+
+    \item \textbf{Tích hợp và Đánh giá hệ thống:} Triển khai toàn bộ nền tảng và kiểm chứng bằng pipeline phân loại nhị phân (binary classification) với mô hình \texttt{vgg-tiny} (5 conv layer, INT8) trên ảnh tĩnh đọc từ thẻ nhớ SD. Đánh giá nền tảng dựa trên các tiêu chí: độ chính xác phân loại, độ trễ inference, tài nguyên FPGA tiêu thụ (LUT, FF, BRAM, DSP), công suất tiêu thụ và khả năng mở rộng cho các mô hình lớn hơn ở các pha sau.
+\end{itemize}
+
+\newpage
+\section{Lý do lựa chọn}
+
+Trong bối cảnh kỷ nguyên số hóa hiện nay, sự bùng nổ của Internet vạn vật (IoT) 
+đã tạo ra một lượng dữ liệu khổng lồ tại các thiết bị đầu cuối. 
+Mô hình xử lý tập trung trên đám mây (Cloud Computing) truyền thống đang dần bộc lộ 
+những hạn chế về độ trễ đường truyền, băng thông mạng và đặc biệt là rủi ro về 
+an toàn thông tin. Do đó, xu hướng chuyển dịch năng lực tính toán từ đám mây 
+xuống biên (Edge AI) đang trở thành một yêu cầu tất yếu. Việc xử lý dữ liệu ngay tại nơi sinh ra dữ liệu không chỉ giúp giảm thiểu độ trễ xuống mức mili-giây, đáp ứng yêu cầu thời gian thực của các hệ thống nhúng tự hành, mà còn đảm bảo quyền riêng tư người dùng khi dữ liệu nhạy cảm không cần phải gửi đi qua môi trường mạng công cộng.
+
+Để đáp ứng nhu cầu tính toán hiệu năng cao tại biên với ngân sách năng lượng hạn hẹp, các kiến trúc vi xử lý đa năng truyền thống đang dần nhường chỗ cho các thiết kế phần cứng chuyên biệt. Trong đó, kiến trúc tập lệnh mở RISC-V nổi lên như một cuộc cách mạng trong ngành công nghiệp bán dẫn. Khác với các kiến trúc đóng và độc quyền (Proprietary ISA) như ARM hay x86, RISC-V cung cấp quyền tự chủ hoàn toàn cho nhà thiết kế, cho phép tùy biến và mở rộng tập lệnh (Custom Extensions) để tối ưu hóa cho các tác vụ đặc thù của AI như tích chập hay tính toán ma trận. Sự linh hoạt này, kết hợp với mô hình mã nguồn mở, đã tạo ra một cộng đồng nghiên cứu và phát triển mạnh mẽ, biến RISC-V thành nền tảng lý tưởng để thử nghiệm các kiến trúc máy tính thế hệ mới.
+
+Để hiện thực hóa và kiểm chứng các thiết kế SoC dựa trên RISC-V cho ứng dụng Edge AI, 
+việc lựa chọn nền tảng phần cứng phù hợp là yếu tố then chốt. 
+Board mạch Kria KV260 Vision AI Starter Kit của AMD-Xilinx được lựa chọn cho đề tài 
+này nhờ sở hữu kiến trúc tính toán không đồng nhất mạnh mẽ của dòng 
+Zynq UltraScale+ MPSoC. Sự kết hợp giữa Hệ thống xử lý (Processing System - PS) 
+dựa trên ARM và Phần logic lập trình được (Programmable Logic - PL) của 
+FPGA tạo điều kiện thuận lợi cho việc đồng thiết kế phần cứng/phần mềm. 
+Nền tảng này cho phép chúng tôi linh hoạt triển khai các lõi RISC-V mềm (Soft-core) 
+song song với việc tận dụng tài nguyên phần cứng dồi dào để xây dựng các 
+bộ tăng tốc AI, từ đó đánh giá chính xác hiệu quả của giải pháp đề xuất 
+trong môi trường thực tế.\\
+Hiện nay, Edge AI trở thành xu hướng tất yếu trong hệ thống nhúng và IoT, 
+do yêu cầu xử lý dữ liệu nhanh, giảm độ trễ và bảo vệ quyền riêng tư.
+Trong khi đó, RISC-V nổi bật nhờ tính mở, linh hoạt, dễ mở rộng và đang được 
+cộng đồng nghiên cứu rộng rãi để thay thế các kiến trúc độc quyền như ARM.
+
+Board KV260 của AMD-Xilinx tích hợp SoC Zynq UltraScale+ MPSoC, kết hợp CPU ARM và FPGA, cho phép thử nghiệm song song cả phần cứng RISC-V và phần mềm AI, là nền tảng lý tưởng để nghiên cứu Edge AI trên kiến trúc mở.
+
+\newpage
+\section{Giới hạn và phạm vi đề tài}
+
+Do sự phức tạp của việc thiết kế hệ thống SoC tích hợp AI và giới hạn về thời gian nghiên cứu, đồ án tập trung giải quyết các vấn đề cốt lõi với các giới hạn và phạm vi cụ thể như sau:
+
+\begin{itemize}
+    \item \textbf{Phạm vi triển khai phần cứng:} Đề tài tập trung vào việc mô phỏng, tích hợp và triển khai thực nghiệm lõi vi xử lý mềm (Soft-core) RISC-V trên nền tảng FPGA Xilinx Kria KV260. Hệ thống dừng lại ở mức kiểm chứng kiến trúc trên nền tảng FPGA, không hướng tới việc sản xuất chip thương mại (ASIC).
+
+    \item \textbf{Giới hạn về thiết kế vi kiến trúc:} Đề tài không đi sâu vào thiết kế lại chi tiết vi kiến trúc (Micro-architecture) của lõi CPU RISC-V ở mức RTL (Register Transfer Level) từ con số không. Thay vào đó, nhóm thực hiện tận dụng và tùy biến các nhân IP nguồn mở đã được kiểm chứng để tập trung nguồn lực vào việc thiết kế bộ tăng tốc AI (AI Accelerator) và hệ thống giao tiếp bus.
+
+    \item \textbf{Phạm vi thuật toán và mô hình AI:} Việc xây dựng và huấn luyện mô hình (Training) được thực hiện Offline trên máy tính cá nhân sử dụng framework TensorFlow. Hệ thống phần cứng trên FPGA chỉ đảm nhận nhiệm vụ suy luận (Inference) dựa trên bộ trọng số đã được lượng tử hóa. Nhằm đảm bảo tính tối ưu của kiến trúc, đề tài chỉ tập trung gia tốc cho họ mạng Nơ-ron Tích chập (CNN - Convolutional Neural Network), không hỗ trợ các kiến trúc mạng hồi quy (RNN/LSTM) hoặc mô hình ngôn ngữ lớn (LLM/Transformer).
+
+    \item \textbf{Phạm vi kịch bản ứng dụng (Use-case) và Dữ liệu:} Hệ thống được kiểm chứng thông qua các bài toán cốt lõi của Thị giác máy tính (Computer Vision) tại biên, bao gồm Phân loại ảnh (Image Classification) với các tập dữ liệu tiêu chuẩn (Fashion-MNIST/CIFAR-10) và Phát hiện đối tượng (Object Detection, cụ thể là Human Detection). Đề tài chưa mở rộng sang xử lý video thời gian thực độ phân giải cao (HD/Full HD) hay các loại tín hiệu âm thanh/văn bản.
+
+    \item \textbf{Kiến trúc gia tốc và khả năng xử lý:} Bộ tăng tốc phần cứng được thiết kế với kiến trúc bộ đệm vòng (Circular Line Buffer) linh hoạt. Phần cứng hỗ trợ xử lý kích thước ảnh thay đổi tại thời gian thực (Runtime Configurable) thông qua cấu hình từ CPU ARM. Kích thước tối đa được hỗ trợ là 224x224 pixel (chuẩn của mạng VGG/ResNet) và hỗ trợ tương thích ngược với các độ phân giải thấp hơn (ví dụ 128x128 pixel) nhằm tối ưu điện năng tiêu thụ cho các ứng dụng Edge AI.
+
+    \item \textbf{Đánh giá hiệu năng:} Việc đánh giá hệ thống được giới hạn ở các phép so sánh tương quan về thời gian xử lý (Inference Time), thông lượng (Throughput) và tài nguyên tiêu thụ (LUT, FF, BRAM, Power) giữa các kịch bản: chạy thuần phần mềm trên CPU ARM (có sẵn trên Kria KV260), chạy trên lõi RISC-V mềm, và chạy trên hệ thống RISC-V có tích hợp bộ tăng tốc phần cứng.
+\end{itemize}
+
+\newpage
+\section{Cấu trúc báo cáo}
+
+Báo cáo được tổ chức và trình bày theo trình tự logic gồm 5 chương, cụ thể như sau:
+
+\begin{itemize}
+    \item \textbf{Chương 1. Giới thiệu đề tài:} \\
+    Trình bày tổng quan về bối cảnh nghiên cứu, tính cấp thiết của việc phát triển Edge AI trên nền tảng phần cứng mở. Chương này cũng xác định rõ mục tiêu cốt lõi mà đề tài hướng tới, phạm vi nghiên cứu và tóm tắt bố cục của bài báo cáo.
+
+    \item \textbf{Chương 2. Cơ sở lý thuyết và Các công trình liên quan:} \\
+    Hệ thống hóa các kiến thức nền tảng cần thiết cho việc thực hiện đồ án, bao gồm: kiến trúc tập lệnh RISC-V, cấu trúc phần cứng FPGA (cụ thể là dòng Zynq UltraScale+), lý thuyết về Mạng nơ-ron tích chập (CNN) và chuẩn giao tiếp AXI4. Đồng thời, chương này cũng tổng hợp và phân tích các công trình nghiên cứu liên quan đã công bố để làm rõ vị trí và đóng góp của đề tài.
+
+    \item \textbf{Chương 3. Đề xuất thiết kế hệ thống:} \\
+    Mô tả chi tiết kiến trúc hệ thống SoC đề xuất, bao gồm sơ đồ khối tổng quát, phương án thiết kế các khối chức năng (IP Cores), chiến lược phân chia tác vụ giữa phần cứng/phần mềm (HW/SW Partitioning) và sơ đồ tổ chức bộ nhớ.
+
+    \item \textbf{Chương 4. Hiện thực mô hình CNN đơn giản:} \\
+    Trình bày quá trình xây dựng, huấn luyện và lượng tử hóa một mô hình CNN cơ bản (dựa trên tập dữ liệu Fashion-MNIST/CIFAR-10). Chương này cũng mô tả việc hiện thực mô hình tham chiếu để kiểm chứng giải thuật trước khi đưa xuống phần cứng.
+
+    \item \textbf{Chương 5. Kết luận và Hướng phát triển:} \\
+    Tổng kết các kết quả đã đạt được trong giai đoạn 1, phân tích những hạn chế và khó khăn kỹ thuật còn tồn tại. Từ đó, đề xuất lộ trình cụ thể cho giai đoạn 2, tập trung vào việc hoàn thiện tích hợp hệ thống và tối ưu hóa hiệu năng trên FPGA.
+\end{itemize}

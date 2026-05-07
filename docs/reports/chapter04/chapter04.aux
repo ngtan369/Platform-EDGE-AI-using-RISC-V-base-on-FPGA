@@ -1,0 +1,232 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Thiết kế kiến trúc hệ thống}{39}{chapter.4}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{chp:04}{{4}{39}{Thiết kế kiến trúc hệ thống}{chapter.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Tổng quan kiến trúc Platform}{39}{section.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Stack kiến trúc hệ thống Edge-AI}}{39}{figure.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Layer 1: Hardware Layer}{40}{subsection.4.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}layer 2: software / runtime layer}{40}{subsection.4.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}layer 3: application layer}{41}{subsection.4.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}kiến trúc dị thể}{41}{section.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Kiến trúc hệ thống tổng quan}}{42}{figure.4.2}\protected@file@percent }
+\newlabel{fig:proposed_architecture}{{4.2}{42}{Kiến trúc hệ thống tổng quan}{figure.4.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}Thiết kế Processing System}{44}{section.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.1}Cấu hình chi tiết các phân hệ}{44}{subsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Khối xử lý ứng dụng (APU Configuration)}{44}{subsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Cấu hình Giao diện Bộ nhớ (DDR Configuration)}{44}{subsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Cấu hình Giao diện PS-PL (Interface Configuration)}{45}{subsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Cấu hình Xung nhịp (Clock Configuration)}{45}{Item.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Thiết kế Hệ thống Giao tiếp và Bộ nhớ (Interconnect \& Memory Hierarchy)}{46}{section.4.4}\protected@file@percent }
+\newlabel{sec:interconnect_design}{{4.4}{46}{Thiết kế Hệ thống Giao tiếp và Bộ nhớ (Interconnect \& Memory Hierarchy)}{section.4.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Sơ đồ khối hệ thống giao tiếp AXI giữa PS và PL.}}{46}{figure.4.3}\protected@file@percent }
+\newlabel{fig:axi_interconnect}{{4.3}{46}{Sơ đồ khối hệ thống giao tiếp AXI giữa PS và PL}{figure.4.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4.1}Cơ chế AXI SmartConnect (PS-PL Bridge)}{46}{subsection.4.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Kênh Điều khiển (Control Path - AXI4-Lite)}{47}{subsection.4.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Kênh Dữ liệu (Data Path - AXI4-Full)}{47}{subsection.4.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4.2}Quy hoạch không gian bộ nhớ (System Memory Map)}{48}{subsection.4.4.2}\protected@file@percent }
+\newlabel{sec:memory_map}{{4.4.2}{48}{Quy hoạch không gian bộ nhớ (System Memory Map)}{subsection.4.4.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Bản đồ bộ nhớ hệ thống (System Memory Map)}}{48}{table.4.1}\protected@file@percent }
+\newlabel{tab:memory_map}{{4.1}{48}{Bản đồ bộ nhớ hệ thống (System Memory Map)}{table.4.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Bố cục thanh ghi handshake trong D-BRAM Port B}{49}{table.4.1}\protected@file@percent }
+\newlabel{sec:handshake_regs}{{4.4.2}{49}{Bố cục thanh ghi handshake trong D-BRAM Port B}{table.4.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Bố cục thanh ghi chia sẻ trong D-BRAM Port B}}{49}{table.4.2}\protected@file@percent }
+\newlabel{tab:shared_regs}{{4.2}{49}{Bố cục thanh ghi chia sẻ trong D-BRAM Port B}{table.4.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Cơ chế Đồng bộ hóa}{49}{table.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.5}Thiết kế Programmable Logic}{51}{section.4.5}\protected@file@percent }
+\newlabel{sec:pl_design}{{4.5}{51}{Thiết kế Programmable Logic}{section.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5.1}Kiến trúc tổng thể Phân hệ PULP (PULP Subsystem)}{51}{subsection.4.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Sơ đồ kiến trúc nội bộ của Phân hệ PULP trên FPGA.}}{51}{figure.4.4}\protected@file@percent }
+\newlabel{fig:pulp_arch}{{4.4}{51}{Sơ đồ kiến trúc nội bộ của Phân hệ PULP trên FPGA}{figure.4.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5.2}Cấu hình Nhân Vi xử lý (RISC-V Core Configuration)}{52}{subsection.4.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.3}{\ignorespaces Thông số cấu hình RISC-V Soft-core}}{52}{table.4.3}\protected@file@percent }
+\newlabel{tab:riscv_config}{{4.3}{52}{Thông số cấu hình RISC-V Soft-core}{table.4.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5.3}Hệ thống Bộ nhớ TCDM và Interconnect}{52}{subsection.4.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Tổ chức Bộ nhớ Đan xen (Interleaved Memory Banking)}{52}{subsection.4.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Logarithmic Interconnect}{53}{subsection.4.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5.4}Cơ chế Truy cập Bộ nhớ Trực tiếp (uDMA)}{53}{subsection.4.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.6}Thiết kế Khối Tăng tốc phần cứng (CNN Accelerator)}{54}{section.4.6}\protected@file@percent }
+\newlabel{sec:cnn_accelerator}{{4.6}{54}{Thiết kế Khối Tăng tốc phần cứng (CNN Accelerator)}{section.4.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6.1}Kiến trúc tổng quát khối Accelerator}{54}{subsection.4.6.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Sơ đồ khối chức năng chi tiết của bộ tăng tốc CNN (Accelerator Core Architecture).}}{54}{figure.4.5}\protected@file@percent }
+\newlabel{fig:accel_arch}{{4.5}{54}{Sơ đồ khối chức năng chi tiết của bộ tăng tốc CNN (Accelerator Core Architecture)}{figure.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6.2}Các thành phần chức năng chi tiết}{54}{subsection.4.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Bộ đệm dòng (Line Buffer)}{54}{subsection.4.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Mảng tính toán PE và adder tree}{55}{subsection.4.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Khối lượng tử hóa (Requantize)}{55}{subsection.4.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6.3}Đặc tính thiết kế và tối ưu cho vgg-tiny}{55}{subsection.4.6.3}\protected@file@percent }
+\newlabel{sec:accel_optimize}{{4.6.3}{55}{Đặc tính thiết kế và tối ưu cho vgg-tiny}{subsection.4.6.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.7}Mô hình AI mục tiêu: vgg-tiny}{57}{section.4.7}\protected@file@percent }
+\newlabel{sec:ai_algorithm}{{4.7}{57}{Mô hình AI mục tiêu: vgg-tiny}{section.4.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7.1}Đặc tả kiến trúc vgg-tiny}{57}{subsection.4.7.1}\protected@file@percent }
+\newlabel{sec:vgg_tiny}{{4.7.1}{57}{Đặc tả kiến trúc vgg-tiny}{subsection.4.7.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.4}{\ignorespaces Cấu trúc chi tiết các lớp mạng vgg-tiny (đầu vào $128 \times 128 \times 3$, lượng tử hóa INT8)}}{57}{table.4.4}\protected@file@percent }
+\newlabel{tab:vgg_tiny_layers}{{4.4}{57}{Cấu trúc chi tiết các lớp mạng vgg-tiny (đầu vào $128 \times 128 \times 3$, lượng tử hóa INT8)}{table.4.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7.2}So sánh vgg-tiny với các mô hình thông dụng}{58}{subsection.4.7.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.5}{\ignorespaces So sánh vgg-tiny với các mạng CNN phổ biến}}{58}{table.4.5}\protected@file@percent }
+\newlabel{tab:model_comparison}{{4.5}{58}{So sánh vgg-tiny với các mạng CNN phổ biến}{table.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7.3}Lộ trình mở rộng (Tier Roadmap)}{58}{subsection.4.7.3}\protected@file@percent }
+\newlabel{sec:tier_roadmap}{{4.7.3}{58}{Lộ trình mở rộng (Tier Roadmap)}{subsection.4.7.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7.4}Lượng tử hóa (Quantization)}{59}{subsection.4.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7.5}Tổ chức Dữ liệu trong Bộ nhớ}{59}{subsection.4.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.8}Luồng thực thi và Giao thức bắt tay}{59}{section.4.8}\protected@file@percent }
+\newlabel{sec:system_flow}{{4.8}{59}{Luồng thực thi và Giao thức bắt tay}{section.4.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{Quy trình inference một ảnh}{60}{section.4.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.6}{\ignorespaces Sơ đồ quy trình}}{61}{figure.4.6}\protected@file@percent }
+\newlabel{fig:sequence_diagram}{{4.6}{61}{Sơ đồ quy trình}{figure.4.6}{}}
+\@setckpt{chapter04/chapter04}{
+\setcounter{page}{62}
+\setcounter{equation}{2}
+\setcounter{enumi}{4}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{4}
+\setcounter{section}{8}
+\setcounter{subsection}{0}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{6}
+\setcounter{table}{5}
+\setcounter{parentequation}{0}
+\setcounter{caption@flags}{2}
+\setcounter{continuedfloat}{0}
+\setcounter{EM@itemctr}{0}
+\setcounter{EM@etaremunectr}{0}
+\setcounter{section@level}{0}
+\setcounter{Item}{28}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{77}
+\setcounter{DefaultLines}{2}
+\setcounter{DefaultDepth}{0}
+\setcounter{L@lines}{0}
+\setcounter{L@depth}{0}
+\setcounter{tabx@nest}{0}
+\setcounter{listtotal}{0}
+\setcounter{listcount}{0}
+\setcounter{liststart}{0}
+\setcounter{liststop}{0}
+\setcounter{citecount}{0}
+\setcounter{citetotal}{0}
+\setcounter{multicitecount}{0}
+\setcounter{multicitetotal}{0}
+\setcounter{instcount}{12}
+\setcounter{maxnames}{3}
+\setcounter{minnames}{3}
+\setcounter{maxitems}{3}
+\setcounter{minitems}{1}
+\setcounter{citecounter}{0}
+\setcounter{maxcitecounter}{0}
+\setcounter{savedcitecounter}{0}
+\setcounter{uniquelist}{0}
+\setcounter{uniquename}{0}
+\setcounter{refsection}{0}
+\setcounter{refsegment}{0}
+\setcounter{maxextratitle}{0}
+\setcounter{maxextratitleyear}{0}
+\setcounter{maxextraname}{0}
+\setcounter{maxextradate}{0}
+\setcounter{maxextraalpha}{0}
+\setcounter{abbrvpenalty}{50}
+\setcounter{highnamepenalty}{50}
+\setcounter{lownamepenalty}{25}
+\setcounter{maxparens}{3}
+\setcounter{parenlevel}{0}
+\setcounter{blx@maxsection}{0}
+\setcounter{mincomprange}{10}
+\setcounter{maxcomprange}{100000}
+\setcounter{mincompwidth}{1}
+\setcounter{afterword}{0}
+\setcounter{savedafterword}{0}
+\setcounter{annotator}{0}
+\setcounter{savedannotator}{0}
+\setcounter{author}{0}
+\setcounter{savedauthor}{0}
+\setcounter{bookauthor}{0}
+\setcounter{savedbookauthor}{0}
+\setcounter{commentator}{0}
+\setcounter{savedcommentator}{0}
+\setcounter{editor}{0}
+\setcounter{savededitor}{0}
+\setcounter{editora}{0}
+\setcounter{savededitora}{0}
+\setcounter{editorb}{0}
+\setcounter{savededitorb}{0}
+\setcounter{editorc}{0}
+\setcounter{savededitorc}{0}
+\setcounter{foreword}{0}
+\setcounter{savedforeword}{0}
+\setcounter{holder}{0}
+\setcounter{savedholder}{0}
+\setcounter{introduction}{0}
+\setcounter{savedintroduction}{0}
+\setcounter{namea}{0}
+\setcounter{savednamea}{0}
+\setcounter{nameb}{0}
+\setcounter{savednameb}{0}
+\setcounter{namec}{0}
+\setcounter{savednamec}{0}
+\setcounter{translator}{0}
+\setcounter{savedtranslator}{0}
+\setcounter{shortauthor}{0}
+\setcounter{savedshortauthor}{0}
+\setcounter{shorteditor}{0}
+\setcounter{savedshorteditor}{0}
+\setcounter{labelname}{0}
+\setcounter{savedlabelname}{0}
+\setcounter{institution}{0}
+\setcounter{savedinstitution}{0}
+\setcounter{lista}{0}
+\setcounter{savedlista}{0}
+\setcounter{listb}{0}
+\setcounter{savedlistb}{0}
+\setcounter{listc}{0}
+\setcounter{savedlistc}{0}
+\setcounter{listd}{0}
+\setcounter{savedlistd}{0}
+\setcounter{liste}{0}
+\setcounter{savedliste}{0}
+\setcounter{listf}{0}
+\setcounter{savedlistf}{0}
+\setcounter{location}{0}
+\setcounter{savedlocation}{0}
+\setcounter{organization}{0}
+\setcounter{savedorganization}{0}
+\setcounter{origlocation}{0}
+\setcounter{savedoriglocation}{0}
+\setcounter{origpublisher}{0}
+\setcounter{savedorigpublisher}{0}
+\setcounter{publisher}{0}
+\setcounter{savedpublisher}{0}
+\setcounter{language}{0}
+\setcounter{savedlanguage}{0}
+\setcounter{origlanguage}{0}
+\setcounter{savedoriglanguage}{0}
+\setcounter{pageref}{0}
+\setcounter{savedpageref}{0}
+\setcounter{textcitecount}{0}
+\setcounter{textcitetotal}{0}
+\setcounter{textcitemaxnames}{0}
+\setcounter{biburlbigbreakpenalty}{100}
+\setcounter{biburlbreakpenalty}{200}
+\setcounter{biburlnumpenalty}{0}
+\setcounter{biburlucpenalty}{0}
+\setcounter{biburllcpenalty}{0}
+\setcounter{smartand}{1}
+\setcounter{bbx:relatedcount}{0}
+\setcounter{bbx:relatedtotal}{0}
+\setcounter{cbx@tempcnta}{0}
+\setcounter{cbx@tempcntb}{7}
+\setcounter{cbx@tempcntc}{0}
+\setcounter{cbx@tempcntd}{-1}
+\setcounter{lstnumber}{1}
+\setcounter{LT@tables}{0}
+\setcounter{LT@chunks}{0}
+\setcounter{r@tfl@t}{0}
+\setcounter{lstlisting}{0}
+}

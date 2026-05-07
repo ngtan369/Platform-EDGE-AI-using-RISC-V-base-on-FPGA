@@ -1,0 +1,22 @@
+\babel@toc {vietnamese}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Quy ước sử dụng thanh ghi trong RISC-V (ABI)}}{11}{table.2.1}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces So sánh đặc điểm kỹ thuật giữa RISC và CISC}}{13}{table.2.2}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Bản đồ bộ nhớ hệ thống (System Memory Map)}}{48}{table.4.1}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Bố cục thanh ghi chia sẻ trong D-BRAM Port B}}{49}{table.4.2}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Thông số cấu hình RISC-V Soft-core}}{52}{table.4.3}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Cấu trúc chi tiết các lớp mạng vgg-tiny (đầu vào $128 \times 128 \times 3$, lượng tử hóa INT8)}}{57}{table.4.4}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces So sánh vgg-tiny với các mạng CNN phổ biến}}{58}{table.4.5}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Các artifact trao đổi giữa các tầng trong pipeline.}}{64}{table.5.1}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi).}}{67}{table.5.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Accuracy Tiny-VGG trên tập Cats vs Dogs.}}{79}{table.6.1}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces Tài nguyên KV260 sử dụng (sau implementation).}}{83}{table.6.2}%
+\addvspace {10\p@ }
+\contentsfinish 

@@ -1,0 +1,143 @@
+\chapter {Các công trình nghiên cứu liên quan}
+\label{chp:03}
+
+\section{Pulpissimo}
+
+\subsection{Tổng quan}
+Pulpissimo (PULP Independent Single-stream Shared-memory Integrated Subsystem for MOtion control) 
+là một hệ thống vi điều khiển (Microcontroller System) tiên tiến dựa trên kiến trúc RISC-V 32-bit, 
+được phát triển bởi nhóm nghiên cứu PULP (Parallel Ultra Low Power) thuộc ETH Zürich và Đại học Bologna.
+
+Mục tiêu thiết kế của Pulpissimo là cung cấp một nền tảng phần cứng linh hoạt, tiết kiệm năng lượng 
+nhưng vẫn đảm bảo hiệu năng tính toán cao cho các ứng dụng IoT và Edge AI yêu cầu băng thông lớn. 
+Khác với các vi điều khiển truyền thống, Pulpissimo không chỉ là một lõi CPU đơn lẻ mà là một hệ thống 
+SoC (System-on-Chip) hoàn chỉnh với kiến trúc bộ nhớ và ngoại vi thông minh  \cite{pulpissimo}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{chapter03/img/pulpissimo_archi.png}
+    \caption{Kiến trúc Pulpissimo}
+    \label{fig:pulpissimo_archi}
+\end{figure}
+
+\subsection{Các đặc điểm kỹ thuật nổi bật}
+PULPissimo bao gồm các thành phần chính sau:
+\begin{itemize}
+    \item Bộ xử lý chính: Hoặc bộ xử lý RI5CY hoặc bộ xử lý Ibex
+    \item Hệ thống con uDMA: Hệ thống con đầu vào/đầu ra tự động để quản lý thiết bị ngoại vi hiệu quả
+    \item Hệ thống con bộ nhớ: Bao gồm ROM khởi động và bộ nhớ L2
+    \item Hệ thống sự kiện và ngắt: Bộ điều khiển ngắt đơn giản để quản lý các sự kiện hệ thống
+    \item Thiết bị ngoại vi: Bao gồm SPI, I2S, giao diện camera, I2C, UART, Hyperbus và GPIO
+    \item Bộ xử lý phần cứng (HWPE): Hỗ trợ các bộ tăng tốc phần cứng tùy chỉnh
+\end{itemize}
+\subsubsection{Lõi xử lý CV32E40P (RI5CY)}
+Trung tâm của Pulpissimo là nhân xử lý RI5CY (hiện nay được chuẩn hóa thành CV32E40P bởi OpenHW Group). 
+Đây là một hiện thực hóa (implementation) của RISC-V với đường ống 4 tầng, được tối ưu hóa đặc biệt cho 
+xử lý tín hiệu số (DSP).
+Điểm đặc biệt của nhân này là việc hỗ trợ các mở rộng tập lệnh không tiêu chuẩn (Non-standard Extensions) 
+giúp tăng tốc đáng kể các thuật toán AI:
+\begin{itemize}
+    \item \textbf{Hardware Loops:} Cho phép thực hiện các vòng lặp mà không tốn chu kỳ máy cho 
+    việc kiểm tra điều kiện và rẽ nhánh.
+    \item \textbf{SIMD (Single Instruction Multiple Data):} Hỗ trợ tính toán song song trên các 
+    vector nhỏ (ví dụ: thực hiện 2 phép cộng 16-bit hoặc 4 phép cộng 8-bit trong 1 chu kỳ). 
+    Đây là tính năng then chốt để xử lý dữ liệu lượng tử hóa (Quantized Data) trong mạng nơ-ron.
+    \item \textbf{Bit Manipulation:} Các lệnh thao tác bit giúp tối ưu hóa việc đóng gói và giải nén 
+    dữ liệu trọng số.
+\end{itemize}
+
+\subsubsection{Hệ thống bộ nhớ và uDMA}
+Để giải quyết bài toán "nghẽn cổ chai" dữ liệu, Pulpissimo sử dụng bộ điều khiển truy cập bộ nhớ 
+trực tiếp thông minh (micro-DMA hay uDMA). uDMA cho phép truyền dữ liệu trực tiếp từ các ngoại 
+vi tốc độ cao (như Camera Interface, SPI) vào bộ nhớ nội (L2 Memory) mà không cần sự can thiệp 
+của CPU. Cơ chế này giúp CPU có thể chuyển sang trạng thái ngủ (Sleep Mode) trong khi dữ liệu đang 
+được thu thập, giúp tiết kiệm năng lượng tối đa .
+
+\newpage
+%=================================================================================
+\section{Mô hình hiệu quả cho thiết bị biên}
+\label{sec:efficient_models}
+Bên cạnh các vi xử lý mở, hướng nghiên cứu thứ hai để đưa AI lên thiết bị biên là tối ưu hóa kiến trúc mạng nơ-ron thay vì phần cứng. Hai trường phái tiêu biểu được tóm tắt dưới đây để làm rõ vị trí thiết kế của đồ án.
+
+\paragraph{Mạng nơ-ron Nhị phân (BNN).} Courbariaux và cộng sự \cite{bnn_courbariaux} đã chứng minh khả năng huấn luyện các mạng nơ-ron sâu với trọng số và kích hoạt ép buộc về $\{+1, -1\}$ (1-bit). Lợi thế lớn nhất của BNN trên FPGA là phép tích chập được thay bằng phép logic XNOR + Popcount, có thể thực hiện trực tiếp bằng LUT mà không cần DSP. Tuy nhiên, BNN gặp giảm độ chính xác đáng kể trên các tập dữ liệu phức tạp (ImageNet). Đồ án tham khảo nguyên lý tối ưu phần cứng của BNN nhưng lựa chọn lượng tử hóa INT8 chuẩn TFLite \cite{jacob2018quantization} để đạt cân bằng tốt hơn giữa độ chính xác và hiệu năng.
+
+\paragraph{MobileNet và Depthwise Separable Convolution.} Howard và cộng sự \cite{mobilenet_v1} đề xuất kiến trúc MobileNet sử dụng \textit{depthwise separable convolution} (tách Conv $K \times K$ thành Depthwise Conv + Pointwise $1 \times 1$) để giảm khoảng 8--9 lần số phép MAC so với Conv chuẩn cùng kích thước. MobileNet trở thành kiến trúc chuẩn cho thị giác máy trên thiết bị di động. Tuy nhiên, depthwise convolution có \textit{dataflow ngược} so với Conv chuẩn (mỗi cin $\to$ 1 output thay vì sum across cin), đòi hỏi MUX adder tree riêng và chế độ FSM mới ở bộ tăng tốc. Trong phạm vi đồ án, đề tài chọn kiến trúc \texttt{vgg-tiny} đơn giản hơn (chỉ Conv $3 \times 3$ chuẩn) để tập trung vào việc kiểm chứng đồng thiết kế phần cứng-phần mềm; hỗ trợ depthwise được dành cho hướng phát triển tiếp theo.
+
+%=================================================
+%==
+%=================================================
+\section{Gia tốc phần cứng trên Tập lệnh mở rộng RISC-V (ISA Extensions)}
+
+Một trong những hướng tiếp cận phổ biến để gia tốc mạng nơ-ron trên các thiết bị biên (Edge Devices) là can thiệp trực tiếp vào kiến trúc tập lệnh (ISA - Instruction Set Architecture) của vi xử lý. Công trình nghiên cứu \textit{"FPGA-Accelerated RISC-V ISA Extensions for Efficient Neural Network Inference on Edge Devices"} là một minh chứng tiêu biểu cho trường phái thiết kế liên kết chặt chẽ (Tightly-Coupled Architecture). \cite{parameshwara2025fpga}
+
+\textbf{Nguyên lý hoạt động và Kiến trúc:}
+Thay vì thiết kế một khối phần cứng gia tốc độc lập, phương pháp này tiến hành sửa đổi trực tiếp đường ống thực thi (Pipeline) và khối tính toán logic (ALU) bên trong lõi vi xử lý RISC-V. Các tác giả định nghĩa thêm các chỉ thị máy (Assembly Instructions) hoàn toàn mới, chuyên biệt cho phép toán của mạng nơ-ron, điển hình là các lệnh nhân cộng tích lũy (MAC - Multiply-Accumulate) trên định dạng số nguyên lượng tử hóa (INT8). Khi bộ giải mã lệnh (Instruction Decoder) của CPU gặp các chỉ thị tùy biến này, nó sẽ điều hướng dữ liệu từ tập thanh ghi (Register File) dùng chung sang mạch phần cứng gia tốc vừa được cấy ghép.
+
+\textbf{Ưu điểm của phương pháp:}
+\begin{itemize}
+    \item \textbf{Độ trễ giao tiếp cực thấp (Zero-latency Communication):} Do khối gia tốc nằm ngay bên trong lõi CPU và sử dụng trực tiếp tài nguyên thanh ghi nội bộ, hệ thống loại bỏ hoàn toàn độ trễ phát sinh từ việc truyền tải dữ liệu qua các bus giao tiếp ngoại vi (như AXI hay APB).
+    \item \textbf{Tối ưu hóa năng lượng (Energy Efficiency):} Việc giảm thiểu các thao tác đọc/ghi bộ nhớ ngoài giúp tiết kiệm đáng kể năng lượng, đáp ứng tốt các ràng buộc khắt khe của thiết bị Edge AI.
+\end{itemize}
+
+\textbf{Thách thức và Giới hạn:}
+Mặc dù mang lại hiệu năng tính toán tại chỗ cao, kiến trúc ISA Extensions đi kèm với sự đánh đổi lớn về độ phức tạp trong khâu phát triển:
+\begin{itemize}
+    \item \textbf{Xâm lấn lõi phần cứng (Hardware Intrusion):} Đòi hỏi nhà thiết kế phải can thiệp sâu vào mã nguồn (RTL) của bộ vi xử lý chuẩn, làm tăng rủi ro về mặt định tuyến (Routing) và có thể làm giảm tần số hoạt động tối đa (Fmax) của toàn hệ thống.
+    \item \textbf{Giới hạn kích thước ma trận:} Khối gia tốc bị giới hạn không gian vật lý bên trong CPU và phụ thuộc vào băng thông của tập thanh ghi (thường chỉ 32-bit), khiến nó khó mở rộng để xử lý các lớp tích chập (Convolutional Layers) có kích thước lớn.
+    \item \textbf{Chuỗi công cụ phần mềm (Toolchain Dependency):} Việc bổ sung lệnh mới bắt buộc phải tùy biến lại các trình biên dịch mã nguồn mở (như GCC hoặc LLVM) để phần mềm cấp cao (C/C++) có thể hiểu và biên dịch đúng các chỉ thị gia tốc này.
+\end{itemize}
+
+\textbf{Kết luận đối chiếu:} 
+Việc phân tích phương pháp mở rộng tập lệnh (ISA Extensions) cho thấy rõ sự đánh đổi giữa độ trễ giao tiếp và tính linh hoạt của hệ thống. Đối với các mạng nơ-ron có quy mô lớn yêu cầu thông lượng bộ nhớ cao, một kiến trúc liên kết lỏng (Loosely-Coupled) dựa trên chuẩn giao tiếp bộ nhớ ánh xạ (Memory-Mapped) độc lập thường mang lại khả năng mở rộng tốt hơn mà không phá vỡ tính nguyên bản của lõi vi xử lý.
+
+%=================================================================================
+
+\section{Lượng tử hóa và huấn luyện mạng nơ-ron}
+\label{sec:quantization_theory}
+
+Trong các hệ thống học sâu truyền thống, việc huấn luyện và suy luận thường được 
+thực hiện trên định dạng số thực dấu phẩy động 32-bit (Float32) để đảm bảo độ chính xác cao nhất. Tuy nhiên, trên các thiết bị biên (Edge Devices) với tài nguyên hạn chế như FPGA hay vi xử lý nhúng RISC-V, các phép toán số thực tiêu tốn quá nhiều tài nguyên phần cứng và năng lượng.
+
+Để giải quyết vấn đề này, đồ án áp dụng phương pháp lượng tử hóa số nguyên 
+được đề xuất bởi \textit{Jacob et al.} (Google) trong công trình 
+\textit{"Quantization and Training of Neural Networks for Efficient 
+Integer-Arithmetic-Only Inference"} \cite{jacob2018quantization}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter03/img/quanti.png}
+    \caption{Quy trình lượng tử hóa và huấn luyện mạng nơ-ron theo Jacob et al.}
+    \label{fig:quantization_process}
+\end{figure}
+
+\subsection{Cơ chế Lượng tử hóa Affine (Affine Quantization Scheme)}
+Khác với các phương pháp lượng tử hóa logarit hay nhị phân, phương pháp của Jacob et al. sử dụng ánh xạ tuyến tính (Affine mapping) để chuyển đổi giữa giá trị thực ($r$) và giá trị nguyên 8-bit ($q$). Công thức ánh xạ được định nghĩa như sau:
+
+\begin{equation}
+    r = S \times (q - Z)
+\end{equation}
+
+Trong đó:
+\begin{itemize}
+    \item $r$ (Real value): Giá trị thực cần biểu diễn.
+    \item $q$ (Quantized value): Giá trị nguyên 8-bit ($q \in [0, 255]$ hoặc $[-128, 127]$).
+    \item $S$ (Scale factor): Hằng số tỉ lệ (dạng Float32 dương), xác định bước nhảy của lượng tử hóa.
+    \item $Z$ (Zero-point): Giá trị nguyên đóng vai trò là điểm "0" của số thực. Điều này cho phép biểu diễn chính xác giá trị 0 thực tế (thường xuất hiện trong Padding hoặc ReLU) bằng một số nguyên, giúp duy trì độ chính xác của mạng.
+\end{itemize}
+
+Từ công thức trên, quá trình nhân chập (Convolution) giữa đầu vào $x$ và trọng số $w$ có thể được viết lại hoàn toàn dưới dạng số nguyên:
+
+\begin{equation}
+    y = \sum (x \times w) \approx S_y \left( \sum (q_x - Z_x)(q_w - Z_w) + Z_y \right)
+\end{equation}
+
+\subsection{Suy luận chỉ dùng số học nguyên (Integer-Arithmetic-Only Inference)}
+Điểm đột phá trong nghiên cứu của Jacob et al. là kỹ thuật xử lý tham số $S$ (Scale). Mặc dù $S$ là số thực, nhưng trong quá trình suy luận, tích của các Scale ($M = S_x S_w / S_y$) được xấp xỉ bằng một phép nhân số nguyên và phép dịch bit (Bit-shift):
+
+\begin{equation}
+    M \approx 2^{-n} \times M_0 \quad (\text{với } M_0 \text{ là số nguyên cố định})
+\end{equation}
+
+Kỹ thuật này cho phép loại bỏ hoàn toàn khối xử lý số thực (FPU) khỏi phần cứng. 
+Mọi phép tính từ tích chập, cộng bias đến hàm kích hoạt đều được thực hiện bằng 
+các đơn vị số học nguyên (ALU Integer) và các bộ dịch bit.

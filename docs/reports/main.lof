@@ -1,0 +1,34 @@
+\babel@toc {vietnamese}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Sơ đồ AXI (AMBA)}}{20}{figure.2.1}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Các kênh giao tiếp (AMBA)}}{21}{figure.2.2}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Kiến trúc Pulpissimo}}{32}{figure.3.1}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Quy trình lượng tử hóa và huấn luyện mạng nơ-ron theo Jacob et al.}}{36}{figure.3.2}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Stack kiến trúc hệ thống Edge-AI}}{39}{figure.4.1}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Kiến trúc hệ thống tổng quan}}{42}{figure.4.2}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Sơ đồ khối hệ thống giao tiếp AXI giữa PS và PL.}}{46}{figure.4.3}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Sơ đồ kiến trúc nội bộ của Phân hệ PULP trên FPGA.}}{51}{figure.4.4}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Sơ đồ khối chức năng chi tiết của bộ tăng tốc CNN (Accelerator Core Architecture).}}{54}{figure.4.5}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Sơ đồ quy trình}}{61}{figure.4.6}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Sơ đồ tổng quan}}{64}{figure.5.1}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Sơ đồ datapath conv\_cnn IP: từ AXIS in qua line buffer, window, MAC array, requantize đến AXIS out.}}{66}{figure.5.2}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Báo cáo chạy khối CNN}}{68}{figure.5.3}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Kết quả chạy simulate khối CNN}}{69}{figure.5.4}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Sơ khối minh họa hệ thống}}{73}{figure.5.5}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Thiết kế khối trong vivado}}{74}{figure.5.6}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Đường cong loss và accuracy theo epoch.}}{80}{figure.6.1}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{82}{figure.6.2}%
+\contentsline {figure}{\numberline {6.3}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{83}{figure.6.3}%
+\contentsline {figure}{\numberline {6.4}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{84}{figure.6.4}%
+\contentsline {figure}{\numberline {6.5}{\ignorespaces Báo cáo kiểm tra luật thiết kế (DRC Report)}}{85}{figure.6.5}%
+\contentsline {figure}{\numberline {6.6}{\ignorespaces Báo cáo thời gian (Timing Summary) đảm bảo không có vi phạm Slack}}{86}{figure.6.6}%
+\contentsline {figure}{\numberline {6.7}{\ignorespaces Báo cáo ước tính công suất tiêu thụ (Power Report) của toàn hệ thống}}{87}{figure.6.7}%
+\addvspace {10\p@ }
+\contentsfinish 
