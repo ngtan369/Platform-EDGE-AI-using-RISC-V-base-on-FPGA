@@ -1,106 +1,95 @@
 \chapter {Các công trình nghiên cứu liên quan}
 \label{chp:03}
 
-\section{Pulpissimo}
+Chương này trình bày các công trình tiêu biểu trong ba hướng nghiên cứu liên quan đến đề tài: (i) các vi xử lý mã nguồn mở dựa trên RISC-V cho ứng dụng Edge AI, (ii) các framework gia tốc CNN trên FPGA, và (iii) các kiến trúc mạng nơ-ron và kỹ thuật lượng tử hóa hiệu quả cho thiết bị biên. Phần kết của mỗi mục sẽ làm rõ vị trí thiết kế của đề tài so với từng hướng tiếp cận đã có.
 
-\subsection{Tổng quan}
-Pulpissimo (PULP Independent Single-stream Shared-memory Integrated Subsystem for MOtion control) 
-là một hệ thống vi điều khiển (Microcontroller System) tiên tiến dựa trên kiến trúc RISC-V 32-bit, 
-được phát triển bởi nhóm nghiên cứu PULP (Parallel Ultra Low Power) thuộc ETH Zürich và Đại học Bologna.
-
-Mục tiêu thiết kế của Pulpissimo là cung cấp một nền tảng phần cứng linh hoạt, tiết kiệm năng lượng 
-nhưng vẫn đảm bảo hiệu năng tính toán cao cho các ứng dụng IoT và Edge AI yêu cầu băng thông lớn. 
-Khác với các vi điều khiển truyền thống, Pulpissimo không chỉ là một lõi CPU đơn lẻ mà là một hệ thống 
-SoC (System-on-Chip) hoàn chỉnh với kiến trúc bộ nhớ và ngoại vi thông minh  \cite{pulpissimo}.
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.7\linewidth]{chapter03/img/pulpissimo_archi.png}
-    \caption{Kiến trúc Pulpissimo}
-    \label{fig:pulpissimo_archi}
-\end{figure}
-
-\subsection{Các đặc điểm kỹ thuật nổi bật}
-PULPissimo bao gồm các thành phần chính sau:
-\begin{itemize}
-    \item Bộ xử lý chính: Hoặc bộ xử lý RI5CY hoặc bộ xử lý Ibex
-    \item Hệ thống con uDMA: Hệ thống con đầu vào/đầu ra tự động để quản lý thiết bị ngoại vi hiệu quả
-    \item Hệ thống con bộ nhớ: Bao gồm ROM khởi động và bộ nhớ L2
-    \item Hệ thống sự kiện và ngắt: Bộ điều khiển ngắt đơn giản để quản lý các sự kiện hệ thống
-    \item Thiết bị ngoại vi: Bao gồm SPI, I2S, giao diện camera, I2C, UART, Hyperbus và GPIO
-    \item Bộ xử lý phần cứng (HWPE): Hỗ trợ các bộ tăng tốc phần cứng tùy chỉnh
-\end{itemize}
-\subsubsection{Lõi xử lý CV32E40P (RI5CY)}
-Trung tâm của Pulpissimo là nhân xử lý RI5CY (hiện nay được chuẩn hóa thành CV32E40P bởi OpenHW Group). 
-Đây là một hiện thực hóa (implementation) của RISC-V với đường ống 4 tầng, được tối ưu hóa đặc biệt cho 
-xử lý tín hiệu số (DSP).
-Điểm đặc biệt của nhân này là việc hỗ trợ các mở rộng tập lệnh không tiêu chuẩn (Non-standard Extensions) 
-giúp tăng tốc đáng kể các thuật toán AI:
-\begin{itemize}
-    \item \textbf{Hardware Loops:} Cho phép thực hiện các vòng lặp mà không tốn chu kỳ máy cho 
-    việc kiểm tra điều kiện và rẽ nhánh.
-    \item \textbf{SIMD (Single Instruction Multiple Data):} Hỗ trợ tính toán song song trên các 
-    vector nhỏ (ví dụ: thực hiện 2 phép cộng 16-bit hoặc 4 phép cộng 8-bit trong 1 chu kỳ). 
-    Đây là tính năng then chốt để xử lý dữ liệu lượng tử hóa (Quantized Data) trong mạng nơ-ron.
-    \item \textbf{Bit Manipulation:} Các lệnh thao tác bit giúp tối ưu hóa việc đóng gói và giải nén 
-    dữ liệu trọng số.
-\end{itemize}
-
-\subsubsection{Hệ thống bộ nhớ và uDMA}
-Để giải quyết bài toán "nghẽn cổ chai" dữ liệu, Pulpissimo sử dụng bộ điều khiển truy cập bộ nhớ 
-trực tiếp thông minh (micro-DMA hay uDMA). uDMA cho phép truyền dữ liệu trực tiếp từ các ngoại 
-vi tốc độ cao (như Camera Interface, SPI) vào bộ nhớ nội (L2 Memory) mà không cần sự can thiệp 
-của CPU. Cơ chế này giúp CPU có thể chuyển sang trạng thái ngủ (Sleep Mode) trong khi dữ liệu đang 
-được thu thập, giúp tiết kiệm năng lượng tối đa .
-
-\newpage
 %=================================================================================
+\section{Vi xử lý mã nguồn mở RISC-V cho Edge AI}
+\label{sec:riscv_related}
+
+\subsection{Hệ sinh thái PULP và Pulpissimo}
+PULPissimo (PULP Independent Single-stream Shared-memory Integrated Subsystem) là một SoC vi điều khiển 32-bit dựa trên RISC-V, được phát triển bởi nhóm PULP (Parallel Ultra Low Power) thuộc ETH Zürich và Đại học Bologna \cite{pulpissimo}. Pulpissimo cung cấp một nền tảng phần cứng tiết kiệm năng lượng nhưng vẫn đảm bảo hiệu năng tính toán cho IoT và Edge AI, bao gồm: lõi RI5CY (tên cũ của CV32E40P), hệ thống bộ nhớ TCDM 16-bank, bộ điều khiển uDMA cho ngoại vi, hệ thống ngắt, và giao diện Hardware Processing Engine (HWPE) cho các bộ tăng tốc tùy chỉnh.
+
+Đề tài này \textbf{kế thừa lõi xử lý CV32E40P từ Pulpissimo} (qua submodule chính thức của OpenHW Group) nhưng \textbf{không sử dụng các thành phần khác} của Pulpissimo: thay vì TCDM 16-bank + Logarithmic Interconnect, đề tài thiết kế lại memory subsystem theo chuẩn AXI4 của Xilinx (dual-port BRAM + AXI SmartConnect). Lựa chọn này nhằm tích hợp tự nhiên với Vivado IP Catalog và đồng bộ địa chỉ logic giữa ARM và RISC-V (xem mục~\ref{sec:pl_design}).
+
+\subsection{Mở rộng tập lệnh RISC-V cho mạng nơ-ron}
+Một hướng tiếp cận để gia tốc mạng nơ-ron trên RISC-V là can thiệp trực tiếp vào kiến trúc tập lệnh (ISA Extensions). Công trình \textit{``FPGA-Accelerated RISC-V ISA Extensions for Efficient Neural Network Inference on Edge Devices''} \cite{parameshwara2025fpga} là một minh chứng tiêu biểu cho trường phái thiết kế \textit{tightly-coupled}: thay vì tách bộ tăng tốc thành IP độc lập, nhóm tác giả định nghĩa các chỉ thị MAC INT8 mới, tích hợp ngay vào pipeline ALU của lõi RISC-V.
+
+\textbf{Ưu điểm} của hướng này là độ trễ giao tiếp gần như bằng 0 (không qua bus AXI) và tiết kiệm năng lượng do không phải đọc/ghi bộ nhớ ngoài. \textbf{Nhược điểm}: (i) đòi hỏi can thiệp sâu vào RTL của CPU, có rủi ro làm giảm Fmax; (ii) bị giới hạn bởi băng thông tập thanh ghi 32-bit, khó scale lên các layer lớn; (iii) cần custom GCC/LLVM toolchain để biên dịch các lệnh tùy biến.
+
+\textbf{Đối chiếu với đề tài:} Đề tài chọn hướng \textit{loosely-coupled} (Conv-CNN là IP độc lập giao tiếp qua AXI), đánh đổi độ trễ giao tiếp lấy tính module hóa và khả năng scale. Lõi RISC-V CV32E40P được giữ nguyên bản (RV32IMC standard), không cần custom toolchain -- ưu tiên tính bảo trì và tái sử dụng cho các capstone project sau.
+
+%=================================================================================
+\newpage
+\section{Framework gia tốc CNN trên FPGA}
+\label{sec:fpga_frameworks}
+
+Phần này tổng hợp 4 framework tiêu biểu cho việc gia tốc CNN trên FPGA, được lựa chọn dựa trên mức độ phù hợp với platform của đề tài (Xilinx Zynq UltraScale+) và tính đại diện cho các trường phái thiết kế khác nhau.
+
+\subsection{Vitis AI DPU (Xilinx)}
+Vitis AI Deep Processing Unit (DPU) là giải pháp thương mại của Xilinx (nay là AMD-Xilinx) dành cho việc triển khai CNN trên dòng SoC Zynq UltraScale+ (bao gồm Kria KV260) \cite{vitis_ai}. DPU được phân phối dưới dạng IP đóng (encrypted bitstream), kèm theo compiler chuyển mô hình từ TensorFlow/PyTorch sang chỉ thị máy của DPU. Người dùng chỉ cần quantize mô hình và gọi runtime API, không cần thiết kế RTL.
+
+\textbf{Đối chiếu với đề tài:} DPU cho phép triển khai nhanh nhiều mô hình lớn (ResNet, MobileNet, YOLO) nhưng có ba hạn chế đáng kể: (i) \textit{closed-source} -- không thể tùy biến op set hay quantization scheme; (ii) tài nguyên cố định -- DPU B1024/B2048 chiếm phần lớn FPGA, khó nhường chỗ cho RISC-V soft-core; (iii) không có khả năng \textit{hardware-software co-design} ở mức RTL -- yếu tố cốt lõi của đề tài. Đề tài chấp nhận phạm vi op nhỏ hơn nhưng đổi lấy tính kiểm soát hoàn toàn pipeline phần cứng.
+
+\subsection{FINN -- HLS-based BNN Accelerator (Xilinx Research)}
+FINN \cite{finn_paper} là framework do Xilinx Research phát triển, sinh tự động bộ tăng tốc cho Binarized Neural Networks (BNN, weights/activations 1-bit) qua Vivado HLS. FINN tận dụng đặc điểm BNN -- thay phép tích chập bằng XNOR + Popcount thực hiện hoàn toàn bằng LUT -- để đạt throughput cao mà không tốn DSP.
+
+\textbf{Đối chiếu với đề tài:} BNN cho phép throughput cực cao (hàng nghìn img/s) nhưng giảm độ chính xác đáng kể trên các tập dữ liệu phức tạp. Đề tài chọn INT8 (đề xuất bởi Jacob et al. \cite{jacob2018quantization}) làm điểm cân bằng tốt hơn giữa chính xác và hiệu năng cho bài toán phân loại nhị phân, đồng thời tận dụng được DSP48E2 của Ultrascale+ (vốn dồi dào: 1248 DSP trên KV260).
+
+\subsection{hls4ml (CERN -- Fermilab Collaboration)}
+hls4ml \cite{hls4ml} là framework do nhóm vật lý hạt nhân (CERN, Fermilab) phát triển ban đầu cho ứng dụng trigger LHC, nay được mở rộng cho Edge AI. hls4ml nhận mô hình Keras/PyTorch làm đầu vào và sinh ra C++ HLS code, sau đó qua Vivado HLS để tổng hợp thành RTL. Toàn bộ mạng được \textit{fully unrolled} thành dataflow pipeline, đạt độ trễ rất thấp (microsecond range).
+
+\textbf{Đối chiếu với đề tài:} hls4ml hoàn toàn HLS-based, không có CPU tham gia điều phối -- mô hình bị ``cứng hóa'' thành RTL, đổi mô hình phải re-synthesize bitstream. Đề tài giữ kiến trúc phân tầng với RISC-V làm orchestrator: đổi mô hình chỉ cần thay \texttt{layer\_table.h} + \texttt{weights.bin}, không cần re-synth -- phù hợp hơn với mục tiêu prototyping nhanh nhiều mô hình.
+
+\subsection{CFU Playground (Google)}
+CFU Playground \cite{cfu_playground} là project mã nguồn mở của Google, kết hợp lõi RISC-V (VexRiscv) với Custom Function Unit (CFU) trên FPGA, chạy TensorFlow Lite Micro. CFU là một dạng \textit{tightly-coupled} accelerator: được thêm vào ALU của RISC-V qua chỉ thị tùy biến, gần giống hướng tiếp cận của \cite{parameshwara2025fpga}.
+
+\textbf{Đối chiếu với đề tài:} CFU Playground và đề tài đại diện cho hai trường phái song song trong nghiên cứu RISC-V + AI:
+\begin{itemize}
+    \item \textbf{CFU Playground (tightly-coupled):} Bộ tăng tốc nằm trong lõi CPU, chia sẻ register file. Phù hợp khi mô hình nhỏ và op đơn giản (thường ở mức MAC vector).
+    \item \textbf{Đề tài (loosely-coupled):} Bộ tăng tốc là IP độc lập giao tiếp qua AXI và DMA. Phù hợp khi op phức tạp (Conv 3$\times$3 với line buffer + window + requantize) và cần streaming bandwidth cao từ DDR.
+\end{itemize}
+Lựa chọn của đề tài nghiêng theo hướng loosely-coupled vì: (i) op chính là Conv 3$\times$3 với line buffer 16~KB BRAM -- không thể nhét vào trong CPU; (ii) cần DMA tốc độ cao từ DDR mà CFU không hỗ trợ trực tiếp.
+
+\subsection{Bảng tổng hợp so sánh}
+\begin{table}[!h]
+    \centering
+    \caption{So sánh đa chiều các framework gia tốc CNN trên FPGA.}
+    \label{tab:framework_comparison}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    \textbf{Framework} & \textbf{Mã nguồn} & \textbf{Coupling} & \textbf{Quantization} & \textbf{Đổi mô hình} & \textbf{Có RISC-V?} \\ \hline
+    Vitis AI DPU       & Closed   & Loosely (DPU IP)        & INT8           & Compile lại model    & Không (chỉ ARM) \\ \hline
+    FINN               & Open     & Loosely (HLS-gen IP)    & 1-bit (BNN)    & Re-synthesize        & Không           \\ \hline
+    hls4ml             & Open     & N/A (fully unrolled)    & FP/INT tùy chọn & Re-synthesize       & Không           \\ \hline
+    CFU Playground     & Open     & Tightly (in-CPU)        & INT8 (TFLM)    & Re-compile firmware  & Có (VexRiscv)   \\ \hline
+    \textbf{Đề tài}    & Open     & Loosely (AXI IP)        & INT8 (TFLite)  & Thay weights+table   & Có (CV32E40P)   \\ \hline
+    \end{tabular}%
+    }
+\end{table}
+
+%=================================================================================
+\newpage
 \section{Mô hình hiệu quả cho thiết bị biên}
 \label{sec:efficient_models}
-Bên cạnh các vi xử lý mở, hướng nghiên cứu thứ hai để đưa AI lên thiết bị biên là tối ưu hóa kiến trúc mạng nơ-ron thay vì phần cứng. Hai trường phái tiêu biểu được tóm tắt dưới đây để làm rõ vị trí thiết kế của đồ án.
+
+Bên cạnh các vi xử lý mở và framework FPGA, hướng nghiên cứu thứ ba để đưa AI lên thiết bị biên là tối ưu hóa kiến trúc mạng nơ-ron thay vì phần cứng. Hai trường phái tiêu biểu được tóm tắt dưới đây để làm rõ vị trí thiết kế của đề tài.
 
 \paragraph{Mạng nơ-ron Nhị phân (BNN).} Courbariaux và cộng sự \cite{bnn_courbariaux} đã chứng minh khả năng huấn luyện các mạng nơ-ron sâu với trọng số và kích hoạt ép buộc về $\{+1, -1\}$ (1-bit). Lợi thế lớn nhất của BNN trên FPGA là phép tích chập được thay bằng phép logic XNOR + Popcount, có thể thực hiện trực tiếp bằng LUT mà không cần DSP. Tuy nhiên, BNN gặp giảm độ chính xác đáng kể trên các tập dữ liệu phức tạp (ImageNet). Đồ án tham khảo nguyên lý tối ưu phần cứng của BNN nhưng lựa chọn lượng tử hóa INT8 chuẩn TFLite \cite{jacob2018quantization} để đạt cân bằng tốt hơn giữa độ chính xác và hiệu năng.
 
 \paragraph{MobileNet và Depthwise Separable Convolution.} Howard và cộng sự \cite{mobilenet_v1} đề xuất kiến trúc MobileNet sử dụng \textit{depthwise separable convolution} (tách Conv $K \times K$ thành Depthwise Conv + Pointwise $1 \times 1$) để giảm khoảng 8--9 lần số phép MAC so với Conv chuẩn cùng kích thước. MobileNet trở thành kiến trúc chuẩn cho thị giác máy trên thiết bị di động. Tuy nhiên, depthwise convolution có \textit{dataflow ngược} so với Conv chuẩn (mỗi cin $\to$ 1 output thay vì sum across cin), đòi hỏi MUX adder tree riêng và chế độ FSM mới ở bộ tăng tốc. Trong phạm vi đồ án, đề tài chọn kiến trúc \texttt{vgg-tiny} đơn giản hơn (chỉ Conv $3 \times 3$ chuẩn) để tập trung vào việc kiểm chứng đồng thiết kế phần cứng-phần mềm; hỗ trợ depthwise được dành cho hướng phát triển tiếp theo.
 
-%=================================================
-%==
-%=================================================
-\section{Gia tốc phần cứng trên Tập lệnh mở rộng RISC-V (ISA Extensions)}
-
-Một trong những hướng tiếp cận phổ biến để gia tốc mạng nơ-ron trên các thiết bị biên (Edge Devices) là can thiệp trực tiếp vào kiến trúc tập lệnh (ISA - Instruction Set Architecture) của vi xử lý. Công trình nghiên cứu \textit{"FPGA-Accelerated RISC-V ISA Extensions for Efficient Neural Network Inference on Edge Devices"} là một minh chứng tiêu biểu cho trường phái thiết kế liên kết chặt chẽ (Tightly-Coupled Architecture). \cite{parameshwara2025fpga}
-
-\textbf{Nguyên lý hoạt động và Kiến trúc:}
-Thay vì thiết kế một khối phần cứng gia tốc độc lập, phương pháp này tiến hành sửa đổi trực tiếp đường ống thực thi (Pipeline) và khối tính toán logic (ALU) bên trong lõi vi xử lý RISC-V. Các tác giả định nghĩa thêm các chỉ thị máy (Assembly Instructions) hoàn toàn mới, chuyên biệt cho phép toán của mạng nơ-ron, điển hình là các lệnh nhân cộng tích lũy (MAC - Multiply-Accumulate) trên định dạng số nguyên lượng tử hóa (INT8). Khi bộ giải mã lệnh (Instruction Decoder) của CPU gặp các chỉ thị tùy biến này, nó sẽ điều hướng dữ liệu từ tập thanh ghi (Register File) dùng chung sang mạch phần cứng gia tốc vừa được cấy ghép.
-
-\textbf{Ưu điểm của phương pháp:}
-\begin{itemize}
-    \item \textbf{Độ trễ giao tiếp cực thấp (Zero-latency Communication):} Do khối gia tốc nằm ngay bên trong lõi CPU và sử dụng trực tiếp tài nguyên thanh ghi nội bộ, hệ thống loại bỏ hoàn toàn độ trễ phát sinh từ việc truyền tải dữ liệu qua các bus giao tiếp ngoại vi (như AXI hay APB).
-    \item \textbf{Tối ưu hóa năng lượng (Energy Efficiency):} Việc giảm thiểu các thao tác đọc/ghi bộ nhớ ngoài giúp tiết kiệm đáng kể năng lượng, đáp ứng tốt các ràng buộc khắt khe của thiết bị Edge AI.
-\end{itemize}
-
-\textbf{Thách thức và Giới hạn:}
-Mặc dù mang lại hiệu năng tính toán tại chỗ cao, kiến trúc ISA Extensions đi kèm với sự đánh đổi lớn về độ phức tạp trong khâu phát triển:
-\begin{itemize}
-    \item \textbf{Xâm lấn lõi phần cứng (Hardware Intrusion):} Đòi hỏi nhà thiết kế phải can thiệp sâu vào mã nguồn (RTL) của bộ vi xử lý chuẩn, làm tăng rủi ro về mặt định tuyến (Routing) và có thể làm giảm tần số hoạt động tối đa (Fmax) của toàn hệ thống.
-    \item \textbf{Giới hạn kích thước ma trận:} Khối gia tốc bị giới hạn không gian vật lý bên trong CPU và phụ thuộc vào băng thông của tập thanh ghi (thường chỉ 32-bit), khiến nó khó mở rộng để xử lý các lớp tích chập (Convolutional Layers) có kích thước lớn.
-    \item \textbf{Chuỗi công cụ phần mềm (Toolchain Dependency):} Việc bổ sung lệnh mới bắt buộc phải tùy biến lại các trình biên dịch mã nguồn mở (như GCC hoặc LLVM) để phần mềm cấp cao (C/C++) có thể hiểu và biên dịch đúng các chỉ thị gia tốc này.
-\end{itemize}
-
-\textbf{Kết luận đối chiếu:} 
-Việc phân tích phương pháp mở rộng tập lệnh (ISA Extensions) cho thấy rõ sự đánh đổi giữa độ trễ giao tiếp và tính linh hoạt của hệ thống. Đối với các mạng nơ-ron có quy mô lớn yêu cầu thông lượng bộ nhớ cao, một kiến trúc liên kết lỏng (Loosely-Coupled) dựa trên chuẩn giao tiếp bộ nhớ ánh xạ (Memory-Mapped) độc lập thường mang lại khả năng mở rộng tốt hơn mà không phá vỡ tính nguyên bản của lõi vi xử lý.
-
 %=================================================================================
-
 \section{Lượng tử hóa và huấn luyện mạng nơ-ron}
 \label{sec:quantization_theory}
 
-Trong các hệ thống học sâu truyền thống, việc huấn luyện và suy luận thường được 
+Trong các hệ thống học sâu truyền thống, việc huấn luyện và suy luận thường được
 thực hiện trên định dạng số thực dấu phẩy động 32-bit (Float32) để đảm bảo độ chính xác cao nhất. Tuy nhiên, trên các thiết bị biên (Edge Devices) với tài nguyên hạn chế như FPGA hay vi xử lý nhúng RISC-V, các phép toán số thực tiêu tốn quá nhiều tài nguyên phần cứng và năng lượng.
 
-Để giải quyết vấn đề này, đồ án áp dụng phương pháp lượng tử hóa số nguyên 
-được đề xuất bởi \textit{Jacob et al.} (Google) trong công trình 
-\textit{"Quantization and Training of Neural Networks for Efficient 
+Để giải quyết vấn đề này, đồ án áp dụng phương pháp lượng tử hóa số nguyên
+được đề xuất bởi \textit{Jacob et al.} (Google) trong công trình
+\textit{"Quantization and Training of Neural Networks for Efficient
 Integer-Arithmetic-Only Inference"} \cite{jacob2018quantization}.
 
 \begin{figure}[!h]
@@ -138,6 +127,6 @@ Từ công thức trên, quá trình nhân chập (Convolution) giữa đầu v�
     M \approx 2^{-n} \times M_0 \quad (\text{với } M_0 \text{ là số nguyên cố định})
 \end{equation}
 
-Kỹ thuật này cho phép loại bỏ hoàn toàn khối xử lý số thực (FPU) khỏi phần cứng. 
-Mọi phép tính từ tích chập, cộng bias đến hàm kích hoạt đều được thực hiện bằng 
-các đơn vị số học nguyên (ALU Integer) và các bộ dịch bit.
+Kỹ thuật này cho phép loại bỏ hoàn toàn khối xử lý số thực (FPU) khỏi phần cứng.
+Mọi phép tính từ tích chập, cộng bias đến hàm kích hoạt đều được thực hiện bằng
+các đơn vị số học nguyên (ALU Integer) và các bộ dịch bit. Đề tài hiện thực trực tiếp công thức này trong module \texttt{requantize.sv} với pipeline 3-tầng (mục~\ref{ssec:requantize}).

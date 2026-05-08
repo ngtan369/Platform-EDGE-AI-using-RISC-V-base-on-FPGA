@@ -1,60 +1,83 @@
 \relax 
 \providecommand\hyper@newdestlabel[2]{}
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Hiện thực và kiểm thử hệ thống}{63}{chapter.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Hiện thực và kiểm thử hệ thống}{61}{chapter.5}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chp:05}{{5}{63}{Hiện thực và kiểm thử hệ thống}{chapter.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}Tổng quan hướng hiện thực}{63}{section.5.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces Sơ đồ tổng quan}}{64}{figure.5.1}\protected@file@percent }
-\newlabel{fig:flowwork}{{5.1}{64}{Sơ đồ tổng quan}{figure.5.1}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces Các artifact trao đổi giữa các tầng trong pipeline.}}{64}{table.5.1}\protected@file@percent }
-\newlabel{tab:artifacts}{{5.1}{64}{Các artifact trao đổi giữa các tầng trong pipeline}{table.5.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.2}Huấn luyện và lượng tử hóa mô hình AI}{65}{section.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.3}Hiện thực khối gia tốc phần cứng CNN}{66}{section.5.3}\protected@file@percent }
-\newlabel{sec:cnn-ip}{{5.3}{66}{Hiện thực khối gia tốc phần cứng CNN}{section.5.3}{}}
+\newlabel{chp:05}{{5}{61}{Hiện thực và kiểm thử hệ thống}{chapter.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}Tổng quan hướng hiện thực}{61}{section.5.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces Các artifact trao đổi giữa các tầng trong pipeline.}}{62}{table.5.1}\protected@file@percent }
+\newlabel{tab:artifacts}{{5.1}{62}{Các artifact trao đổi giữa các tầng trong pipeline}{table.5.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}Huấn luyện và lượng tử hóa mô hình AI}{63}{section.5.2}\protected@file@percent }
+\newlabel{sec:training_impl}{{5.2}{63}{Huấn luyện và lượng tử hóa mô hình AI}{section.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}Cấu trúc pipeline 8 giai đoạn}{63}{subsection.5.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}Kiến trúc \texttt  {vgg-tiny} đề xuất}{63}{subsection.5.2.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.1}{\ignorespaces Kiến trúc Tiny-VGG đề xuất (file \texttt  {edge\_train/models.py}).}}{63}{lstlisting.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.3}Lượng tử hóa sau huấn luyện (Post-Training Quantization)}{64}{subsection.5.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.4}Trình biên dịch tự sinh \texttt  {layer\_table.h} và \texttt  {weights.bin}}{64}{subsection.5.2.4}\protected@file@percent }
+\newlabel{ssec:emitter}{{5.2.4}{64}{Trình biên dịch tự sinh \texttt {layer\_table.h} và \texttt {weights.bin}}{subsection.5.2.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}Hiện thực khối gia tốc phần cứng Conv\_CNN v2.0}{66}{section.5.3}\protected@file@percent }
+\newlabel{sec:cnn-ip}{{5.3}{66}{Hiện thực khối gia tốc phần cứng Conv\_CNN v2.0}{section.5.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3.1}Tổng quan kiến trúc Conv\_CNN v2.0}{66}{subsection.5.3.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces Sơ đồ datapath conv\_cnn IP: từ AXIS in qua line buffer, window, MAC array, requantize đến AXIS out.}}{66}{figure.5.2}\protected@file@percent }
-\newlabel{fig:conv-cnn-datapath}{{5.2}{66}{Sơ đồ datapath conv\_cnn IP: từ AXIS in qua line buffer, window, MAC array, requantize đến AXIS out}{figure.5.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3.2}Tham số hóa và package \texttt  {conv\_pkg.sv}}{66}{subsection.5.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.3}Tích hợp tổng thể qua AXI}{67}{subsection.5.3.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi).}}{67}{table.5.2}\protected@file@percent }
-\newlabel{tab:s00-axi-regs}{{5.2}{67}{Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi)}{table.5.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.4}Đánh giá khối tăng tốc CONV-CNN}{67}{subsection.5.3.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.3}{\ignorespaces Báo cáo chạy khối CNN}}{68}{figure.5.3}\protected@file@percent }
-\newlabel{fig:overall}{{5.3}{68}{Báo cáo chạy khối CNN}{figure.5.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.4}Hiện thực RISC-V Soft-core}{68}{section.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.1}Tinh chỉnh CV32E40P Core}{68}{subsection.5.4.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.4}{\ignorespaces Kết quả chạy simulate khối CNN}}{69}{figure.5.4}\protected@file@percent }
-\newlabel{fig:waveform}{{5.4}{69}{Kết quả chạy simulate khối CNN}{figure.5.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.2}Hiện thực cầu nối giao tiếp OBI sang AXI4 (OBI to AXI)}{69}{subsection.5.4.2}\protected@file@percent }
-\newlabel{sec:obi_axi}{{5.4.2}{69}{Hiện thực cầu nối giao tiếp OBI sang AXI4 (OBI to AXI)}{subsection.5.4.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.5}Phát triển Firmware}{71}{section.5.5}\protected@file@percent }
-\newlabel{sec:software}{{5.5}{71}{Phát triển Firmware}{section.5.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.1}Pipeline huấn luyện trên Host PC}{71}{subsection.5.5.1}\protected@file@percent }
-\newlabel{ssec:training}{{5.5.1}{71}{Pipeline huấn luyện trên Host PC}{subsection.5.5.1}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.1}{\ignorespaces Kiến trúc Tiny-VGG đề xuất}}{71}{lstlisting.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.2}Trình biên dịch tự sinh \texttt  {layer\_table.h} và \texttt  {weights.bin}}{71}{subsection.5.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.3}Firmware RISC-V}{71}{subsection.5.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.4}Host Controller }{71}{subsection.5.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.6}Tích hợp Block Design trong Vivado}{72}{section.5.6}\protected@file@percent }
-\newlabel{sec:bd}{{5.6}{72}{Tích hợp Block Design trong Vivado}{section.5.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.5}{\ignorespaces Sơ khối minh họa hệ thống}}{73}{figure.5.5}\protected@file@percent }
-\newlabel{fig:arch}{{5.5}{73}{Sơ khối minh họa hệ thống}{figure.5.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.6}{\ignorespaces Thiết kế khối trong vivado}}{74}{figure.5.6}\protected@file@percent }
-\newlabel{fig:arch_vivado}{{5.6}{74}{Thiết kế khối trong vivado}{figure.5.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Bản đồ bộ nhớ và Address Editor}{75}{subsection.5.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}Đồng bộ ARM \(\leftrightarrow \) RISC-V qua D-BRAM dual-port}{76}{subsection.5.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.7}Quy trình kiểm thử}{77}{section.5.7}\protected@file@percent }
-\newlabel{sec:testing}{{5.7}{77}{Quy trình kiểm thử}{section.5.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Kiểm thử đơn vị (Unit Testbench)}{77}{subsection.5.7.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Kiểm thử tích hợp IP}{77}{subsection.5.7.2}\protected@file@percent }
-\newlabel{ssec:tb-ip}{{5.7.2}{77}{Kiểm thử tích hợp IP}{subsection.5.7.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Đối chiếu với golden vector từ TFLite Interpreter}{77}{subsection.5.7.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.4}Kiểm thử trên board KV260}{77}{subsection.5.7.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces Sơ đồ datapath conv\_cnn IP: từ AXIS in qua line buffer, window, MAC array, requantize đến AXIS out.}}{67}{figure.5.1}\protected@file@percent }
+\newlabel{fig:conv-cnn-datapath}{{5.1}{67}{Sơ đồ datapath conv\_cnn IP: từ AXIS in qua line buffer, window, MAC array, requantize đến AXIS out}{figure.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.3}Khối điều khiển \texttt  {controller\_fsm.sv}}{67}{subsection.5.3.3}\protected@file@percent }
+\newlabel{lst:fsm}{{5.2}{67}{Trình tự duyệt 3 vòng lặp trong controller FSM}{lstlisting.5.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.2}{\ignorespaces Trình tự duyệt 3 vòng lặp trong controller FSM}}{67}{lstlisting.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.4}Bộ đệm dòng và cửa sổ \texttt  {line\_buffer.sv}, \texttt  {window\_3x3.sv}}{68}{subsection.5.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.5}Bộ nhớ trọng số \texttt  {weight\_buf.sv} -- bài học về BRAM inference}{68}{subsection.5.3.5}\protected@file@percent }
+\newlabel{ssec:weight_buf_bram}{{5.3.5}{68}{Bộ nhớ trọng số \texttt {weight\_buf.sv} -- bài học về BRAM inference}{subsection.5.3.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.6}Mảng MAC và cây cộng \texttt  {pe\_mac.sv}}{69}{subsection.5.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.7}Khối lượng tử hóa lại \texttt  {requantize.sv}}{69}{subsection.5.3.7}\protected@file@percent }
+\newlabel{ssec:requantize}{{5.3.7}{69}{Khối lượng tử hóa lại \texttt {requantize.sv}}{subsection.5.3.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.8}Tích hợp tổng thể qua AXI}{69}{subsection.5.3.8}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi).}}{69}{table.5.2}\protected@file@percent }
+\newlabel{tab:s00-axi-regs}{{5.2}{69}{Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi)}{table.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.9}Đánh giá khối tăng tốc CONV-CNN}{70}{subsection.5.3.9}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces Báo cáo chạy khối CNN}}{70}{figure.5.2}\protected@file@percent }
+\newlabel{fig:overall}{{5.2}{70}{Báo cáo chạy khối CNN}{figure.5.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.3}{\ignorespaces Kết quả chạy simulate khối CNN}}{71}{figure.5.3}\protected@file@percent }
+\newlabel{fig:waveform}{{5.3}{71}{Kết quả chạy simulate khối CNN}{figure.5.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}Hiện thực RISC-V Soft-core}{71}{section.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.1}Tinh chỉnh CV32E40P Core}{71}{subsection.5.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.2}Hiện thực cầu nối giao tiếp OBI sang AXI4 (OBI to AXI)}{72}{subsection.5.4.2}\protected@file@percent }
+\newlabel{sec:obi_axi}{{5.4.2}{72}{Hiện thực cầu nối giao tiếp OBI sang AXI4 (OBI to AXI)}{subsection.5.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.3}Đóng gói IP \texttt  {riscv\_top}}{72}{subsection.5.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}Hiện thực Firmware RISC-V (Layer 2 -- Orchestrator)}{73}{section.5.5}\protected@file@percent }
+\newlabel{sec:firmware}{{5.5}{73}{Hiện thực Firmware RISC-V (Layer 2 -- Orchestrator)}{section.5.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.1}Tổ chức bộ nhớ -- linker script}{73}{subsection.5.5.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.3}{\ignorespaces Trích đoạn linker script \texttt  {firmware/linked.ld}.}}{73}{lstlisting.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.2}Vòng đời driver \texttt  {main.c}}{73}{subsection.5.5.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.4}{\ignorespaces Polling loop chính của firmware.}}{73}{lstlisting.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Hiện thực Host Runtime (Layer 3 -- PYNQ Application)}{75}{section.5.6}\protected@file@percent }
+\newlabel{sec:host_runtime}{{5.6}{75}{Hiện thực Host Runtime (Layer 3 -- PYNQ Application)}{section.5.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Cấu trúc package \texttt  {host/edge\_ai/}}{75}{subsection.5.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}Quy trình tải bitstream và boot RISC-V}{75}{subsection.5.6.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.5}{\ignorespaces Trình tự khởi động hệ thống trong notebook (rút gọn).}}{75}{lstlisting.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.3}Inference loop trong notebook}{76}{subsection.5.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}Tích hợp Block Design trong Vivado}{77}{section.5.7}\protected@file@percent }
+\newlabel{sec:bd}{{5.7}{77}{Tích hợp Block Design trong Vivado}{section.5.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.4}{\ignorespaces Sơ khối minh họa hệ thống}}{77}{figure.5.4}\protected@file@percent }
+\newlabel{fig:arch}{{5.4}{77}{Sơ khối minh họa hệ thống}{figure.5.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.5}{\ignorespaces Thiết kế khối trong vivado}}{78}{figure.5.5}\protected@file@percent }
+\newlabel{fig:arch_vivado}{{5.5}{78}{Thiết kế khối trong vivado}{figure.5.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Bản đồ bộ nhớ và Address Editor}{79}{subsection.5.7.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.6}{\ignorespaces Bảng chia section trong bộ nhớ}}{79}{figure.5.6}\protected@file@percent }
+\newlabel{fig:address_editor}{{5.6}{79}{Bảng chia section trong bộ nhớ}{figure.5.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Đồng bộ ARM \(\leftrightarrow \) RISC-V qua D-BRAM dual-port}{80}{subsection.5.7.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.3}{\ignorespaces Bố cục thanh ghi handshake D-BRAM Port B (offset từ \texttt  {0xB004\_0000}).}}{80}{table.5.3}\protected@file@percent }
+\newlabel{tab:handshake-regs-ch5}{{5.3}{80}{Bố cục thanh ghi handshake D-BRAM Port B (offset từ \texttt {0xB004\_0000})}{table.5.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.8}Quy trình kiểm thử}{81}{section.5.8}\protected@file@percent }
+\newlabel{sec:testing}{{5.8}{81}{Quy trình kiểm thử}{section.5.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8.1}Kiểm thử đơn vị (Unit Testbench)}{81}{subsection.5.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8.2}Kiểm thử tích hợp IP}{81}{subsection.5.8.2}\protected@file@percent }
+\newlabel{ssec:tb-ip}{{5.8.2}{81}{Kiểm thử tích hợp IP}{subsection.5.8.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8.3}Đối chiếu với golden vector từ TFLite Interpreter}{81}{subsection.5.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8.4}Kiểm thử trên board KV260}{82}{subsection.5.8.4}\protected@file@percent }
 \@setckpt{chapter05/chapter05}{
-\setcounter{page}{78}
-\setcounter{equation}{2}
-\setcounter{enumi}{4}
+\setcounter{page}{83}
+\setcounter{equation}{3}
+\setcounter{enumi}{3}
 \setcounter{enumii}{0}
 \setcounter{enumiii}{0}
 \setcounter{enumiv}{0}
@@ -62,22 +85,22 @@
 \setcounter{mpfootnote}{0}
 \setcounter{part}{0}
 \setcounter{chapter}{5}
-\setcounter{section}{7}
+\setcounter{section}{8}
 \setcounter{subsection}{4}
 \setcounter{subsubsection}{0}
 \setcounter{paragraph}{0}
 \setcounter{subparagraph}{0}
 \setcounter{figure}{6}
-\setcounter{table}{2}
+\setcounter{table}{3}
 \setcounter{parentequation}{0}
 \setcounter{caption@flags}{2}
 \setcounter{continuedfloat}{0}
 \setcounter{EM@itemctr}{0}
 \setcounter{EM@etaremunectr}{0}
 \setcounter{section@level}{0}
-\setcounter{Item}{28}
+\setcounter{Item}{49}
 \setcounter{Hfootnote}{0}
-\setcounter{bookmark@seq@number}{101}
+\setcounter{bookmark@seq@number}{117}
 \setcounter{DefaultLines}{2}
 \setcounter{DefaultDepth}{0}
 \setcounter{L@lines}{0}
@@ -91,7 +114,7 @@
 \setcounter{citetotal}{0}
 \setcounter{multicitecount}{0}
 \setcounter{multicitetotal}{0}
-\setcounter{instcount}{12}
+\setcounter{instcount}{20}
 \setcounter{maxnames}{3}
 \setcounter{minnames}{3}
 \setcounter{maxitems}{3}
@@ -197,12 +220,13 @@
 \setcounter{bbx:relatedcount}{0}
 \setcounter{bbx:relatedtotal}{0}
 \setcounter{cbx@tempcnta}{0}
-\setcounter{cbx@tempcntb}{7}
+\setcounter{cbx@tempcntb}{9}
 \setcounter{cbx@tempcntc}{0}
 \setcounter{cbx@tempcntd}{-1}
-\setcounter{lstnumber}{10}
+\setcounter{float@type}{8}
+\setcounter{lstnumber}{19}
 \setcounter{LT@tables}{0}
 \setcounter{LT@chunks}{0}
 \setcounter{r@tfl@t}{0}
-\setcounter{lstlisting}{1}
+\setcounter{lstlisting}{5}
 }

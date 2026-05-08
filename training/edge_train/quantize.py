@@ -4,6 +4,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import tensorflow as tf
 
 from .config import FPGA_INPUT_SIZE
 
@@ -37,3 +38,11 @@ def random_representative_dataset(n: int = 100, img_size=FPGA_INPUT_SIZE):
     H, W = img_size
     for _ in range(n):
         yield [np.random.rand(1, H, W, 3).astype(np.float32)]
+
+
+def representative_samples(val_ds, n: int = 100):
+    """Yield up to `n` single-image batches for TFLite representative_dataset."""
+    for i, (batch_x, _) in enumerate(val_ds.unbatch().batch(1)):
+        if i >= n:
+            return
+        yield [tf.cast(batch_x, tf.float32).numpy()]

@@ -282,59 +282,48 @@ Quy trình bắt tay giữa ARM và RISC-V cho mỗi lần inference được m�
 \section{Thiết kế Programmable Logic}
 \label{sec:pl_design}
 
-Logic Khả trình (PL) được thiết kế như một Hệ thống trên Chip (SoC) thu nhỏ hoạt động độc lập, dựa trên kiến trúc mở PULPissimo. Mục tiêu của phân hệ này là tạo ra một môi trường tính toán hiệu năng cao, độ trễ thấp để thực thi các tác vụ điều khiển và tăng tốc AI, giảm tải cho vi xử lý chính ARM.
+Logic Khả trình (PL) đóng vai trò là một subsystem độc lập song song với Processing System ARM, chịu trách nhiệm điều phối luồng dữ liệu và thực thi tính toán tích chập. Khác với hướng tiếp cận của các SoC mã nguồn mở như PULPissimo (vốn sử dụng kiến trúc TCDM phân ngân hàng + Logarithmic Interconnect riêng), đề tài chỉ kế thừa lõi vi xử lý CV32E40P từ hệ sinh thái PULP và thiết kế lại toàn bộ kiến trúc bộ nhớ + interconnect theo chuẩn AMBA AXI4 của Xilinx. Lựa chọn này có hai ưu điểm: (i) tích hợp tự nhiên với Vivado IP Catalog (AXI DMA, BRAM Controller, SmartConnect); (ii) cùng địa chỉ logic giữa ARM và RISC-V, tiện cho debug và lock-step verification.
 
-\subsection{Kiến trúc tổng thể Phân hệ PULP (PULP Subsystem)}
-Hình \ref{fig:pulp_arch} trình bày sơ đồ kiến trúc chi tiết của khối PL. Thiết kế bao gồm ba thành phần cốt lõi: Lõi xử lý RISC-V, Hệ thống bộ nhớ TCDM phân tán, và Bộ điều khiển uDMA, được kết nối với nhau thông qua một mạng lưới giao tiếp băng thông rộng (Logarithmic Interconnect).
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{chapter04/img/pulp_arch.png}  
-    \caption{Sơ đồ kiến trúc nội bộ của Phân hệ PULP trên FPGA.}
-    \label{fig:pulp_arch}
-\end{figure}
-
-\subsection{Cấu hình Nhân Vi xử lý (RISC-V Core Configuration)}
-Trung tâm điều khiển của PL là lõi IP RISC-V (dựa trên nhân CV32E40P). Lõi này được tham số hóa trước khi tổng hợp (Synthesis) để đạt sự cân bằng tối ưu giữa tài nguyên FPGA (LUTs) và hiệu năng tính toán:
+\subsection{Cấu hình Nhân Vi xử lý CV32E40P}
+\label{ssec:riscv_config}
+Lõi RISC-V được lấy từ submodule \texttt{cv32e40p} của OpenHW Group, sau đó được tham số hóa qua các \texttt{define} trước khi tổng hợp:
 
 \begin{table}[h]
 \centering
-\caption{Thông số cấu hình RISC-V Soft-core}
+\caption{Thông số cấu hình RISC-V Soft-core sử dụng trong đề tài.}
 \label{tab:riscv_config}
-\begin{tabular}{|l|l|p{6cm}|}
+\begin{tabular}{|l|l|p{6.5cm}|}
 \hline
-\textbf{Tham số} & \textbf{Giá trị} & \textbf{Ý nghĩa thiết kế} \\ \hline
-Architecture & RV32IMCXpulp & Hỗ trợ tập lệnh nhân (M), nén (C) và mở rộng DSP/SIMD (Xpulp) cho AI. \\ \hline
-Pipeline Stages & 4 & Đủ sâu để đạt tần số 100MHz, đủ ngắn để giảm độ trễ rẽ nhánh. \\ \hline
-FPU & Disabled & Không sử dụng bộ xử lý dấu phẩy động để tiết kiệm diện tích (MobileNet đã được lượng tử hóa sang INT8). \\ \hline
-Instruction Cache & 4 KB & Kiểu Direct Mapped, giúp CPU nạp lệnh nhanh mà không cần truy cập RAM ngoài liên tục. \\ \hline
-Boot Address & \texttt{0x1A00\_0000} & Vị trí vector ngắt khởi động, trỏ tới vùng nhớ ROM khởi tạo. \\ \hline
+\textbf{Tham số} & \textbf{Giá trị} & \textbf{Lý do thiết kế} \\ \hline
+Architecture       & RV32IMC                & Tập lệnh cơ bản + nhân/chia (M) + nén (C). Đủ cho vai trò orchestrator (lập trình DMA + đọc layer table). \\ \hline
+Pipeline Stages    & 4                      & Cân bằng giữa Fmax và độ trễ rẽ nhánh. \\ \hline
+FPU                & Disabled               & Toàn bộ tính toán đã lượng tử hóa INT8; bỏ FPU tiết kiệm $\sim$3000 LUT + 5 DSP. \\ \hline
+COREV\_PULP        & Disabled               & Bỏ tập lệnh mở rộng Xpulp (HW loop, SIMD) -- không cần thiết cho orchestrator, đồng thời tránh phụ thuộc vào toolchain GCC tùy biến. \\ \hline
+Instruction memory & I-BRAM 64 KB           & Đủ chứa firmware + LAYERS[] (compile-in). \\ \hline
+Data memory        & D-BRAM 256 KB          & Chứa \texttt{.data}, \texttt{.bss}, stack, vùng handshake với ARM. \\ \hline
+Boot Address       & \texttt{0x0000\_0000}  & Đầu I-BRAM, do ARM nạp \texttt{firmware.bin} qua Port B trước khi release reset. \\ \hline
 \end{tabular}
 \end{table}
 
-\subsection{Hệ thống Bộ nhớ TCDM và Interconnect}
-Điểm yếu chí tử của các hệ thống đa vi xử lý là hiện tượng tranh chấp bộ nhớ (Memory Contention). Thiết kế này giải quyết triệt để vấn đề trên bằng kiến trúc TCDM (Tightly Coupled Data Memory).
+\subsection{Kiến trúc bộ nhớ và Interconnect}
+\label{ssec:bram_interconnect}
+Hệ thống sử dụng cặp BRAM dual-port (RAMB36 trên Ultrascale+) làm core memory cho RISC-V, kết nối với 2 master (RISC-V và ARM) qua các \texttt{axi\_bram\_ctrl}. Đây là điểm khác biệt quan trọng so với kiến trúc TCDM 16-bank của PULPissimo: thay vì tối ưu cho nhiều master tranh chấp đồng thời, đề tài chỉ có 2 master và lựa chọn 2-port BRAM tự nhiên hỗ trợ truy cập song song không xung đột.
 
-\subsubsection{Tổ chức Bộ nhớ Đan xen (Interleaved Memory Banking)}
-Thay vì sử dụng một khối Block RAM khổng lồ đơn nhất (64KB), bộ nhớ TCDM được chia nhỏ thành \textbf{16 ngân hàng (Banks)}, mỗi ngân hàng có dung lượng 4KB.
 \begin{itemize}
-    \item \textbf{Nguyên lý:} Các địa chỉ liên tiếp nhau ($Addr, Addr+4, Addr+8...$) được lưu trữ lần lượt trên các Bank khác nhau ($Bank_0, Bank_1, Bank_2...$).
-    \item \textbf{Lợi ích:} Cho phép truy cập song song. Ví dụ: RISC-V Core có thể đọc dữ liệu tại địa chỉ $A$ (nằm ở Bank 0) cùng lúc uDMA ghi dữ liệu vào địa chỉ $B$ (nằm ở Bank 1) mà không hề xảy ra xung đột.
+    \item \textbf{I-BRAM 64 KB} -- Port A nối với \texttt{m\_axi\_instr} của RISC-V cho instruction fetch; Port B nối với ARM (qua HPM0\_FPD) cho phép ARM nạp/reload \texttt{firmware.bin} mà không cần halt RISC-V.
+    \item \textbf{D-BRAM 256 KB} -- Port A nối với \texttt{m\_axi\_data} của RISC-V; Port B nối với ARM (qua HPM1\_FPD). Vùng đầu của D-BRAM dùng làm shared region với các thanh ghi handshake \texttt{CMD\_FROM\_ARM}, \texttt{STATUS\_TO\_ARM}, \texttt{IFM\_PHYS\_ADDR}, \texttt{OFM\_PHYS\_ADDR}, \texttt{WEIGHT\_BASE} (xem mục~\ref{sec:handshake_regs}).
 \end{itemize}
 
-\subsubsection{Logarithmic Interconnect}
-Kết nối giữa các Master (Core, uDMA) và các Slave (Memory Banks) không phải là một Bus tuyến tính mà là một \textbf{Ma trận chuyển mạch (Switch Matrix)}.
-\begin{itemize}
-    \item Mạng lưới này có độ trễ cực thấp (chỉ 1 chu kỳ xung nhịp).
-    \item Đảm bảo băng thông cực đại: Tổng băng thông nội bộ có thể đạt tới $N \times 32$-bit/cycle (với N là số lượng Bank).
-\end{itemize}
+Toàn bộ peripheral (AXI DMA, conv\_cnn S00\_AXI, BRAM controllers) được kết nối tới cả ARM và RISC-V qua một AXI SmartConnect chung, đảm bảo cả hai master cùng thấy slave ở chung một địa chỉ logic dải \texttt{0xB0xx\_xxxx}.
 
-\subsection{Cơ chế Truy cập Bộ nhớ Trực tiếp (uDMA)}
-Để giải phóng CPU khỏi tác vụ sao chép dữ liệu nhàm chán, một bộ điều khiển uDMA (Micro-DMA) chuyên dụng được tích hợp:
+\subsection{Cơ chế DMA truy cập DDR}
+\label{ssec:dma_design}
+Đề tài sử dụng \texttt{axi\_dma\_0} (Xilinx AXI Direct Memory Access IP, Scatter-Gather disabled) thay vì thiết kế lại từ đầu như PULPissimo uDMA:
+
 \begin{itemize}
-    \item \textbf{Chức năng:} uDMA đóng vai trò cầu nối giữa các ngoại vi tốc độ cao (như AXI4 port nối tới DDR4, SPI, Camera) và bộ nhớ TCDM.
-    \item \textbf{Double Buffering:} uDMA hỗ trợ cấu hình hai vùng đệm (Buffer A và Buffer B). Khi đang xử lý dữ liệu ở Buffer A, uDMA sẽ tự động tải dữ liệu mới vào Buffer B trong nền (Background).
-    \item \textbf{Kết nối với Accelerator:} uDMA cung cấp một luồng dữ liệu liên tục (Stream) cho khối tăng tốc CNN thông qua giao diện AXI-Stream, đảm bảo bộ tăng tốc luôn có dữ liệu để tính toán (tránh hiện tượng Starvation).
+    \item \textbf{Hai kênh độc lập:} MM2S (Memory-Mapped to Stream) đọc IFM/weights từ DDR và đẩy vào \texttt{conv\_cnn\_0/S00\_AXIS}; S2MM (Stream to Memory-Mapped) ghi OFM từ \texttt{conv\_cnn\_0/M00\_AXIS} ngược về DDR.
+    \item \textbf{Cache coherency:} Cả hai kênh đi qua \texttt{S\_AXI\_HPC0\_FPD} (cấu hình coherent), tránh nhu cầu \texttt{flush}/\texttt{invalidate} cache thủ công bên ARM.
+    \item \textbf{Cơ chế ping-pong DDR:} Firmware RISC-V duy trì hai vùng đệm DDR (\texttt{buf\_a}, \texttt{buf\_b}); layer chẵn đọc \texttt{buf\_a} ghi \texttt{buf\_b}, layer lẻ đảo lại. Cách này thay thế cho double-buffer ping-pong nội bộ uDMA của PULPissimo, nhưng không tốn BRAM nội (chỉ tốn DDR vốn dồi dào).
 \end{itemize}
 
 %=============================================================

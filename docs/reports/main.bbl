@@ -232,48 +232,96 @@
       \verb 10.1109/S3S.2018.8640145
       \endverb
     \endentry
-    \entry{bnn_courbariaux}{inproceedings}{}
-      \name{author}{5}{}{%
-        {{hash=7a98eed4defbfe02de3efa44a521cf90}{%
-           family={Courbariaux},
-           familyi={C\bibinitperiod},
-           given={Matthieu},
-           giveni={M\bibinitperiod}}}%
-        {{hash=c90a4819db84ba692bbed13a957bb3ca}{%
-           family={Hubara},
-           familyi={H\bibinitperiod},
-           given={Itay},
-           giveni={I\bibinitperiod}}}%
-        {{hash=07b30cf03223931cc6e46fff4b5b42e4}{%
-           family={Soudry},
-           familyi={S\bibinitperiod},
-           given={Daniel},
-           giveni={D\bibinitperiod}}}%
-        {{hash=70f57b4b4bb951a40fa67f4dfbc4440b}{%
-           family={El-Yaniv},
-           familyi={E\bibinithyphendelim Y\bibinitperiod},
-           given={Ran},
-           giveni={R\bibinitperiod}}}%
-        {{hash=40a8e4774982146adc2688546f54efb2}{%
-           family={Bengio},
-           familyi={B\bibinitperiod},
-           given={Yoshua},
-           giveni={Y\bibinitperiod}}}%
+    \entry{parameshwara2025fpga}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=73f2d3eb590d4b1567a79d961a3db205}{%
+           family={Parameshwara},
+           familyi={P\bibinitperiod},
+           given={Arya},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ac7ef246e2d6360da2d0d650c879fb6c}{%
+           family={Mokashi},
+           familyi={M\bibinitperiod},
+           given={Santosh\bibnamedelima Hanamappa},
+           giveni={S\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
       }
-      \strng{namehash}{000091255a1a96734995bdf96b742a44}
-      \strng{fullhash}{e82ed4e3f270e037a6c4091d413eb830}
-      \strng{bibnamehash}{e82ed4e3f270e037a6c4091d413eb830}
-      \strng{authorbibnamehash}{e82ed4e3f270e037a6c4091d413eb830}
-      \strng{authornamehash}{000091255a1a96734995bdf96b742a44}
-      \strng{authorfullhash}{e82ed4e3f270e037a6c4091d413eb830}
+      \strng{namehash}{eb3ee5dcbc329933e2c66d3f81fad890}
+      \strng{fullhash}{eb3ee5dcbc329933e2c66d3f81fad890}
+      \strng{bibnamehash}{eb3ee5dcbc329933e2c66d3f81fad890}
+      \strng{authorbibnamehash}{eb3ee5dcbc329933e2c66d3f81fad890}
+      \strng{authornamehash}{eb3ee5dcbc329933e2c66d3f81fad890}
+      \strng{authorfullhash}{eb3ee5dcbc329933e2c66d3f81fad890}
       \field{sortinit}{7}
       \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{booktitle}{Advances in Neural Information Processing Systems (NIPS)}
-      \field{title}{Binarized Neural Networks: Training Deep Neural Networks with Weights and Activations Constrained to +1 or -1}
-      \field{volume}{29}
-      \field{year}{2016}
+      \field{eprintclass}{cs.AR}
+      \field{eprinttype}{arXiv}
+      \field{note}{arXiv preprint arXiv:2511.06955}
+      \field{title}{FPGA-Accelerated RISC-V ISA Extensions for Efficient Neural Network Inference on Edge Devices}
+      \field{year}{2025}
+      \verb{eprint}
+      \verb 2511.06955
+      \endverb
+    \endentry
+    \entry{vitis_ai}{manual}{}
+      \list{organization}{1}{%
+        {AMD-Xilinx}%
+      }
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{note}{Vitis AI v3.5 documentation}
+      \field{title}{Vitis AI User Guide (UG1414)}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.xilinx.com/r/en-US/ug1414-vitis-ai
+      \endverb
+      \verb{url}
+      \verb https://docs.xilinx.com/r/en-US/ug1414-vitis-ai
+      \endverb
+    \endentry
+    \entry{finn_paper}{inproceedings}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{4}{}{%
+        {{hash=7cd21a22e1b9dc24a6666adbecf9f3ff}{%
+           family={Umuroglu},
+           familyi={U\bibinitperiod},
+           given={Yaman},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=a1cd42d42556b6f85757338f25236685}{%
+           family={Fraser},
+           familyi={F\bibinitperiod},
+           given={Nicholas\bibnamedelima J},
+           giveni={N\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=8ee81db3439fba240bfb2ae52e462652}{%
+           family={Gambardella},
+           familyi={G\bibinitperiod},
+           given={Giulio},
+           giveni={G\bibinitperiod}}}%
+        {{hash=1705c7d702b9cd1c2e99b8664fe29c07}{%
+           family={Blott},
+           familyi={B\bibinitperiod},
+           given={Michaela},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {FPGA Symposium}%
+      }
+      \strng{namehash}{cc2a02f8766ddc681e66c76312184a36}
+      \strng{fullhash}{02b73b9f5caaf28b8fe893cacfd3fd47}
+      \strng{bibnamehash}{02b73b9f5caaf28b8fe893cacfd3fd47}
+      \strng{authorbibnamehash}{02b73b9f5caaf28b8fe893cacfd3fd47}
+      \strng{authornamehash}{cc2a02f8766ddc681e66c76312184a36}
+      \strng{authorfullhash}{02b73b9f5caaf28b8fe893cacfd3fd47}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Exhamining the Interface Between High-Performance Computing and Big Data}
+      \field{title}{FINN: A Framework for Fast, Scalable Binarized Neural Network Inference}
+      \field{year}{2017}
     \endentry
     \entry{jacob2018quantization}{inproceedings}{}
       \name{author}{8}{}{%
@@ -324,8 +372,8 @@
       \strng{authorbibnamehash}{71c3c3104b2a3d050cab44370038717f}
       \strng{authornamehash}{71c3c3104b2a3d050cab44370038717f}
       \strng{authorfullhash}{3ad38e526037fc692f33aef3160b0293}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}
@@ -333,6 +381,191 @@
       \field{year}{2018}
       \field{pages}{2704\bibrangedash 2713}
       \range{pages}{10}
+    \endentry
+    \entry{hls4ml}{inproceedings}{}
+      \name{author}{11}{}{%
+        {{hash=d65fe1785f1be13412a3eaeecd53d235}{%
+           family={Duarte},
+           familyi={D\bibinitperiod},
+           given={Javier},
+           giveni={J\bibinitperiod}}}%
+        {{hash=873e4e07ff73d563d2651d20ffaf99e0}{%
+           family={Han},
+           familyi={H\bibinitperiod},
+           given={Song},
+           giveni={S\bibinitperiod}}}%
+        {{hash=366053109101c3b35fbfb44bda4c1b84}{%
+           family={Harris},
+           familyi={H\bibinitperiod},
+           given={Philip},
+           giveni={P\bibinitperiod}}}%
+        {{hash=e80c38a9564bb05169ad701c62a25f3b}{%
+           family={Jindariani},
+           familyi={J\bibinitperiod},
+           given={Sergo},
+           giveni={S\bibinitperiod}}}%
+        {{hash=79e201710ec9543ab34cce2fa10157b1}{%
+           family={Kreinar},
+           familyi={K\bibinitperiod},
+           given={Edward},
+           giveni={E\bibinitperiod}}}%
+        {{hash=fbd24efa3783698ba4d6f5b1acca8013}{%
+           family={Kreis},
+           familyi={K\bibinitperiod},
+           given={Benjamin},
+           giveni={B\bibinitperiod}}}%
+        {{hash=916d53cb63cf8ca945cc056d2c3ee947}{%
+           family={Ngadiuba},
+           familyi={N\bibinitperiod},
+           given={Jennifer},
+           giveni={J\bibinitperiod}}}%
+        {{hash=1c22a097d7d81eb61830498bc7f766dc}{%
+           family={Pierini},
+           familyi={P\bibinitperiod},
+           given={Maurizio},
+           giveni={M\bibinitperiod}}}%
+        {{hash=916629c09687668f93f6ba89b50e4b14}{%
+           family={Rivera},
+           familyi={R\bibinitperiod},
+           given={Ryan},
+           giveni={R\bibinitperiod}}}%
+        {{hash=a0575853fb44b4c2226713c4d8f69c60}{%
+           family={Tran},
+           familyi={T\bibinitperiod},
+           given={Nhan},
+           giveni={N\bibinitperiod}}}%
+        {{hash=6bfef0057d79aef65e362a437db7d221}{%
+           family={Wu},
+           familyi={W\bibinitperiod},
+           given={Zhenbin},
+           giveni={Z\bibinitperiod}}}%
+      }
+      \strng{namehash}{8e3fc4188396a2df6a68e4c489ea6efb}
+      \strng{fullhash}{737e24a1b4f66df8631ac2e2ae6a8608}
+      \strng{bibnamehash}{8e3fc4188396a2df6a68e4c489ea6efb}
+      \strng{authorbibnamehash}{8e3fc4188396a2df6a68e4c489ea6efb}
+      \strng{authornamehash}{8e3fc4188396a2df6a68e4c489ea6efb}
+      \strng{authorfullhash}{737e24a1b4f66df8631ac2e2ae6a8608}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Journal of Instrumentation}
+      \field{note}{hls4ml framework}
+      \field{number}{7}
+      \field{title}{Fast Inference of Deep Neural Networks in {FPGA}s for Particle Physics}
+      \field{volume}{13}
+      \field{year}{2018}
+      \field{pages}{P07027}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1088/1748-0221/13/07/P07027
+      \endverb
+    \endentry
+    \entry{cfu_playground}{inproceedings}{}
+      \name{author}{8}{}{%
+        {{hash=c49288efed97abae7b28d181a7b8983c}{%
+           family={Prakash},
+           familyi={P\bibinitperiod},
+           given={Shvetank},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5e2d804895f51c4a860b8be5da0eab54}{%
+           family={Callahan},
+           familyi={C\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+        {{hash=ccc22fafef84069bd810cbddb24e194c}{%
+           family={Bushagour},
+           familyi={B\bibinitperiod},
+           given={Joseph},
+           giveni={J\bibinitperiod}}}%
+        {{hash=7ef74a60e2d33c4b4895ffaa53af0b4d}{%
+           family={Banbury},
+           familyi={B\bibinitperiod},
+           given={Colby},
+           giveni={C\bibinitperiod}}}%
+        {{hash=00c97f229698ed4887eea5961573b078}{%
+           family={Green},
+           familyi={G\bibinitperiod},
+           given={Alan\bibnamedelima V.},
+           giveni={A\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=cfc28a19549f0d8ff117cf79be90d213}{%
+           family={Warden},
+           familyi={W\bibinitperiod},
+           given={Pete},
+           giveni={P\bibinitperiod}}}%
+        {{hash=8b488e90f82e2ce1b9c70b91981979e2}{%
+           family={Ansell},
+           familyi={A\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+        {{hash=ffa72a5331db6a0a5696041c81fd2086}{%
+           family={Reddi},
+           familyi={R\bibinitperiod},
+           given={Vijay\bibnamedelima Janapa},
+           giveni={V\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{b914737d241eb9c6a27e6b4c8464d620}
+      \strng{fullhash}{14868aed88a9ffd75d721a0a03dfc7a1}
+      \strng{bibnamehash}{b914737d241eb9c6a27e6b4c8464d620}
+      \strng{authorbibnamehash}{b914737d241eb9c6a27e6b4c8464d620}
+      \strng{authornamehash}{b914737d241eb9c6a27e6b4c8464d620}
+      \strng{authorfullhash}{14868aed88a9ffd75d721a0a03dfc7a1}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)}
+      \field{title}{{CFU Playground}: Full-Stack Open-Source Framework for Tiny Machine Learning ({tinyML}) Acceleration on {FPGAs}}
+      \field{year}{2023}
+      \field{pages}{157\bibrangedash 167}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1109/ISPASS57527.2023.00024
+      \endverb
+    \endentry
+    \entry{bnn_courbariaux}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{hash=7a98eed4defbfe02de3efa44a521cf90}{%
+           family={Courbariaux},
+           familyi={C\bibinitperiod},
+           given={Matthieu},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c90a4819db84ba692bbed13a957bb3ca}{%
+           family={Hubara},
+           familyi={H\bibinitperiod},
+           given={Itay},
+           giveni={I\bibinitperiod}}}%
+        {{hash=07b30cf03223931cc6e46fff4b5b42e4}{%
+           family={Soudry},
+           familyi={S\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=70f57b4b4bb951a40fa67f4dfbc4440b}{%
+           family={El-Yaniv},
+           familyi={E\bibinithyphendelim Y\bibinitperiod},
+           given={Ran},
+           giveni={R\bibinitperiod}}}%
+        {{hash=40a8e4774982146adc2688546f54efb2}{%
+           family={Bengio},
+           familyi={B\bibinitperiod},
+           given={Yoshua},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{000091255a1a96734995bdf96b742a44}
+      \strng{fullhash}{e82ed4e3f270e037a6c4091d413eb830}
+      \strng{bibnamehash}{e82ed4e3f270e037a6c4091d413eb830}
+      \strng{authorbibnamehash}{e82ed4e3f270e037a6c4091d413eb830}
+      \strng{authornamehash}{000091255a1a96734995bdf96b742a44}
+      \strng{authorfullhash}{e82ed4e3f270e037a6c4091d413eb830}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Advances in Neural Information Processing Systems (NIPS)}
+      \field{title}{Binarized Neural Networks: Training Deep Neural Networks with Weights and Activations Constrained to +1 or -1}
+      \field{volume}{29}
+      \field{year}{2016}
     \endentry
     \entry{mobilenet_v1}{article}{}
       \name{author}{8}{}{%
@@ -386,45 +619,13 @@
       \strng{authorbibnamehash}{12512ec010618127dcdc21cbfcbbb4b7}
       \strng{authornamehash}{12512ec010618127dcdc21cbfcbbb4b7}
       \strng{authorfullhash}{cffcf38c642164887a370768f5701b8e}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{arXiv preprint arXiv:1704.04861}
       \field{title}{MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications}
       \field{year}{2017}
-    \endentry
-    \entry{parameshwara2025fpga}{misc}{}
-      \name{author}{2}{}{%
-        {{hash=73f2d3eb590d4b1567a79d961a3db205}{%
-           family={Parameshwara},
-           familyi={P\bibinitperiod},
-           given={Arya},
-           giveni={A\bibinitperiod}}}%
-        {{hash=ac7ef246e2d6360da2d0d650c879fb6c}{%
-           family={Mokashi},
-           familyi={M\bibinitperiod},
-           given={Santosh\bibnamedelima Hanamappa},
-           giveni={S\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
-      }
-      \strng{namehash}{eb3ee5dcbc329933e2c66d3f81fad890}
-      \strng{fullhash}{eb3ee5dcbc329933e2c66d3f81fad890}
-      \strng{bibnamehash}{eb3ee5dcbc329933e2c66d3f81fad890}
-      \strng{authorbibnamehash}{eb3ee5dcbc329933e2c66d3f81fad890}
-      \strng{authornamehash}{eb3ee5dcbc329933e2c66d3f81fad890}
-      \strng{authorfullhash}{eb3ee5dcbc329933e2c66d3f81fad890}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{eprintclass}{cs.AR}
-      \field{eprinttype}{arXiv}
-      \field{note}{arXiv preprint arXiv:2511.06955}
-      \field{title}{FPGA-Accelerated RISC-V ISA Extensions for Efficient Neural Network Inference on Edge Devices}
-      \field{year}{2025}
-      \verb{eprint}
-      \verb 2511.06955
-      \endverb
     \endentry
     \entry{fpga2}{article}{}
       \name{author}{6}{}{%
@@ -482,49 +683,6 @@
       \verb{doi}
       \verb 10.1109/TCAD.2017.2785257
       \endverb
-    \endentry
-    \entry{finn_paper}{inproceedings}{}
-      \true{moreauthor}
-      \true{morelabelname}
-      \name{author}{4}{}{%
-        {{hash=7cd21a22e1b9dc24a6666adbecf9f3ff}{%
-           family={Umuroglu},
-           familyi={U\bibinitperiod},
-           given={Yaman},
-           giveni={Y\bibinitperiod}}}%
-        {{hash=a1cd42d42556b6f85757338f25236685}{%
-           family={Fraser},
-           familyi={F\bibinitperiod},
-           given={Nicholas\bibnamedelima J},
-           giveni={N\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
-        {{hash=8ee81db3439fba240bfb2ae52e462652}{%
-           family={Gambardella},
-           familyi={G\bibinitperiod},
-           given={Giulio},
-           giveni={G\bibinitperiod}}}%
-        {{hash=1705c7d702b9cd1c2e99b8664fe29c07}{%
-           family={Blott},
-           familyi={B\bibinitperiod},
-           given={Michaela},
-           giveni={M\bibinitperiod}}}%
-      }
-      \list{organization}{1}{%
-        {FPGA Symposium}%
-      }
-      \strng{namehash}{cc2a02f8766ddc681e66c76312184a36}
-      \strng{fullhash}{02b73b9f5caaf28b8fe893cacfd3fd47}
-      \strng{bibnamehash}{02b73b9f5caaf28b8fe893cacfd3fd47}
-      \strng{authorbibnamehash}{02b73b9f5caaf28b8fe893cacfd3fd47}
-      \strng{authornamehash}{cc2a02f8766ddc681e66c76312184a36}
-      \strng{authorfullhash}{02b73b9f5caaf28b8fe893cacfd3fd47}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{booktitle}{Exhamining the Interface Between High-Performance Computing and Big Data}
-      \field{title}{FINN: A Framework for Fast, Scalable Binarized Neural Network Inference}
-      \field{year}{2017}
-      \true{nocite}
     \endentry
   \enddatalist
 \endrefsection

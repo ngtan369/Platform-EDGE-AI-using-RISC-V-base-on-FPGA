@@ -10,7 +10,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-# Local helpers (don't trigger edge_train.datasets which needs kagglehub)
+# Local helpers (avoid importing edge_train.models which needs the full TF stack)
 def build_vgg_tiny(num_classes=2):
     inp = tf.keras.Input(shape=(128, 128, 3))
     x = layers.Conv2D(8,  3, activation="relu", padding="valid")(inp)
@@ -222,11 +222,11 @@ def main():
           f"{'1126':>10} {3542:>8,} {969:>10} {'~96x160 +':>12}")
     print()
     print("Notes:")
-    print("  cats_dogs : Kaggle 'salader/dogs-vs-cats' — 12500 cats + 12500 dogs JPEGs")
-    print("              (split 80/20 train/val by edge_train.datasets._make_dataset)")
-    print("  inria     : INRIAPerson (Dalal & Triggs 2005) — Train: 2416 pos + 1218 neg")
+    print("  cats_dogs : Kaggle 'bhavikjikadara/dog-and-cat-classification-dataset'")
+    print("              ~12500 cats + ~12500 dogs JPEGs, split 80/20 train/val (notebook)")
+    print("  inria     : Kaggle 'jcoral02/inriaperson' — Train: 2416 pos + 1218 neg")
     print("              Test: 1126 pos + 453 neg (positives 96x160 cropped, negatives variable)")
-    print("              Both splits merged + relabeled by edge_train.datasets._prepare_inria")
+    print("              Train+Test flattened to {person, no_person} by notebook")
 
     # ============================================================
     # Markdown output (copy-paste vào báo cáo)

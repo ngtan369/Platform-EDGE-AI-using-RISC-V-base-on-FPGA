@@ -3,18 +3,32 @@
 
 Trong chương này, nhóm thực hiện trình bày các kết quả đạt được của đồ án, bao gồm hai phần chính: Đánh giá quá trình tổng hợp phần cứng (Hardware Synthesis) trên phần mềm Xilinx Vivado và đánh giá hiệu năng huấn luyện, lượng tử hóa các mô hình Mạng nơ-ron tích chập (CNN) trước khi triển khai thực tế xuống bo mạch Kria KV260.
 
+% =============================================================================
+% TODO (Layer 4 - Training): Sau khi chạy train.ipynb thật trên Colab GPU,
+% điền các bảng và hình ở section "Kết quả huấn luyện model" bên dưới.
+% Nguồn dữ liệu:
+%   - Train/Val accuracy: lấy từ history object của model.fit() trong cell 4.1
+%   - Test accuracy: chạy model.evaluate(test_ds) sau khi fit xong
+%   - INT8 accuracy: chạy tflite_eval() trong cell 5.1 (đã có sẵn function)
+%   - Training curves: cell 4.2 đã save plot ra figures/training_curves.png
+% =============================================================================
+
 \section{Kết quả huấn luyện model}
 \label{sec:training-results}
 
 \subsection{Cấu hình thí nghiệm}
 \begin{itemize}
-    \item Hardware huấn luyện: GPU NVIDIA RTX/A100/...
+    \item Hardware huấn luyện: % TODO: ghi cụ thể (ví dụ: GPU NVIDIA Tesla T4 trên Google Colab Free tier)
     \item Framework: TensorFlow 2.x + Keras
     \item Optimizer: Adam, learning rate $10^{-3}$
-    \item Batch size, epochs, augmentation\dots
+    \item Batch size: % TODO: 32 (giá trị mặc định trong cell 1.1)
+    \item Epochs: % TODO: 10-20 cho hội tụ ổn định
+    \item Augmentation: % TODO: ghi cụ thể (random flip, rotation, ...) hoặc "không sử dụng"
+    \item Loss function: \texttt{sparse\_categorical\_crossentropy}
 \end{itemize}
 
 \subsection{Tập Cats vs Dogs}
+% TODO: chạy notebook với DATASET="cats_dogs" để fill bảng dưới
 \begin{table}[htbp]
     \centering
     \caption{Accuracy Tiny-VGG trên tập Cats vs Dogs.}
@@ -30,6 +44,7 @@ Trong chương này, nhóm thực hiện trình bày các kết quả đạt đ�
 \end{table}
 
 % Loss + accuracy curves
+% TODO: cell 4.2 trong train.ipynb tự động save plot này
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1\textwidth]{figures/training_curves.png}
@@ -37,13 +52,27 @@ Trong chương này, nhóm thực hiện trình bày các kết quả đạt đ�
 \end{figure}
 
 \subsection{Tập INRIA Person}
+% TODO: chạy notebook với DATASET="inria" và lặp lại bảng + curves như trên
 % Tương tự bảng + curves
 
 \subsection{Đánh giá ảnh hưởng của lượng tử hóa INT8}
-% Accuracy drop quantification
-% Per-layer activation distribution
+% TODO: ghi rõ accuracy drop (FP32 - INT8) cho cả 2 dataset
+% Có thể bổ sung histogram phân phối activation per-layer
+% (chạy interp.get_tensor() trên TFLite Interpreter)
 
 \newpage
+% =============================================================================
+% TODO (Layer 1 - Hardware): Sau khi mở project Vivado và chạy đầy đủ flow
+% Synthesis + Implementation + Generate Bitstream:
+%   - Util:    Reports → Report Utilization (post-implementation)
+%   - Timing:  Reports → Report Timing Summary (đảm bảo WNS > 0)
+%   - Power:   Reports → Report Power
+%   - DRC:     Reports → Report DRC (đảm bảo 0 violation critical)
+%   - Schematic: Implemented Design → Schematic → File → Export → Image
+% Screenshot từng report và lưu vào docs/reports/chapter06/img/
+% Điền số liệu cụ thể vào các bảng + paragraph dưới.
+% =============================================================================
+
 \section{Tổng hợp phần cứng}
 
 Quá trình tổng hợp (Synthesis) và thực thi định tuyến (Implementation) hệ thống SoC bao gồm lõi vi xử lý ARM, lõi softcore RISC-V và bộ gia tốc phần cứng CNN được thực hiện trên công cụ Vivado. Các thông số về tài nguyên, công suất và thời gian (timing) được trích xuất để đảm bảo hệ thống đáp ứng được yêu cầu thiết kế.
@@ -52,10 +81,12 @@ Quá trình tổng hợp (Synthesis) và thực thi định tuyến (Implementat
     \centering
     \includegraphics[width=1\linewidth]{chapter06/img/bitstream.png}
     \caption{Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}
-    \label{fig:schematic}
+    \label{fig:schematic-bitstream}
 \end{figure}
 
 \subsection{Tài nguyên FPGA}
+% TODO: chạy "report_utilization -hierarchical" sau impl,
+% điền các giá trị Used + tính %Util = Used / Available * 100
 
 \begin{table}[!h]
     \centering
@@ -66,18 +97,36 @@ Quá trình tổng hợp (Synthesis) và thực thi định tuyến (Implementat
         \hline
         LUT     & ... & 117120 & ...\% \\
         FF      & ... & 234240 & ...\% \\
-        BRAM   & ... & 144     & ...\% \\
-        DSP     & ... & 1248    & ...\% \\
-        URAM    & ... & 64      & ...\% \\
+        BRAM    & ... & 144    & ...\% \\
+        DSP     & ... & 1248   & ...\% \\
+        URAM    & ... & 64     & ...\% \\
         \hline
     \end{tabular}
 \end{table}
 
+% TODO: Bảng phân rã hierarchical theo từng IP (CV32E40P, conv_cnn, AXI DMA, BRAMs)
+% giúp người đọc thấy module nào ngốn tài nguyên nhất.
+% \begin{table}[!h]
+%     \centering
+%     \caption{Phân bổ tài nguyên theo IP.}
+%     \begin{tabular}{|l|c|c|c|c|}
+%         \hline
+%         \textbf{IP} & \textbf{LUT} & \textbf{FF} & \textbf{BRAM} & \textbf{DSP} \\
+%         \hline
+%         riscv\_top (CV32E40P + obi\_to\_axi)   & ... & ... & ... & ... \\
+%         conv\_cnn (line\_buf + 9 PE + requant) & ... & ... & ... & ... \\
+%         axi\_dma\_0                            & ... & ... & ... & ... \\
+%         BRAM controllers (I/D-BRAM)            & ... & ... & ... & ... \\
+%         AXI SmartConnect + Interconnect        & ... & ... & ... & ... \\
+%         \hline
+%     \end{tabular}
+% \end{table}
+
 \begin{figure}[!h]
     \centering
     \includegraphics[width=1\linewidth]{chapter06/img/util.png}
-    \caption{Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}
-    \label{fig:schematic}
+    \caption{Báo cáo tài nguyên (Utilization) sau Place \& Route}
+    \label{fig:util}
 \end{figure}
 
 \begin{figure}[!h]
@@ -97,7 +146,10 @@ Sau quá trình Place \& Route, hệ thống được kiểm tra luật thiết 
 \end{figure}
 
 \subsection{Báo cáo timing}
-% Fmax đạt được, WNS, slack
+% TODO: ghi rõ Fmax đạt được, WNS, slack, target clock period.
+% Ví dụ: "Hệ thống tổng hợp ở target 100 MHz (10 ns), WNS = +X.XX ns,
+% Fmax thực tế = 1000/(10 - WNS) ≈ XXX MHz."
+
 \newpage
 \begin{figure} [!h]
     \centering
@@ -108,7 +160,10 @@ Sau quá trình Place \& Route, hệ thống được kiểm tra luật thiết 
 
 \newpage
 \subsection{Power estimation}
-% Vivado power report
+% TODO: từ Report Power, ghi:
+% - Tổng công suất (Total On-Chip Power)
+% - Phân bổ Dynamic vs Static
+% - Top 3 module ngốn năng lượng nhất
 
 \begin{figure} [!h]
     \centering
@@ -118,15 +173,63 @@ Sau quá trình Place \& Route, hệ thống được kiểm tra luật thiết 
 \end{figure}
 
 \newpage
+% =============================================================================
+% TODO (Layer 2+3 - End-to-end on KV260): Sau khi deploy bitstream + firmware
+% + weights lên board và chạy benchmark.ipynb:
+%   - Latency: confusion matrix + histogram đã được benchmark.ipynb sinh ra
+%   - FPS:     1000 / latency_avg_ms
+%   - Test accuracy on board: in từ benchmark.ipynb cell cuối
+%   - Hardware-in-the-loop comparison: TFLite reference vs FPGA output
+%     (mismatch rate, max absolute error)
+% =============================================================================
+
 \section{Kết quả chạy trên mạch thực tế}
 
-Các mô hình sau khi đạt được độ chính xác mục tiêu trên máy tính (PC) được biên dịch thành các tệp trọng số nhị phân (`.bin`) và nạp xuống FPGA. Lõi vi xử lý ARM thông qua thư viện PYNQ đóng vai trò điều phối luồng dữ liệu (DMA) và kích hoạt vi điều khiển RISC-V để điều khiển bộ gia tốc phần cứng tiến hành suy diễn.
+Các mô hình sau khi đạt được độ chính xác mục tiêu trên máy tính (PC) được biên dịch thành các tệp trọng số nhị phân (\texttt{.bin}) và nạp xuống FPGA. Lõi vi xử lý ARM thông qua thư viện PYNQ đóng vai trò điều phối luồng dữ liệu (DMA) và kích hoạt vi điều khiển RISC-V để điều khiển bộ gia tốc phần cứng tiến hành suy diễn.
 
 % --- Các thông số chèn vào đây khi chạy mạch thật: ---
-% 1. Khung hình/giây (FPS) đạt được.
-% 2. Độ trễ (Latency) cho một lần chạy mô hình.
-% 3. So sánh kết quả tính toán giữa mạch thật và bản giả lập trên PC.
+% TODO 1. Khung hình/giây (FPS) đạt được trung bình.
+% TODO 2. Độ trễ (Latency) cho một lần chạy mô hình:
+%         - Latency trung bình (mean ± std)
+%         - Latency P99 (worst-case)
+%         - Phân rã theo layer (nếu firmware có instrument timer)
+% TODO 3. So sánh kết quả tính toán giữa mạch thật và bản giả lập trên PC:
+%         - Tỉ lệ mismatch (số ảnh khác output / tổng số ảnh)
+%         - Sai số tuyệt đối lớn nhất giữa logits FPGA và TFLite reference
+% TODO 4. Bảng so sánh accuracy cuối: TFLite INT8 (PC) vs FPGA INT8 (KV260)
+%         - Nếu giống nhau bit-exact → minh chứng RTL đúng
+
+\subsection{Phân tích latency theo layer}
+% TODO: Bảng latency thực đo so với ước tính lý thuyết (CLAUDE.md có sẵn ước tính)
+% Layer | Cycles ước tính | Latency @100MHz ước tính | Latency thực đo | Sai khác
+% L0    | 1.1 M           | 11.4 ms                  | ...             | ...
+% ...
 
 \subsection{So sánh với related work}
-% Vitis AI DPU, FINN, hls4ml
-% Tradeoff: flexibility, performance, power
+% TODO: Bảng so sánh đa chiều với các framework khác.
+% Đề xuất các cột so sánh:
+% - Mô hình hỗ trợ
+% - Tài nguyên FPGA
+% - Latency / Throughput
+% - Năng lượng (W hoặc img/J)
+% - Mức độ mở (open-source full / partial / closed)
+%
+% Đề xuất các framework đối thủ (xem chapter03 để chọn 3-4 framework relevant nhất):
+% - Vitis AI DPU (Xilinx) — closed, optimized cho Zynq, support nhiều mô hình
+% - FINN / FINN-R (Xilinx Research) — BNN focus, HLS-based
+% - hls4ml (CERN) — HLS framework cho Keras → FPGA
+% - CFU Playground (Google) — RISC-V + custom function unit, tightly-coupled
+\begin{table}[!h]
+    \centering
+    \caption{So sánh hệ thống đề xuất với các framework gia tốc CNN trên FPGA hiện có.}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Framework} & \textbf{Độ mở} & \textbf{Mô hình} & \textbf{Latency} & \textbf{Đặc điểm} \\
+        \hline
+        Đề tài này         & Full open & vgg-tiny (5 conv)    & ... ms & RISC-V + AXI accelerator \\
+        Vitis AI DPU       & Closed    & Đa dạng              & ...    & Proprietary, fast deploy  \\
+        hls4ml             & Open      & Keras nhỏ            & ...    & HLS C++ generated         \\
+        CFU Playground     & Open      & TFLite Micro         & ...    & Tightly-coupled CFU       \\
+        \hline
+    \end{tabular}
+\end{table}
