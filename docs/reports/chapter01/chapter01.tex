@@ -20,7 +20,7 @@ Các mục tiêu cụ thể bao gồm:
 
     \item \textbf{Phát triển Firmware và Quy trình Đồng thiết kế (HW/SW Co-design):} Phát triển phần mềm quản lý lớp ứng dụng trên hệ điều hành Linux (Host) và tối ưu hóa firmware C bare-metal cho lõi RISC-V. Ứng dụng các tập lệnh mở rộng để thực thi hiệu quả các phép toán ma trận của mạng CNN nhằm giảm tải cho vi xử lý trung tâm.
 
-    \item \textbf{Pipeline huấn luyện và biên dịch mô hình:} Xây dựng pipeline huấn luyện mạng \texttt{vgg-tiny} INT8 trên Host PC, kết hợp với trình biên dịch tự sinh layer table (\texttt{layer\_table.h}) và blob trọng số (\texttt{weights.bin}) -- cho phép thay đổi mô hình AI mà không cần tổng hợp lại RTL. Pipeline hỗ trợ hai dataset chuẩn: Cats vs Dogs (Kaggle) và INRIA Person.
+    \item \textbf{Pipeline huấn luyện và biên dịch mô hình:} Xây dựng pipeline huấn luyện mạng \texttt{vgg-tiny} INT8 trên Host PC (Google Colab + Tesla T4 GPU), kết hợp với trình biên dịch tự sinh layer table (\texttt{layer\_table.h}) và blob trọng số (\texttt{weights.bin}) -- cho phép thay đổi mô hình AI mà không cần tổng hợp lại RTL. Phạm vi đồ án sử dụng tập \textit{Cats vs Dogs} (Kaggle, 25{,}000 ảnh) cho task phân loại nhị phân; tập \textit{INRIA Person} được dự kiến cho hướng phát triển mở rộng sang task phát hiện đối tượng (object detection).
 
     \item \textbf{Tích hợp và Đánh giá hệ thống:} Triển khai toàn bộ nền tảng và kiểm chứng bằng pipeline phân loại nhị phân (binary classification) với mô hình \texttt{vgg-tiny} (5 conv layer, INT8) trên ảnh tĩnh đọc từ thẻ nhớ SD. Đánh giá nền tảng dựa trên các tiêu chí: độ chính xác phân loại, độ trễ inference, tài nguyên FPGA tiêu thụ (LUT, FF, BRAM, DSP), công suất tiêu thụ và khả năng mở rộng cho các mô hình lớn hơn ở các pha sau.
 \end{itemize}
@@ -67,7 +67,7 @@ Do sự phức tạp của việc thiết kế hệ thống SoC tích hợp AI v
 
     \item \textbf{Phạm vi thuật toán và mô hình AI:} Việc xây dựng và huấn luyện mô hình (Training) được thực hiện Offline trên máy tính cá nhân sử dụng framework TensorFlow. Hệ thống phần cứng trên FPGA chỉ đảm nhận nhiệm vụ suy luận (Inference) dựa trên bộ trọng số đã được lượng tử hóa. Nhằm đảm bảo tính tối ưu của kiến trúc, đề tài chỉ tập trung gia tốc cho họ mạng Nơ-ron Tích chập (CNN - Convolutional Neural Network), không hỗ trợ các kiến trúc mạng hồi quy (RNN/LSTM) hoặc mô hình ngôn ngữ lớn (LLM/Transformer).
 
-    \item \textbf{Phạm vi kịch bản ứng dụng (Use-case) và Dữ liệu:} Hệ thống được kiểm chứng thông qua các bài toán cốt lõi của Thị giác máy tính (Computer Vision) tại biên, bao gồm Phân loại ảnh (Image Classification) với các tập dữ liệu tiêu chuẩn (Fashion-MNIST/CIFAR-10) và Phát hiện đối tượng (Object Detection, cụ thể là Human Detection). Đề tài chưa mở rộng sang xử lý video thời gian thực độ phân giải cao (HD/Full HD) hay các loại tín hiệu âm thanh/văn bản.
+    \item \textbf{Phạm vi kịch bản ứng dụng (Use-case) và Dữ liệu:} Hệ thống được kiểm chứng thông qua bài toán cốt lõi của Thị giác máy tính (Computer Vision) tại biên là phân loại ảnh nhị phân (Binary Image Classification), cụ thể với tập dữ liệu \textit{Cats vs Dogs} (Microsoft Asirra, 25{,}000 ảnh) -- ảnh tĩnh đọc từ thẻ nhớ. Việc mở rộng sang phát hiện đối tượng (Object Detection -- Human Detection trên INRIA Person), xử lý video thời gian thực độ phân giải cao (HD/Full HD), hay các loại tín hiệu âm thanh/văn bản được dự kiến cho các pha phát triển sau.
 
     \item \textbf{Kiến trúc gia tốc và khả năng xử lý:} Bộ tăng tốc phần cứng được thiết kế với kiến trúc bộ đệm vòng (Circular Line Buffer) linh hoạt. Phần cứng hỗ trợ xử lý kích thước ảnh thay đổi tại thời gian thực (Runtime Configurable) thông qua cấu hình từ CPU ARM. Kích thước tối đa được hỗ trợ là 224x224 pixel (chuẩn của mạng VGG/ResNet) và hỗ trợ tương thích ngược với các độ phân giải thấp hơn (ví dụ 128x128 pixel) nhằm tối ưu điện năng tiêu thụ cho các ứng dụng Edge AI.
 
@@ -77,21 +77,27 @@ Do sự phức tạp của việc thiết kế hệ thống SoC tích hợp AI v
 \newpage
 \section{Cấu trúc báo cáo}
 
-Báo cáo được tổ chức và trình bày theo trình tự logic gồm 5 chương, cụ thể như sau:
+Báo cáo được tổ chức và trình bày theo trình tự logic gồm 7 chương, cụ thể như sau:
 
 \begin{itemize}
     \item \textbf{Chương 1. Giới thiệu đề tài:} \\
     Trình bày tổng quan về bối cảnh nghiên cứu, tính cấp thiết của việc phát triển Edge AI trên nền tảng phần cứng mở. Chương này cũng xác định rõ mục tiêu cốt lõi mà đề tài hướng tới, phạm vi nghiên cứu và tóm tắt bố cục của bài báo cáo.
 
-    \item \textbf{Chương 2. Cơ sở lý thuyết và Các công trình liên quan:} \\
-    Hệ thống hóa các kiến thức nền tảng cần thiết cho việc thực hiện đồ án, bao gồm: kiến trúc tập lệnh RISC-V, cấu trúc phần cứng FPGA (cụ thể là dòng Zynq UltraScale+), lý thuyết về Mạng nơ-ron tích chập (CNN) và chuẩn giao tiếp AXI4. Đồng thời, chương này cũng tổng hợp và phân tích các công trình nghiên cứu liên quan đã công bố để làm rõ vị trí và đóng góp của đề tài.
+    \item \textbf{Chương 2. Cơ sở lý thuyết:} \\
+    Hệ thống hóa các kiến thức nền tảng cần thiết cho việc thực hiện đồ án, bao gồm: kiến trúc tập lệnh RISC-V (RV32I + các phần mở rộng M/C/V) và lõi softcore CV32E40P, cấu trúc phần cứng FPGA Zynq UltraScale+ trên Kria KV260, chuẩn giao tiếp AMBA AXI4 (Lite/Full/Stream), lý thuyết về Mạng nơ-ron tích chập (CNN) và kỹ thuật lượng tử hóa INT8 theo chuẩn TFLite của Jacob et al.
 
-    \item \textbf{Chương 3. Đề xuất thiết kế hệ thống:} \\
-    Mô tả chi tiết kiến trúc hệ thống SoC đề xuất, bao gồm sơ đồ khối tổng quát, phương án thiết kế các khối chức năng (IP Cores), chiến lược phân chia tác vụ giữa phần cứng/phần mềm (HW/SW Partitioning) và sơ đồ tổ chức bộ nhớ.
+    \item \textbf{Chương 3. Các công trình liên quan:} \\
+    Tổng hợp và phân tích các framework gia tốc CNN trên FPGA hiện có (Vitis AI DPU, FINN, hls4ml, CFU Playground), so sánh hai trường phái loosely-coupled và tightly-coupled accelerator để làm rõ vị trí và đóng góp của đề tài trong không gian thiết kế hiện tại.
 
-    \item \textbf{Chương 4. Hiện thực mô hình CNN đơn giản:} \\
-    Trình bày quá trình xây dựng, huấn luyện và lượng tử hóa một mô hình CNN cơ bản (dựa trên tập dữ liệu Fashion-MNIST/CIFAR-10). Chương này cũng mô tả việc hiện thực mô hình tham chiếu để kiểm chứng giải thuật trước khi đưa xuống phần cứng.
+    \item \textbf{Chương 4. Thiết kế kiến trúc hệ thống:} \\
+    Mô tả chi tiết kiến trúc SoC dị thể (heterogeneous) gồm 3 tầng (HW/SW/App), bản đồ bộ nhớ (memory map) thống nhất giữa ARM và RISC-V, kiến trúc Dual-Port BRAM cho mô hình bộ nhớ Harvard, thiết kế bộ tăng tốc \texttt{conv\_cnn} v2.0 (line buffer + 9 PE MAC + requantize Q31), kiến trúc Tiny-VGG (5 conv $3\times3$, INT8) và luồng inference 4 pha (ARM prep $\rightarrow$ kick $\rightarrow$ RISC-V duyệt layers $\rightarrow$ postprocess).
 
-    \item \textbf{Chương 5. Kết luận và Hướng phát triển:} \\
-    Tổng kết các kết quả đã đạt được trong giai đoạn 1, phân tích những hạn chế và khó khăn kỹ thuật còn tồn tại. Từ đó, đề xuất lộ trình cụ thể cho giai đoạn 2, tập trung vào việc hoàn thiện tích hợp hệ thống và tối ưu hóa hiệu năng trên FPGA.
+    \item \textbf{Chương 5. Hiện thực và kiểm thử hệ thống:} \\
+    Trình bày quá trình hiện thực hóa thiết kế: pipeline huấn luyện 8 bước trên Jupyter notebook, lượng tử hóa PTQ INT8 và emit \texttt{layer\_table.h} + \texttt{weights.bin}, hiện thực Conv-CNN v2.0 (7 module RTL), tinh chỉnh CV32E40P và cầu OBI$\to$AXI, firmware bare-metal C, host PYNQ runtime, tích hợp Vivado Block Design, và quy trình kiểm thử nhiều tầng (unit TB $\rightarrow$ IP TB $\rightarrow$ golden vector $\rightarrow$ on-board).
+
+    \item \textbf{Chương 6. Kết quả:} \\
+    Trình bày kết quả định lượng: độ chính xác Tiny-VGG trên \textit{Cats vs Dogs} (FP32/INT8), báo cáo tổng hợp Vivado (tài nguyên, timing, công suất), phân tích latency theo layer ở 100~MHz, và bảng so sánh đa chiều với các framework liên quan.
+
+    \item \textbf{Chương 7. Kết luận và Hướng phát triển:} \\
+    Tổng kết các kết quả đã đạt được, phân tích những hạn chế kỹ thuật còn tồn tại. Đề xuất lộ trình phát triển 3 cấp (Tier~A: nâng cấp hiệu năng inference, Tier~B: mở rộng task và op support, Tier~C: hệ điều hành và UX) cho các pha tiếp theo của đề tài.
 \end{itemize}

@@ -45,7 +45,7 @@
 \RequirePackage{lettrine}
 \RequirePackage{metalogo}
 %\RequirePackage[sectionbib,numbers,sort&compress]{natbib}
-%\RequirePackage[square,sort&compress]{natbib}  % Disabled: conflicts with biblatex (loaded below)
+\RequirePackage[square,sort&compress]{natbib}
 \RequirePackage{tikz}
 \RequirePackage[noindentafter]{titlesec}
 \RequirePackage{titletoc}

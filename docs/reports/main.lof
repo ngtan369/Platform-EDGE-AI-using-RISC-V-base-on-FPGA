@@ -21,12 +21,12 @@
 \contentsline {figure}{\numberline {5.5}{\ignorespaces Thiết kế khối trong vivado}}{78}{figure.5.5}%
 \contentsline {figure}{\numberline {5.6}{\ignorespaces Bảng chia section trong bộ nhớ}}{79}{figure.5.6}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Đường cong loss và accuracy theo epoch.}}{84}{figure.6.1}%
-\contentsline {figure}{\numberline {6.2}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{85}{figure.6.2}%
-\contentsline {figure}{\numberline {6.3}{\ignorespaces Báo cáo tài nguyên (Utilization) sau Place \& Route}}{86}{figure.6.3}%
-\contentsline {figure}{\numberline {6.4}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{87}{figure.6.4}%
-\contentsline {figure}{\numberline {6.5}{\ignorespaces Báo cáo kiểm tra luật thiết kế (DRC Report)}}{88}{figure.6.5}%
-\contentsline {figure}{\numberline {6.6}{\ignorespaces Báo cáo thời gian (Timing Summary) đảm bảo không có vi phạm Slack}}{89}{figure.6.6}%
-\contentsline {figure}{\numberline {6.7}{\ignorespaces Báo cáo ước tính công suất tiêu thụ (Power Report) của toàn hệ thống}}{90}{figure.6.7}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Đường cong loss và accuracy theo epoch của Tiny-VGG trên tập Cats vs Dogs.}}{85}{figure.6.1}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{87}{figure.6.2}%
+\contentsline {figure}{\numberline {6.3}{\ignorespaces Báo cáo tài nguyên (Utilization) sau Place \& Route}}{89}{figure.6.3}%
+\contentsline {figure}{\numberline {6.4}{\ignorespaces Sơ đồ khối tổng thể của hệ thống sau khi tổng hợp (Schematic)}}{90}{figure.6.4}%
+\contentsline {figure}{\numberline {6.5}{\ignorespaces Báo cáo kiểm tra luật thiết kế (DRC Report)}}{91}{figure.6.5}%
+\contentsline {figure}{\numberline {6.6}{\ignorespaces Báo cáo thời gian (Timing Summary) đảm bảo không có vi phạm Slack}}{93}{figure.6.6}%
+\contentsline {figure}{\numberline {6.7}{\ignorespaces Báo cáo ước tính công suất tiêu thụ (Power Report) của toàn hệ thống}}{94}{figure.6.7}%
 \addvspace {10\p@ }
 \contentsfinish 

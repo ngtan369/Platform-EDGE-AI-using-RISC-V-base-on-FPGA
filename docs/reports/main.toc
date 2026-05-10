@@ -157,20 +157,21 @@
 \contentsline {chapter}{\numberline {6}Kết quả}{83}{chapter.6}%
 \contentsline {section}{\numberline {6.1}Kết quả huấn luyện model}{83}{section.6.1}%
 \contentsline {subsection}{\numberline {6.1.1}Cấu hình thí nghiệm}{83}{subsection.6.1.1}%
-\contentsline {subsection}{\numberline {6.1.2}Tập Cats vs Dogs}{83}{subsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.1.3}Tập INRIA Person}{83}{subsection.6.1.3}%
-\contentsline {subsection}{\numberline {6.1.4}Đánh giá ảnh hưởng của lượng tử hóa INT8}{83}{subsection.6.1.4}%
-\contentsline {section}{\numberline {6.2}Tổng hợp phần cứng}{85}{section.6.2}%
-\contentsline {subsection}{\numberline {6.2.1}Tài nguyên FPGA}{85}{subsection.6.2.1}%
-\contentsline {subsection}{\numberline {6.2.2}Báo cáo timing}{87}{subsection.6.2.2}%
-\contentsline {subsection}{\numberline {6.2.3}Power estimation}{88}{subsection.6.2.3}%
-\contentsline {section}{\numberline {6.3}Kết quả chạy trên mạch thực tế}{89}{section.6.3}%
-\contentsline {subsection}{\numberline {6.3.1}Phân tích latency theo layer}{89}{subsection.6.3.1}%
-\contentsline {subsection}{\numberline {6.3.2}So sánh với related work}{89}{subsection.6.3.2}%
-\contentsline {chapter}{\numberline {7}Kết luận và Hướng phát triển}{91}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Kết luận}{91}{section.7.1}%
-\contentsline {subsection}{\numberline {7.1.1}Đạt được}{91}{subsection.7.1.1}%
-\contentsline {subsection}{\numberline {7.1.2}Hạn chế của hệ thống}{92}{subsection.7.1.2}%
-\contentsline {section}{\numberline {7.2}Hướng phát triển}{93}{section.7.2}%
-\contentsline {chapter}{Tài liệu tham khảo}{95}{chapter*.6}%
+\contentsline {subsection}{\numberline {6.1.2}Tập Cats vs Dogs}{84}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}Tập INRIA Person}{84}{subsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.1.4}Đánh giá ảnh hưởng của lượng tử hóa INT8}{86}{subsection.6.1.4}%
+\contentsline {section}{\numberline {6.2}Tổng hợp phần cứng}{87}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}Tài nguyên FPGA}{88}{subsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.2.2}Báo cáo timing}{89}{subsection.6.2.2}%
+\contentsline {subsection}{\numberline {6.2.3}Power estimation}{91}{subsection.6.2.3}%
+\contentsline {section}{\numberline {6.3}Kết quả chạy trên mạch thực tế}{93}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}Phân tích latency theo layer}{95}{subsection.6.3.1}%
+\contentsline {subsection}{\numberline {6.3.2}So sánh với related work}{95}{subsection.6.3.2}%
+\contentsline {subsection}{\numberline {6.3.3}Kết quả đo thực tế trên KV260}{96}{subsection.6.3.3}%
+\contentsline {chapter}{\numberline {7}Kết luận và Hướng phát triển}{99}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Kết luận}{99}{section.7.1}%
+\contentsline {subsection}{\numberline {7.1.1}Đạt được}{99}{subsection.7.1.1}%
+\contentsline {subsection}{\numberline {7.1.2}Hạn chế của hệ thống}{101}{subsection.7.1.2}%
+\contentsline {section}{\numberline {7.2}Hướng phát triển}{102}{section.7.2}%
+\contentsline {chapter}{Tài liệu tham khảo}{105}{chapter*.6}%
 \contentsfinish 

@@ -18,8 +18,11 @@
 \contentsline {table}{\numberline {5.2}{\ignorespaces Bản đồ thanh ghi điều khiển S00\_AXI (32 bytes, 8 thanh ghi).}}{69}{table.5.2}%
 \contentsline {table}{\numberline {5.3}{\ignorespaces Bố cục thanh ghi handshake D-BRAM Port B (offset từ \texttt {0xB004\_0000}).}}{80}{table.5.3}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Accuracy Tiny-VGG trên tập Cats vs Dogs.}}{84}{table.6.1}%
-\contentsline {table}{\numberline {6.2}{\ignorespaces Tài nguyên KV260 sử dụng (sau implementation).}}{86}{table.6.2}%
-\contentsline {table}{\numberline {6.3}{\ignorespaces So sánh hệ thống đề xuất với các framework gia tốc CNN trên FPGA hiện có.}}{90}{table.6.3}%
+\contentsline {table}{\numberline {6.1}{\ignorespaces Accuracy Tiny-VGG trên tập Cats vs Dogs (input $128\times 128$, INT8 PTQ, 30 epochs).}}{84}{table.6.1}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces Tài nguyên KV260 sử dụng (sau implementation, fully routed).}}{88}{table.6.2}%
+\contentsline {table}{\numberline {6.3}{\ignorespaces Tóm tắt timing sau routing.}}{92}{table.6.3}%
+\contentsline {table}{\numberline {6.4}{\ignorespaces Ước tính công suất theo phân cấp module.}}{92}{table.6.4}%
+\contentsline {table}{\numberline {6.5}{\ignorespaces Phân rã latency theo layer của Tiny-VGG trên Conv-CNN v2.0 (9 PE, 100~MHz).}}{95}{table.6.5}%
+\contentsline {table}{\numberline {6.6}{\ignorespaces So sánh hệ thống đề xuất với các framework gia tốc CNN trên FPGA.}}{96}{table.6.6}%
 \addvspace {10\p@ }
 \contentsfinish 
