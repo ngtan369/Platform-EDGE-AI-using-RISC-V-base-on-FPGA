@@ -144,4 +144,4 @@ secrets.json
 *.tar
 *.tar.gz
 node_modules/
-
+docs/poster

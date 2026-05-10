@@ -53,8 +53,8 @@ Firmware Subsystem: Chứa mã nguồn Bare-metal tối ưu hóa cho RISC-V, bao
 \subsection{layer 3: application layer}
 Đây là tầng cao nhất, quy định kịch bản sử dụng thực tế của hệ thống. 
 \begin{itemize}
-    \item \textbf{Ứng dụng kiểm chứng (Use-case):} Hiện tại, tầng này thực thi cấu trúc mạng \textbf{Tiny-VGG} (5 lớp Conv $3\times3$ stride-1 valid padding, lượng tử hóa INT8) để giải quyết bài toán phân loại nhị phân (binary classification) trên tập dữ liệu \textit{Cats vs Dogs} (Microsoft Asirra, 25{,}000 ảnh tải qua Kaggle). Việc lựa chọn Tiny-VGG thay vì các kiến trúc lớn hơn (MobileNet, ResNet) xuất phát từ ràng buộc của bộ tăng tốc Conv-CNN v2.0 hiện tại -- chỉ hỗ trợ Conv $3\times3$ stride-1 valid padding, chưa hỗ trợ depthwise / batch normalization / residual connection. Đây là đánh đổi có chủ đích: hi sinh phạm vi mô hình để đạt được toàn quyền kiểm soát pipeline phần cứng (xem Chương~\ref{chp:03}).
-    \item \textbf{Tính linh hoạt trong cùng miền ứng dụng (Domain-Specific Flexibility):} Nhờ thiết kế phân lớp, người dùng có thể dễ dàng chuyển đổi hệ thống sang các bài toán phân loại nhị phân khác trong cùng lĩnh vực thị giác máy tính (ví dụ: nhận diện biển báo giao thông, phân loại khiếm khuyết sản phẩm) chỉ bằng cách thay tập dữ liệu huấn luyện, sinh lại \texttt{layer\_table.h} + \texttt{weights.bin}, và recompile firmware -- hoàn toàn không cần can thiệp hay tổng hợp lại kiến trúc vật lý ở Layer 1. Việc mở rộng sang phát hiện đối tượng (object detection) hoặc các kiến trúc lớn hơn được dự kiến trong các pha mở rộng (xem Chương~\ref{chp:conclusion}).
+    \item \textbf{Ứng dụng kiểm chứng (Use-case):} Hiện tại, tầng này đang thực thi cấu trúc mạng \textbf{MobileNetV2} (lượng tử hóa INT8) để giải quyết bài toán phát hiện người (Human Detection) trên tập dữ liệu INRIA.
+    \item \textbf{Tính linh hoạt trong cùng miền ứng dụng (Domain-Specific Flexibility):} Nhờ thiết kế phân lớp, người dùng có thể dễ dàng chuyển đổi hệ thống sang giải quyết bài toán khác trong cùng lĩnh vực thị giác máy tính (ví dụ: chuyển từ MobileNet sang nhận diện biển báo giao thông bằng kiến trúc CNN khác). Việc này chỉ yêu cầu cập nhật tệp trọng số và mã nguồn Firmware (C/C++) ở Layer 2, mà hoàn toàn không cần can thiệp hay tổng hợp lại kiến trúc vật lý ở Layer 1.
 \end{itemize}
 
 \section{kiến trúc dị thể}
@@ -207,7 +207,7 @@ Hệ thống được thiết kế với hai kênh giao tiếp vật lý tách b
 \begin{itemize}
     \item \textbf{Giao thức:} AXI4-Full 128-bit.
     \item \textbf{Mục đích:} Tối ưu hóa băng thông (Throughput).
-    \item \textbf{Chức năng:} Hỗ trợ cơ chế \textit{Burst Transaction}, cho phép uDMA đọc/ghi liên tiếp tới 256 gói dữ liệu chỉ với một địa chỉ bắt đầu. Điều này cực kỳ quan trọng để cung cấp đủ băng thông pixel/trọng số cho bộ tăng tốc Conv-CNN, đặc biệt khi mở rộng lên các kiến trúc CNN sâu hơn ở các pha phát triển tiếp theo.
+    \item \textbf{Chức năng:} Hỗ trợ cơ chế \textit{Burst Transaction}, cho phép uDMA đọc/ghi liên tiếp tới 256 gói dữ liệu chỉ với một địa chỉ bắt đầu. Điều này cực kỳ quan trọng để đảm bảo cung cấp đủ dữ liệu pixel cho mạng MobileNet hoạt động thời gian thực (Real-time).
 \end{itemize}
 
 \subsection{Quy hoạch không gian bộ nhớ (System Memory Map)}
@@ -333,8 +333,8 @@ Nằm trong PL, khối tăng tốc CNN được thiết kế để thực hiện
 một cách song song và hiệu quả. Thiết kế này bao gồm các thành phần chính \cite{fpga2}
 \label{sec:cnn_accelerator}
 
-Đây là thành phần cốt lõi quyết định hiệu năng của toàn bộ hệ thống Edge-AI.
-Để đáp ứng yêu cầu tính toán hiệu quả các phép tích chập của mạng \texttt{Tiny-VGG} (5 lớp Conv $3\times3$ INT8), nhóm thực hiện thiết kế một bộ tăng tốc phần cứng chuyên dụng (Domain-Specific Architecture -- DSA) tên là \texttt{conv\_cnn} v2.0, được tích hợp trong miền Logic khả trình (PL). Kiến trúc được thiết kế tổng quát ở mức tham số (\texttt{MAX\_WIDTH}, \texttt{MAX\_CIN}, \texttt{MAX\_COUT} trong package \texttt{conv\_pkg.sv}), cho phép scale lên các mạng lớn hơn (VGG11, ResNet18) ở các pha mở rộng mà không cần thay đổi datapath cốt lõi.
+Đây là thành phần cốt lõi quyết định hiệu năng của toàn bộ hệ thống Edge-AI. 
+Để đáp ứng yêu cầu tính toán thời gian thực của mạng MobileNetV1, nhóm thực hiện thiết kế một bộ tăng tốc phần cứng chuyên dụng (Domain-Specific Architecture - DSA) được tích hợp trong miền Logic khả trình (PL).
 Khối tăng tốc này được thiết kế để giảm tải (offload) các phép toán tích 
 chập nặng nề nhất khỏi vi xử lý RISC-V, hoạt động theo cơ chế dòng dữ liệu 
 (Dataflow) để tối đa hóa thông lượng.
