@@ -17,14 +17,14 @@ của kiến trúc RISC nguyên thủy.
 Khác với các thế hệ RISC trước đó (như RISC-I, II, III, IV) vốn được 
 thiết kế chủ yếu cho mục đích nghiên cứu học thuật, RISC-V ngay từ đầu đã 
 được định hướng để trở thành một chuẩn ISA tiêu chuẩn cho cả nghiên cứu lẫn 
-thương mại hóa. Mục tiêu của nhóm thiết kế là tạo ra một tập lệnh "sạch", 
+thương mại hóa. Mục tiêu của nhóm thiết kế là tạo ra một tập lệnh ``sạch'', 
 không chịu gánh nặng của các vấn đề tương thích ngược từ các kiến trúc cũ kỹ 
 tồn tại hàng thập kỷ, đồng thời hoàn toàn mở và miễn phí.
 
 Năm 2015, RISC-V Foundation (nay là RISC-V International) được thành 
 lập để quản lý chuẩn hóa và thúc đẩy hệ sinh thái phần cứng/phần mềm. 
 Sự ra đời của RISC-V đã phá vỡ thế độc quyền lâu năm của các kiến trúc 
-đóng như x86 (Intel) và ARM, mở ra kỷ nguyên "phần cứng mã nguồn mở" 
+đóng như x86 (Intel) và ARM, mở ra kỷ nguyên ``phần cứng mã nguồn mở'' 
 (Open Source Hardware).
 
 \subsection{Các đặc điểm nổi bật}
@@ -100,7 +100,7 @@ Trong đồ án này, lõi RISC-V chủ yếu sẽ hoạt động ở M-Mode đ�
 Sự khác biệt căn bản giữa RISC và CISC nằm ở cách phân chia khối lượng công việc giữa phần cứng (Hardware) và phần mềm (Software/Compiler):
 
 \begin{itemize}
-    \item \textbf{CISC:} Tập trung vào việc giảm "khoảng cách ngữ nghĩa" (semantic gap) giữa ngôn ngữ bậc cao và mã máy. CISC cung cấp các lệnh phức tạp, đa năng (ví dụ: một lệnh duy nhất có thể thực hiện nạp dữ liệu, cộng và lưu kết quả). Điều này giúp giảm kích thước mã chương trình (Code size) nhưng làm tăng độ phức tạp của phần cứng giải mã lệnh.
+    \item \textbf{CISC:} Tập trung vào việc giảm ``khoảng cách ngữ nghĩa'' (semantic gap) giữa ngôn ngữ bậc cao và mã máy. CISC cung cấp các lệnh phức tạp, đa năng (ví dụ: một lệnh duy nhất có thể thực hiện nạp dữ liệu, cộng và lưu kết quả). Điều này giúp giảm kích thước mã chương trình (Code size) nhưng làm tăng độ phức tạp của phần cứng giải mã lệnh.
     \item \textbf{RISC:} Chuyển gánh nặng tối ưu hóa sang trình biên dịch (Compiler). Tập lệnh chỉ bao gồm các chỉ thị đơn giản, thực thi nhanh. Các tác vụ phức tạp được thực hiện bằng cách kết hợp nhiều lệnh đơn giản. Điều này giúp phần cứng đơn giản hơn, tiết kiệm diện tích silicon để dành cho bộ nhớ đệm (Cache) hoặc các lõi xử lý song song.
 \end{itemize}
 
@@ -191,7 +191,7 @@ CV32E40P xuất hai cổng OBI độc lập theo kiến trúc Harvard:
     \item \textbf{Data OBI port}: đọc/ghi dữ liệu, truy cập ngoại vi và bộ nhớ chia sẻ.
 \end{itemize}
 
-OBI là một giao thức bộ nhớ đơn giản 1 chiều, sử dụng cặp tín hiệu bắt tay \texttt{req}/\texttt{gnt} cho địa chỉ và \texttt{rvalid} cho dữ liệu trả về. Tuy nhiên, môi trường Vivado và phần cứng Zynq UltraScale+ sử dụng chuẩn AMBA AXI4 làm giao thức xương sống. Do đó, đề tài xây dựng cầu nối \texttt{obi\_to\_axi} để chuyển đổi cả hai cổng OBI sang AXI4-Lite, cho phép tích hợp lõi RISC-V vào Block Design Vivado đồng nhất với các IP khác. Chi tiết kỹ thuật của cầu nối này được trình bày tại mục~\ref{sec:obi-to-axi-impl}.
+OBI là một giao thức bộ nhớ đơn giản 1 chiều, sử dụng cặp tín hiệu bắt tay \texttt{req}/\texttt{gnt} cho địa chỉ và \texttt{rvalid} cho dữ liệu trả về. Tuy nhiên, môi trường Vivado và phần cứng Zynq UltraScale+ sử dụng chuẩn AMBA AXI4 làm giao thức xương sống. Do đó, đề tài xây dựng cầu nối \texttt{obi\_to\_axi} để chuyển đổi cả hai cổng OBI sang AXI4-Lite, cho phép tích hợp lõi RISC-V vào Block Design Vivado đồng nhất với các IP khác. Chi tiết kỹ thuật của cầu nối này được trình bày tại mục~\ref{sec:obi_axi}.
 
 %=================================================
 %^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -264,7 +264,7 @@ Trái tim của K26 SOM là chip \textbf{XCK26 Zynq UltraScale+ MPSoC}. Đây l�
 \end{itemize}
 
 \subsection{Nguồn dữ liệu đầu vào cho hệ thống}
-Trong phạm vi đồ án này, hệ thống Edge-AI thực hiện phân loại nhị phân (binary classification) trên \textbf{ảnh tĩnh đọc từ thẻ nhớ SD}, không tích hợp luồng video thời gian thực từ Camera. Quyết định này phù hợp với mục tiêu kiểm chứng kiến trúc đồng thiết kế phần cứng-phần mềm: bộ tăng tốc Conv-CNN, lõi RISC-V điều phối, và runtime ARM PYNQ. Việc tích hợp pipeline thu nhận ảnh real-time qua MIPI CSI-2 + ISP + VDMA được dành cho hướng phát triển tiếp theo (xem chương~\ref{chp:07}).
+Trong phạm vi đồ án này, hệ thống Edge-AI thực hiện phân loại nhị phân (binary classification) trên \textbf{ảnh tĩnh đọc từ thẻ nhớ SD}, không tích hợp luồng video thời gian thực từ Camera. Quyết định này phù hợp với mục tiêu kiểm chứng kiến trúc đồng thiết kế phần cứng-phần mềm: bộ tăng tốc Conv-CNN, lõi RISC-V điều phối, và runtime ARM PYNQ. Việc tích hợp pipeline thu nhận ảnh real-time qua MIPI CSI-2 + ISP + VDMA được dành cho hướng phát triển tiếp theo (xem chương~\ref{chp:conclusion}).
 
 Trên KV260, ảnh được vi xử lý ARM (chạy hệ điều hành Ubuntu + PYNQ) đọc trực tiếp từ thẻ nhớ thông qua các thư viện Python tiêu chuẩn (\texttt{cv2.imread}). Sau khi tiền xử lý (resize về kích thước 128$\times$128, chuẩn hóa và lượng tử hóa INT8), ảnh được nạp vào bộ nhớ DDR thông qua cấp phát CMA (\texttt{pynq.allocate}). Lõi RISC-V và bộ tăng tốc CNN truy cập vùng DDR này thông qua bus AXI4 cache-coherent (cổng \texttt{S\_AXI\_HPC0\_FPD}). Chi tiết luồng dữ liệu được trình bày tại chương~\ref{chp:04}.
 %=================================================
@@ -273,7 +273,7 @@ Trên KV260, ảnh được vi xử lý ARM (chạy hệ điều hành Ubuntu + 
 \section{tổng quan chuẩn giao tiếp axi}
 
 \subsection{Lịch sử hình thành và sự hội tụ giữa ASIC và FPGA}
-AXI (Advanced eXtensible Interface) là một giao thức xương sống thuộc bộ tiêu chuẩn AMBA (Advanced Microcontroller Bus Architecture) do ARM giới thiệu lần đầu vào năm 1996. Ban đầu, AXI được thiết kế chuyên biệt làm "ngôn ngữ giao tiếp" chuẩn mực trong thế giới vi mạch chuyên dụng (ASIC - Application-Specific Integrated Circuit). Trong các hệ thống SoC (System-on-Chip) phức tạp của ASIC, sự hiện diện của hàng chục khối sở hữu trí tuệ (IP Cores) khác nhau như CPU, GPU, bộ giải mã video, và bộ điều khiển bộ nhớ đòi hỏi một chuẩn bus giao tiếp chung. AXI ra đời giải quyết bài toán tái sử dụng lõi IP (IP Reuse), cho phép các nhà thiết kế ghép nối các module từ nhiều nhà cung cấp khác nhau một cách liền mạch mà không cần thiết kế lại giao diện vật lý.
+AXI (Advanced eXtensible Interface) là một giao thức xương sống thuộc bộ tiêu chuẩn AMBA (Advanced Microcontroller Bus Architecture) do ARM giới thiệu lần đầu vào năm 1996. Ban đầu, AXI được thiết kế chuyên biệt làm ``ngôn ngữ giao tiếp'' chuẩn mực trong thế giới vi mạch chuyên dụng (ASIC - Application-Specific Integrated Circuit). Trong các hệ thống SoC (System-on-Chip) phức tạp của ASIC, sự hiện diện của hàng chục khối sở hữu trí tuệ (IP Cores) khác nhau như CPU, GPU, bộ giải mã video, và bộ điều khiển bộ nhớ đòi hỏi một chuẩn bus giao tiếp chung. AXI ra đời giải quyết bài toán tái sử dụng lõi IP (IP Reuse), cho phép các nhà thiết kế ghép nối các module từ nhiều nhà cung cấp khác nhau một cách liền mạch mà không cần thiết kế lại giao diện vật lý.
 
 Nhận thấy ưu điểm vượt trội về băng thông và tính linh hoạt của AMBA AXI, từ thế hệ Spartan-6 và Virtex-6, Xilinx (nay là AMD) đã bắt đầu loại bỏ các chuẩn bus cũ (như CoreConnect, PLB) để chuyển sang áp dụng AXI. Đặc biệt, với sự ra đời của họ Zynq-7000 và Zynq UltraScale+, Xilinx đã biến AXI4 (thế hệ thứ 4 của kiến trúc AMBA) thành tiêu chuẩn giao tiếp duy nhất để làm cầu nối giữa Hệ thống xử lý đa nhân (PS - Processing System) và Vùng logic khả trình (PL - Programmable Logic). Sự hội tụ này đã xóa nhòa ranh giới giữa ASIC và FPGA, biến FPGA thành một nền tảng tạo mẫu nhanh (ASIC Prototyping) hoàn hảo, nơi các kiến trúc phần cứng có thể được kiểm chứng thực tế trước khi tiến hành sản xuất hàng loạt (Tape-out).
 
@@ -314,7 +314,7 @@ Theo tài liệu \textit{Vitis Model Composer User Guide (UG1483)} của AMD/Xil
     Theo UG1483, AXI4-Lite được sử dụng mặc định để ánh xạ các cổng tín hiệu đầu vào/đầu ra dạng vô hướng và các tín hiệu điều khiển (Control signals). Giao diện này tạo ra một bảng địa chỉ thanh ghi (Memory-Mapped Registers). Với đặc tính chỉ hỗ trợ truyền một đơn vị dữ liệu trong mỗi giao dịch (Single beat) và thiết kế logic cực kỳ nhỏ gọn, AXI4-Lite phù hợp để vi xử lý đọc/ghi trực tiếp vào các thanh ghi tĩnh của mạch gia tốc. Các thao tác điển hình bao gồm: ghi bit 1 để khởi động mạch (Start), đọc bit cờ báo hoàn thành (Done/Idle), hoặc nạp các tham số siêu tham số (Hyper-parameters) cho thuật toán.
 
     \item \textbf{AXI4 Memory-Mapped (AXI4-Full - Truy xuất khối tốc độ cao):} 
-    Biến thể này được ứng dụng khi mô hình thiết kế cần giao tiếp với bộ nhớ đệm dùng chung dung lượng lớn như DDR RAM hoặc Block RAM (BRAM). Sức mạnh của AXI4-Full nằm ở khả năng truyền dữ liệu theo lô (Burst Transfer). CPU hoặc bộ điều khiển DMA (Direct Memory Access) chỉ cần cung cấp địa chỉ bắt đầu một lần duy nhất, sau đó có thể vận chuyển hàng ngàn byte dữ liệu (ví dụ: các bản đồ đặc trưng - Feature Maps của mạng CNN hoặc trọng số Weight) trong một chu kỳ thiết lập. Tính năng này giải quyết triệt để vấn đề "Bức tường bộ nhớ" (Memory Wall) trong các thiết kế gia tốc phần cứng AI.
+    Biến thể này được ứng dụng khi mô hình thiết kế cần giao tiếp với bộ nhớ đệm dùng chung dung lượng lớn như DDR RAM hoặc Block RAM (BRAM). Sức mạnh của AXI4-Full nằm ở khả năng truyền dữ liệu theo lô (Burst Transfer). CPU hoặc bộ điều khiển DMA (Direct Memory Access) chỉ cần cung cấp địa chỉ bắt đầu một lần duy nhất, sau đó có thể vận chuyển hàng ngàn byte dữ liệu (ví dụ: các bản đồ đặc trưng - Feature Maps của mạng CNN hoặc trọng số Weight) trong một chu kỳ thiết lập. Tính năng này giải quyết triệt để vấn đề ``Bức tường bộ nhớ'' (Memory Wall) trong các thiết kế gia tốc phần cứng AI.
 
     \item \textbf{AXI4-Stream (Dữ liệu luồng hướng sự kiện):} 
     Tài liệu chỉ định AXI4-Stream cho các luồng dữ liệu mảng (Array) tốc độ cực cao, phổ biến trong Xử lý tín hiệu số (DSP) và Xử lý ảnh (Vision AI). Khác biệt hoàn toàn với hai biến thể trên, AXI4-Stream truyền dữ liệu mà không cần địa chỉ bộ nhớ (Address-less). Nó hoạt động như một đường ống nước (Pipeline) kết nối trực tiếp đầu ra của khối này vào đầu vào của khối kia. Giao thức này chỉ sử dụng cơ chế bắt tay \texttt{TVALID} và \texttt{TREADY} để đẩy thông lượng (Throughput) lên mức tối đa mà không bị giới hạn bởi chu kỳ giải mã địa chỉ.

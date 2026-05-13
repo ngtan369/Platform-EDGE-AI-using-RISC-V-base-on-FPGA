@@ -23,10 +23,32 @@ class EdgeAIOverlay:
     def __init__(self, bitstream_path: str):
         if not os.path.exists(bitstream_path):
             raise FileNotFoundError(bitstream_path)
-        self.overlay = Overlay(bitstream_path)
-        self.i_bram  = getattr(self.overlay, C.BRAM_IBRAM_PORTB)
-        self.d_bram  = getattr(self.overlay, C.BRAM_DBRAM_PORTB)
-        self._gpio   = getattr(self.overlay, C.GPIO_RISCV_RESET, None)
+        # PYNQ 3.x on Kria uses pynqmetadata which cannot parse .bit directly;
+        # it needs the adjacent .xsa (which embeds both bitstream + HWH).
+        # Auto-upgrade .bit → .xsa when the .xsa exists alongside it.
+        load_path = bitstream_path
+        if bitstream_path.endswith(".bit"):
+            xsa = bitstream_path[:-4] + ".xsa"
+            if os.path.exists(xsa):
+                load_path = xsa
+        self.overlay = Overlay(load_path)
+        available = sorted(self.overlay.ip_dict.keys())
+        print("IPs in overlay:", available)
+
+        def _get(name, required=True):
+            if name in self.overlay.ip_dict:
+                return getattr(self.overlay, name)
+            if required:
+                raise AttributeError(
+                    f"IP '{name}' not found in overlay.\n"
+                    f"Available: {available}\n"
+                    f"Update constants.py to match the actual Vivado IP name."
+                )
+            return None
+
+        self.i_bram = _get(C.BRAM_IBRAM_PORTB)
+        self.d_bram = _get(C.BRAM_DBRAM_PORTB)
+        self._gpio  = _get(C.GPIO_RISCV_RESET, required=False)
 
     # ---- firmware load ----
     def clear_shared_regs(self) -> None:

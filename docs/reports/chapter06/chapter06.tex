@@ -29,25 +29,32 @@ Tập dữ liệu \texttt{Cats vs Dogs} (Microsoft Asirra, 25{,}000 ảnh) đư�
 
 \begin{table}[htbp]
     \centering
-    \caption{Accuracy Tiny-VGG trên tập Cats vs Dogs (input $128\times128$, INT8 PTQ, 30 epochs).}
+    \caption{Accuracy Tiny-VGG trên tập Cats vs Dogs (input $128\times128$, INT8 PTQ).}
     \label{tab:catsdogs-accuracy}
-    \begin{tabular}{|l|c|c|}
-        \hline
-        \textbf{Mô hình}                & \textbf{Train Acc} & \textbf{Val Acc} \\
-        \hline
-        FP32 Keras (reference)          & 73.37\%            & \textbf{79.38\%} \\
-        INT8 TFLite (PTQ, calib 100)    & ---                & $\sim$78.0\%     \\
-        INT8 + FPGA (KV260, on-board)   & ---                & {\itshape (Phase tiếp theo)} \\
-        \hline
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Mô hình}                                       & \textbf{Train Acc} & \textbf{Val Acc} \\
+        \midrule
+        FP32 Keras (no augment, 15 epochs)                     & 73.37\%            & 73.88\%          \\
+        FP32 Keras (\textbf{với augment}, $\sim$30 epochs)     & 79.99\%            & \textbf{79.38\%} \\
+        INT8 TFLite (PTQ, calib 100, augmented)                & ---                & \textbf{79.53\%} \\
+        INT8 + FPGA (KV260, on-board)                          & ---                & {\itshape (Phase tiếp theo)} \\
+        \bottomrule
     \end{tabular}
 \end{table}
 
-Quá trình huấn luyện cho thấy khi không sử dụng augmentation, mô hình hội tụ sớm ở mức 73.88\% với hiện tượng overfit nhẹ (train\_acc ~74\% so với val\_acc ~74\%). Sau khi bổ sung 3 kỹ thuật augment (flip + crop + brightness/contrast), val\_acc tăng lên 79.38\% sau 30 epoch (xem Hình~\ref{fig:training-curves}). Khoảng cách giữa train\_acc và val\_acc tiếp tục thu hẹp, cho thấy augmentation đã giảm overfit hiệu quả -- đúng kỳ vọng cho một mô hình có dung lượng nhỏ ($\sim$25.7K tham số).
+Quá trình huấn luyện diễn ra qua hai giai đoạn:
+\begin{itemize}
+    \item \textbf{Giai đoạn 1 (không augment, 15 epoch):} Mô hình hội tụ sớm ở mức val\_acc 73.88\% với train\_acc 73.37\% -- khoảng cách rất nhỏ, cho thấy mô hình đã ``no longer learning'' do thiếu nguồn variation từ dữ liệu. Đây là dấu hiệu \textit{underfit do data} chứ không phải overfit do model.
+    \item \textbf{Giai đoạn 2 (với augment, $\sim$30 epoch):} Sau khi bổ sung 3 kỹ thuật augment (flip + crop + brightness/contrast), val\_acc tăng đáng kể lên 79.38\% (Hình~\ref{fig:training-curves}). Augmentation tạo ``virtual diversity'' cho dataset, giúp Tiny-VGG khai thác được capacity nhỏ ($\sim$25.7K tham số) một cách hiệu quả hơn.
+\end{itemize}
+
+Mức cải thiện $+5.50\%$ accuracy chỉ nhờ augmentation (không thay đổi kiến trúc) là một kết quả đáng chú ý, xác nhận giả thiết rằng đối với mô hình nhỏ trên dataset thực tế đa dạng, \textit{data augmentation đem lại hiệu quả cao hơn việc tăng số tham số}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1\textwidth]{chapter06/img/training_curves.png}
-    \caption{Đường cong loss và accuracy theo epoch của Tiny-VGG trên tập Cats vs Dogs.}
+    \caption{Đường cong loss và accuracy theo epoch của Tiny-VGG trên tập \textit{Cats vs Dogs}. Val accuracy đạt 79.38\% sau khoảng 30 epoch huấn luyện có augmentation; khoảng cách giữa train và val curves thu hẹp dần, cho thấy augmentation đã giảm overfit hiệu quả trên mô hình small-capacity ($\sim$25.7K tham số).}
     \label{fig:training-curves}
 \end{figure}
 
@@ -55,15 +62,23 @@ Quá trình huấn luyện cho thấy khi không sử dụng augmentation, mô h
 
 Tập \texttt{INRIA Person Detection} (5{,}213 ảnh) được khảo sát ở bản phân phối \texttt{jcoral02/inriaperson} trên Kaggle. Tuy nhiên, bản này được đóng gói theo định dạng PASCAL-VOC dành cho bài toán \textit{phát hiện đối tượng} (\texttt{Train/JPEGImages/} + \texttt{Train/Annotations/} chứa file XML bounding box), không phải định dạng phân loại nhị phân với hai thư mục \texttt{pos/neg} riêng biệt. Việc trích xuất nhãn \texttt{person} / \texttt{no\_person} đòi hỏi parse XML và crop vùng background ngoài bbox -- một bước tiền xử lý phức tạp vượt phạm vi đồ án ở giai đoạn này.
 
-Vì vậy, kết quả trên INRIA Person được xếp vào hướng phát triển ở Chương~\ref{chp:07} (Tier~B), khi pipeline mở rộng sang nhánh phát hiện đối tượng (object detection) với mô hình YOLO-tiny.
+Vì vậy, kết quả trên INRIA Person được xếp vào hướng phát triển ở Chương~\ref{chp:conclusion} (Tier~B), khi pipeline mở rộng sang nhánh phát hiện đối tượng (object detection) với mô hình YOLO-tiny.
 
 \subsection{Đánh giá ảnh hưởng của lượng tử hóa INT8}
 
-Để đo độ rớt chính xác do lượng tử hóa, mô hình INT8 được kiểm tra trên 20 batch ngẫu nhiên (640 ảnh) của tập val bằng \texttt{tf.lite.Interpreter}. Kết quả ở lần chạy đầu (không augment): FP32 đạt 73.88\%, INT8 đạt 74.53\% -- chênh lệch trong phạm vi $\pm 1\%$ thuộc khoảng nhiễu thống kê và \textbf{không vượt quá ngưỡng cảnh báo 3\%} thường được sử dụng trong tài liệu của Jacob et al.~\cite{jacob2018quantization}. Điều này khẳng định:
+Để đo độ rớt chính xác do lượng tử hóa, mô hình INT8 được kiểm tra trên 20 batch ngẫu nhiên (640 ảnh) của tập val bằng \texttt{tf.lite.Interpreter}. Kết quả thu được ở mô hình augmented:
+
 \begin{itemize}
-    \item Tập calibration 100 mẫu là đủ đại diện cho phân phối activation.
+    \item FP32 Keras: 79.38\% val\_acc.
+    \item INT8 TFLite (PTQ): \textbf{79.53\% val\_acc} (đo trên cùng tập 640 ảnh).
+    \item Sai khác: \textbf{$+0.15\%$} (INT8 cao hơn FP32 nhẹ).
+\end{itemize}
+
+Sai khác dương tuy nhỏ nhưng nằm trong khoảng nhiễu thống kê (do chỉ đo subset 640 ảnh chứ không toàn bộ 5{,}000 ảnh val). Hiện tượng INT8 ngang bằng hoặc nhỉnh hơn FP32 xuất hiện trong nhiều bài báo về PTQ và được giải thích là \textit{quantization noise đôi khi đóng vai trò regularizer} -- giảm capacity ``vô hiệu'' của model, từ đó hạn chế overfit nhẹ trên những đặc trưng noise của tập train. Chênh lệch này hoàn toàn nằm trong ngưỡng an toàn $\pm 3\%$ theo nghiên cứu của Jacob et al.~\cite{jacob2018quantization}, khẳng định:
+\begin{itemize}
+    \item Tập calibration 100 mẫu là đủ đại diện cho phân phối activation per-layer.
     \item Cấu hình PTQ \textit{full-integer} (input/output INT8, weights per-tensor) với supported\_ops \texttt{TFLITE\_BUILTINS\_INT8} là phù hợp cho mạng cấu trúc đơn giản như Tiny-VGG.
-    \item Multiplier output $M_{\text{real}} = (S_{\text{in}} \cdot S_w) / S_{\text{out}}$ được encode dưới dạng $(M_{q31}, \text{shift})$ qua hàm \texttt{quantize\_multiplier()} -- kết quả bit-exact với chuẩn TFLite, đảm bảo phần cứng có thể tái tạo chính xác kết quả tham chiếu.
+    \item Multiplier output $M_{\text{real}} = (S_{\text{in}} \cdot S_w) / S_{\text{out}}$ được encode dưới dạng $(M_{q31}, \text{shift})$ qua hàm \texttt{quantize\_multiplier()} -- kết quả bit-exact với chuẩn TFLite, đảm bảo phần cứng có thể tái tạo chính xác kết quả tham chiếu (giả định RTL requantize đúng đặc tả).
 \end{itemize}
 
 \newpage
@@ -86,10 +101,10 @@ Bảng~\ref{tab:fpga-utilization} tóm tắt mức sử dụng tài nguyên củ
     \centering
     \caption{Tài nguyên KV260 sử dụng (sau implementation, fully routed).}
     \label{tab:fpga-utilization}
-    \begin{tabular}{|l|r|r|r|}
-        \hline
+    \begin{tabular}{lrrr}
+        \toprule
         \textbf{Resource} & \textbf{Used} & \textbf{Available} & \textbf{Util.} \\
-        \hline
+        \midrule
         CLB LUT                 & 22{,}491 & 117{,}120 & 19.20\% \\
         \quad LUT as Logic      & 19{,}975 & 117{,}120 & 17.06\% \\
         \quad LUT as Memory     &  2{,}516 &  57{,}600 &  4.37\% \\
@@ -99,7 +114,7 @@ Bảng~\ref{tab:fpga-utilization} tóm tắt mức sử dụng tài nguyên củ
         URAM                    &        0 &        64 &  0.00\% \\
         BUFGCE / BUFG\_PS       &        3 &       208 &  1.44\% \\
         PS8 (Zynq UltraScale+)  &        1 &         1 & 100.00\% \\
-        \hline
+        \bottomrule
     \end{tabular}
 \end{table}
 
@@ -116,7 +131,7 @@ DSP48E2 chỉ chiếm 9 đơn vị (0.72\%), chính xác bằng số lượng PE
 \begin{figure}[!h]
     \centering
     \includegraphics[width=1\linewidth]{chapter06/img/util.png}
-    \caption{Báo cáo tài nguyên (Utilization) sau Place \& Route}
+    \caption{Báo cáo tài nguyên (Utilization) post-implementation. BRAM là tài nguyên chiếm tỉ lệ cao nhất (68.75\%) do nhu cầu bộ nhớ I-BRAM/D-BRAM cho RISC-V và line buffer cho Conv-CNN; LUT và DSP còn dư địa lớn ($\geq 80\%$ ngân sách) cho mở rộng V3.0 parallel cout.}
     \label{fig:util}
 \end{figure}
 
@@ -132,7 +147,7 @@ Sau quá trình Place \& Route, hệ thống được kiểm tra luật thiết 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{chapter06/img/drc.png}
-    \caption{Báo cáo kiểm tra luật thiết kế (DRC Report)}
+    \caption{Báo cáo kiểm tra luật thiết kế (DRC Report). Không có violation nghiêm trọng; các cảnh báo còn lại (DPIR-2 asynchronous driver, TIMING-23 combinational loop) đều xuất phát từ logic nội bộ của lõi CV32E40P đã được nhà cung cấp xác nhận an toàn.}
     \label{fig:drc}
 \end{figure}
 
@@ -165,7 +180,7 @@ WNS dương +2.118~ns cho thấy đường tổ hợp dài nhất (critical path
 \begin{figure}[!h]
     \centering
     \includegraphics[width=1\linewidth]{chapter06/img/timing.png}
-    \caption{Báo cáo thời gian (Timing Summary) đảm bảo không có vi phạm Slack}
+    \caption{Báo cáo Timing Summary sau routing. Worst Negative Slack đạt $+2.118$~ns ở target clock 100~MHz $\Rightarrow$ Fmax thực tế $\sim$127~MHz; mọi ràng buộc timing thỏa mãn (0/106{,}689 failing endpoints), không có vi phạm slack ở cả setup, hold và pulse width.}
     \label{fig:timing}
 \end{figure}
 
@@ -211,7 +226,7 @@ Quan sát quan trọng:
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{chapter06/img/power.png}
-    \caption{Báo cáo ước tính công suất tiêu thụ (Power Report) của toàn hệ thống}
+    \caption{Báo cáo ước tính công suất tiêu thụ (Power Report). Tổng 2.945~W ở ambient 25~$^\circ$C; khối PS (ARM + DDR controller) chiếm 82\% ($\sim$2.42~W), toàn bộ logic người dùng PL chỉ tốn $\sim$0.225~W -- trong đó bộ gia tốc \texttt{conv\_cnn\_0} chỉ tiêu thụ 23~mW.}
     \label{fig:power}
 \end{figure}
 
@@ -270,16 +285,17 @@ Bảng~\ref{tab:comparison} so sánh hệ thống đề xuất với các framew
     \caption{So sánh hệ thống đề xuất với các framework gia tốc CNN trên FPGA.}
     \label{tab:comparison}
     \resizebox{\textwidth}{!}{%
-    \begin{tabular}{|l|c|c|c|c|c|}
-        \hline
+    \begin{tabular}{lccccc}
+        \toprule
         \textbf{Framework} & \textbf{Mã nguồn} & \textbf{Coupling} & \textbf{Quantization} & \textbf{Đổi mô hình} & \textbf{RISC-V tham gia?} \\
-        \hline
+        \midrule
         Vitis AI DPU~\cite{vitis_ai}     & Closed & Loosely (DPU IP)   & INT8         & Compile lại model    & Không (chỉ ARM) \\
         FINN~\cite{finn_paper}           & Open   & Loosely (HLS-gen)  & 1-bit BNN    & Re-synthesize        & Không \\
         hls4ml~\cite{hls4ml}             & Open   & N/A (fully unrolled) & FP/INT tùy chọn & Re-synthesize    & Không \\
         CFU Playground~\cite{cfu_playground} & Open & Tightly (in-CPU) & INT8 (TFLM) & Re-compile firmware  & Có (VexRiscv) \\
+        \midrule
         \textbf{Đề tài này}              & \textbf{Open} & \textbf{Loosely (AXI IP)} & \textbf{INT8 (TFLite)} & \textbf{Thay weights+layer\_table} & \textbf{Có (CV32E40P)} \\
-        \hline
+        \bottomrule
     \end{tabular}%
     }
 \end{table}
@@ -302,7 +318,7 @@ Phép đo trực tiếp trên bo Kria KV260 đang được tiến hành ở giai
 \begin{itemize}
     \item \textbf{Độ trễ thực đo (Latency)}: trung bình~$\pm$~độ lệch chuẩn, P99 (worst-case), so sánh với ước tính lý thuyết $\sim$520~ms ở Bảng~\ref{tab:latency-per-layer}. Phép đo dùng \texttt{mcycle} CSR của RISC-V làm cycle counter cho từng layer, và \texttt{time.perf\_counter()} trong PYNQ cho timeline tổng thể.
     \item \textbf{Throughput (FPS)}: tính qua công thức $\text{FPS} = 1000 / \text{latency}_{\text{avg\_ms}}$, mục tiêu xác nhận con số $\sim$1.9~FPS theo dự đoán.
-    \item \textbf{Test accuracy on-board}: chạy benchmark.ipynb trên 5{,}000 ảnh val, so sánh với INT8 TFLite reference (~78\%). Sự sai khác $\leq 0.5\%$ sẽ được coi là bit-exact pass.
+    \item \textbf{Test accuracy on-board}: chạy benchmark.ipynb trên 5{,}000 ảnh val, so sánh với INT8 TFLite reference (79.53\%). Sự sai khác $\leq 0.5\%$ sẽ được coi là bit-exact pass.
     \item \textbf{Hardware-in-the-loop (HIL) verification}: với mỗi ảnh test, so sánh OFM cuối từ FPGA với output của \texttt{tf.lite.Interpreter} chạy cùng \texttt{int8.bin}. Hai chỉ số được lưu lại:
         \begin{itemize}
             \item \textit{Mismatch rate}: tỉ lệ ảnh cho \texttt{argmax} khác nhau giữa hai pipeline. Mục tiêu $\leq 1\%$ (chỉ sai do lỗi rounding biên).

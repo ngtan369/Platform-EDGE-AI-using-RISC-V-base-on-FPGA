@@ -89,8 +89,8 @@ thực hiện trên định dạng số thực dấu phẩy động 32-bit (Floa
 
 Để giải quyết vấn đề này, đồ án áp dụng phương pháp lượng tử hóa số nguyên
 được đề xuất bởi \textit{Jacob et al.} (Google) trong công trình
-\textit{"Quantization and Training of Neural Networks for Efficient
-Integer-Arithmetic-Only Inference"} \cite{jacob2018quantization}.
+\textit{``Quantization and Training of Neural Networks for Efficient
+Integer-Arithmetic-Only Inference'''} \cite{jacob2018quantization}.
 
 \begin{figure}[!h]
     \centering
@@ -111,7 +111,7 @@ Trong đó:
     \item $r$ (Real value): Giá trị thực cần biểu diễn.
     \item $q$ (Quantized value): Giá trị nguyên 8-bit ($q \in [0, 255]$ hoặc $[-128, 127]$).
     \item $S$ (Scale factor): Hằng số tỉ lệ (dạng Float32 dương), xác định bước nhảy của lượng tử hóa.
-    \item $Z$ (Zero-point): Giá trị nguyên đóng vai trò là điểm "0" của số thực. Điều này cho phép biểu diễn chính xác giá trị 0 thực tế (thường xuất hiện trong Padding hoặc ReLU) bằng một số nguyên, giúp duy trì độ chính xác của mạng.
+    \item $Z$ (Zero-point): Giá trị nguyên đóng vai trò là điểm ``0'' của số thực. Điều này cho phép biểu diễn chính xác giá trị 0 thực tế (thường xuất hiện trong Padding hoặc ReLU) bằng một số nguyên, giúp duy trì độ chính xác của mạng.
 \end{itemize}
 
 Từ công thức trên, quá trình nhân chập (Convolution) giữa đầu vào $x$ và trọng số $w$ có thể được viết lại hoàn toàn dưới dạng số nguyên:

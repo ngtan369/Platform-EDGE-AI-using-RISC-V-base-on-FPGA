@@ -536,7 +536,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>437d5c45</spirit:value>
+            <spirit:value>a22c518b</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1260,7 +1260,7 @@
       <spirit:file>
         <spirit:name>xgui/conv_cnn_v2_0.tcl</spirit:name>
         <spirit:fileType>tclSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_437d5c45</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_a22c518b</spirit:userFileType>
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
@@ -1370,17 +1370,17 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>conv_cnn_v2.0</xilinx:displayName>
-      <xilinx:coreRevision>10</xilinx:coreRevision>
+      <xilinx:coreRevision>12</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:conv_cnn:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-05-06T06:43:37Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-05-13T11:31:19Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2025.2.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="6add534c"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="ed1368d5"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="d8ef00b0"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="06301ade"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="8460f9dc"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="eadeae9d"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="e115eb06"/>
