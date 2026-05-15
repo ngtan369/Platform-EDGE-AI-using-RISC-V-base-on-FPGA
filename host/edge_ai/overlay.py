@@ -23,32 +23,10 @@ class EdgeAIOverlay:
     def __init__(self, bitstream_path: str):
         if not os.path.exists(bitstream_path):
             raise FileNotFoundError(bitstream_path)
-        # PYNQ 3.x on Kria uses pynqmetadata which cannot parse .bit directly;
-        # it needs the adjacent .xsa (which embeds both bitstream + HWH).
-        # Auto-upgrade .bit → .xsa when the .xsa exists alongside it.
-        load_path = bitstream_path
-        if bitstream_path.endswith(".bit"):
-            xsa = bitstream_path[:-4] + ".xsa"
-            if os.path.exists(xsa):
-                load_path = xsa
-        self.overlay = Overlay(load_path)
-        available = sorted(self.overlay.ip_dict.keys())
-        print("IPs in overlay:", available)
-
-        def _get(name, required=True):
-            if name in self.overlay.ip_dict:
-                return getattr(self.overlay, name)
-            if required:
-                raise AttributeError(
-                    f"IP '{name}' not found in overlay.\n"
-                    f"Available: {available}\n"
-                    f"Update constants.py to match the actual Vivado IP name."
-                )
-            return None
-
-        self.i_bram = _get(C.BRAM_IBRAM_PORTB)
-        self.d_bram = _get(C.BRAM_DBRAM_PORTB)
-        self._gpio  = _get(C.GPIO_RISCV_RESET, required=False)
+        self.overlay = Overlay(bitstream_path)
+        self.i_bram  = getattr(self.overlay, C.BRAM_IBRAM_PORTB)
+        self.d_bram  = getattr(self.overlay, C.BRAM_DBRAM_PORTB)
+        self._gpio   = getattr(self.overlay, C.GPIO_RISCV_RESET, None)
 
     # ---- firmware load ----
     def clear_shared_regs(self) -> None:
@@ -69,14 +47,28 @@ class EdgeAIOverlay:
             self.release_riscv_reset()
         return len(data)
 
+    def pl_reset(self) -> None:
+        """Pulse pl_resetn0 via CRL_APB.RST_LPD_TOP bit[20].
+        Resets all PL flip-flops (RISC-V PC → 0) but preserves BRAM data.
+        Use after load_firmware() so RISC-V boots cleanly with firmware loaded."""
+        from pynq import MMIO
+        # ZU+ CRL_APB.RST_LPD_TOP 0xFF5E023C: bit[20] = PL0_SRST (0=assert, 1=deassert)
+        crl = MMIO(0xFF5E023C, 4)
+        val = crl.read(0)
+        crl.write(0, val & ~(1 << 20))   # assert pl_resetn0 → PL in reset
+        time.sleep(0.05)
+        crl.write(0, val | (1 << 20))    # deassert → PL runs, RISC-V starts from PC=0
+        time.sleep(0.05)
+
     def release_riscv_reset(self) -> None:
-        """Pulse axi_gpio_0[0]: 0 (halt) -> 1 (run). Skips silently if GPIO absent."""
-        if self._gpio is None:
-            return
-        ch = self._gpio.channel1
-        ch.write(0, 0)
-        time.sleep(0.01)
-        ch.write(0, 1)
+        """Release RISC-V. Uses fetch_enable GPIO if present, else pulses pl_resetn0."""
+        if self._gpio is not None:
+            ch = self._gpio.channel1
+            ch.write(0, 0)
+            time.sleep(0.01)
+            ch.write(0, 1)
+        else:
+            self.pl_reset()
 
     # ---- shared register helpers ----
     def set_weights_addr(self, phys: int) -> None:

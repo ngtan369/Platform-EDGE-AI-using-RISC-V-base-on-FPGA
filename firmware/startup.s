@@ -1,6 +1,6 @@
 # Startup code cho RISC-V CV32E40P (PULPino/PULP architecture)
 
-.section .vectors, "ax"
+.section .text.vectors, "ax"
 .option norvc
 .org 0x0
 .global _start
@@ -37,8 +37,13 @@ loop_init_bss:
     blt a0, a1, loop_init_bss
 end_init_bss:
 
-    # 5. Nhảy vào hàm main của C
-    # Sau khi chuẩn bị xong xuôi, "trao quyền" cho main.c
+    # 5. DIAGNOSTIC: Write 0xAB to D-BRAM offset 0x14 (reserved slot)
+    # If ARM sees 0xAB there, RISC-V AXI data port can write to D-BRAM
+    lui  t0, 0xb0040         # t0 = 0xb0040000
+    li   t1, 0xAB            # boot marker
+    sw   t1, 0x14(t0)        # *(0xb0040014) = 0xAB
+
+    # 6. Nhảy vào hàm main của C
     jal ra, main
 
     # 6. Vòng lặp vô tận nếu main thoát ra

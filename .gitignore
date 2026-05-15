@@ -145,3 +145,4 @@ secrets.json
 *.tar.gz
 node_modules/
 docs/reports/
+CLAUDE.md
