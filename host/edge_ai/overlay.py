@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import time
 
-from pynq import Overlay
+from pynq import Overlay, MMIO
 
 from . import constants as C
 
@@ -26,49 +26,59 @@ class EdgeAIOverlay:
         self.overlay = Overlay(bitstream_path)
         self.i_bram  = getattr(self.overlay, C.BRAM_IBRAM_PORTB)
         self.d_bram  = getattr(self.overlay, C.BRAM_DBRAM_PORTB)
-        self._gpio   = getattr(self.overlay, C.GPIO_RISCV_RESET, None)
+        # PYNQ filters axi_gpio_0 out of ip_dict on this BD topology, so go direct via MMIO.
+        # GPIO_DATA bit 0 drives riscv_top_0/fetch_enable_i.
+        self._gpio = MMIO(C.GPIO_RISCV_RESET_BASE, 0x10000)
+        self._gpio.write(C.GPIO_TRI_OFFSET, 0)   # ensure pin is output
 
     # ---- firmware load ----
     def clear_shared_regs(self) -> None:
         for off in C.ALL_SHARED_REGS:
             self.d_bram.write(off, 0)
 
+    def load_layer_table(self, table_bin_path: str) -> int:
+        """Stream packed layer_desc_t array into D-BRAM Port B at LAYER_TABLE_OFFSET.
+        RISC-V firmware reads it via m_axi_data (LAYERS = (layer_desc_t*)0xB0040800).
+        Returns bytes written."""
+        if not os.path.exists(table_bin_path):
+            raise FileNotFoundError(table_bin_path)
+        with open(table_bin_path, "rb") as f:
+            data = f.read()
+        if len(data) % 4:
+            data += b"\x00" * (4 - (len(data) % 4))
+        for i in range(0, len(data), 4):
+            self.d_bram.write(C.LAYER_TABLE_OFFSET + i,
+                              int.from_bytes(data[i:i+4], "little"))
+        return len(data)
+
+    def halt_riscv(self) -> None:
+        """Drive fetch_enable_i=0 to park the core at PC=0.
+        CV32E40P fetch_enable is sticky-high once asserted, so this only has
+        effect BEFORE the first release (i.e., right after PL reset). Calling
+        this after release_riscv_reset() does NOT halt a running core."""
+        self._gpio.write(C.GPIO_DATA_OFFSET, 0)
+
     def load_firmware(self, firmware_bin_path: str, *, release_reset: bool = True) -> int:
-        """Stream firmware.bin into I-BRAM Port B at offset 0. Returns bytes written."""
+        """Stream firmware.bin into I-BRAM Port B at offset 0. Returns bytes written.
+        If release_reset=True, pulses fetch_enable_i HIGH after the write so RISC-V
+        boots from PC=0 with the freshly-loaded firmware."""
         if not os.path.exists(firmware_bin_path):
             raise FileNotFoundError(firmware_bin_path)
         with open(firmware_bin_path, "rb") as f:
             data = f.read()
         if len(data) % 4:
             data += b"\x00" * (4 - (len(data) % 4))
+        self.halt_riscv()
         for i in range(0, len(data), 4):
             self.i_bram.write(i, int.from_bytes(data[i:i+4], "little"))
         if release_reset:
             self.release_riscv_reset()
         return len(data)
 
-    def pl_reset(self) -> None:
-        """Pulse pl_resetn0 via CRL_APB.RST_LPD_TOP bit[20].
-        Resets all PL flip-flops (RISC-V PC → 0) but preserves BRAM data.
-        Use after load_firmware() so RISC-V boots cleanly with firmware loaded."""
-        from pynq import MMIO
-        # ZU+ CRL_APB.RST_LPD_TOP 0xFF5E023C: bit[20] = PL0_SRST (0=assert, 1=deassert)
-        crl = MMIO(0xFF5E023C, 4)
-        val = crl.read(0)
-        crl.write(0, val & ~(1 << 20))   # assert pl_resetn0 → PL in reset
-        time.sleep(0.05)
-        crl.write(0, val | (1 << 20))    # deassert → PL runs, RISC-V starts from PC=0
-        time.sleep(0.05)
-
     def release_riscv_reset(self) -> None:
-        """Release RISC-V. Uses fetch_enable GPIO if present, else pulses pl_resetn0."""
-        if self._gpio is not None:
-            ch = self._gpio.channel1
-            ch.write(0, 0)
-            time.sleep(0.01)
-            ch.write(0, 1)
-        else:
-            self.pl_reset()
+        """Pull fetch_enable_i HIGH so RISC-V starts from PC=0.
+        After Overlay() download, GPIO defaults to 0 (core parked) — this flips to 1."""
+        self._gpio.write(C.GPIO_DATA_OFFSET, 1)
 
     # ---- shared register helpers ----
     def set_weights_addr(self, phys: int) -> None:

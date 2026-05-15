@@ -28,6 +28,8 @@
 #define REG_IFM_PHYS_ADDR   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x18))
 #define REG_OFM_PHYS_ADDR   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x1C))
 #define REG_WEIGHT_BASE     (*(volatile uint32_t*)(ARM_COMM_BASE + 0x20))
+#define REG_DBG_LAYER       (*(volatile uint32_t*)(ARM_COMM_BASE + 0x24))
+#define REG_DBG_PHASE       (*(volatile uint32_t*)(ARM_COMM_BASE + 0x28))
 
 #define CMD_START         0x01
 #define STATUS_IDLE       0x00
@@ -48,14 +50,21 @@
 #define DMA_S2MM_LEN    0x58
 #define DMA_RUN_BIT     0x00000001
 #define DMA_IDLE_BIT    0x00000002
+/* "not actively transferring" = Idle (bit1, post-completion) OR Halted (bit0, pre-start) */
+#define DMA_INACTIVE_MASK  (DMA_IDLE_BIT | DMA_RUN_BIT)
 
-/* conv_cnn S00_AXI — hiện chỉ 4 thanh ghi (sẽ mở rộng khi RTL fix P1) */
-#define CNN_REG_WIDTH   0x00   /* slv_reg0: active_width */
-#define CNN_REG_CTRL    0x04   /* slv_reg1: bit0=start, bit1=pool_en */
-#define CNN_REG_STATUS  0x08   /* slv_reg2: bit0=done */
-#define CNN_REG_SLV3    0x0C   /* slv_reg3: TBD (cin/cout/kernel khi RTL hỗ trợ) */
+/* conv_cnn v2.0 S00_AXI register map */
+#define CNN_REG_GEOMETRY  0x00   /* width[15:0], height[31:16] */
+#define CNN_REG_CTRL      0x04   /* bit0=start, bit1=pool_en, bit2=mode_load, bit3=has_relu */
+#define CNN_REG_STATUS    0x08   /* bit0=done (RO) */
+#define CNN_REG_CHANNELS  0x0C   /* num_cin[15:0], num_cout[31:16] */
+#define CNN_REG_M_Q31     0x10   /* M_q31[30:0] */
+#define CNN_REG_SHIFT_ZP  0x14   /* shift[5:0], output_zp[15:8] (signed int8) */
+
 #define CNN_CTRL_START      0x01
 #define CNN_CTRL_POOL_EN    0x02
+#define CNN_CTRL_MODE_LOAD  0x04
+#define CNN_CTRL_HAS_RELU   0x08
 
 /* ============================================================================
  * 3. LOW-LEVEL HELPERS
@@ -79,8 +88,11 @@ static void dma_kick_s2mm(uint32_t dst_phys, uint32_t bytes)
 
 static void dma_wait_idle(void)
 {
-    while ((ioread32(DMA_BASE + DMA_MM2S_SR) & DMA_IDLE_BIT) == 0) { }
-    while ((ioread32(DMA_BASE + DMA_S2MM_SR) & DMA_IDLE_BIT) == 0) { }
+    /* A channel after reset has Halted=1, Idle=0 (never started). Accept either
+     * state as "not busy" so we don't spin forever waiting for an idle bit on a
+     * channel that has not yet been kicked. */
+    while ((ioread32(DMA_BASE + DMA_MM2S_SR) & DMA_INACTIVE_MASK) == 0) { }
+    while ((ioread32(DMA_BASE + DMA_S2MM_SR) & DMA_INACTIVE_MASK) == 0) { }
 }
 
 /* ============================================================================
@@ -96,37 +108,59 @@ static uint32_t ofm_geometry_bytes(const layer_desc_t* L)
     return ow * oh * (uint32_t)L->cout;
 }
 
+static void cnn_poll_done(void)
+{
+    while ((ioread32(CNN_BASE_ADDR + CNN_REG_STATUS) & 0x01) == 0) { }
+}
+
 static void process_one_layer(const layer_desc_t* L,
                               uint32_t weight_base,
                               uint32_t ifm_phys,
                               uint32_t ofm_phys)
 {
-    /* Configure conv_cnn — chỉ những trường RTL hiện có hỗ trợ */
-    iowrite32(CNN_BASE_ADDR + CNN_REG_WIDTH, L->ifm_width);
+    /* ---- 1. Static layer config (geometry + quant) ---- */
+    REG_DBG_PHASE = 1;  // entering config
+    uint32_t geometry = (uint32_t)L->ifm_width | ((uint32_t)L->ifm_height << 16);
+    uint32_t channels = (uint32_t)L->cin       | ((uint32_t)L->cout       << 16);
+    uint32_t shift_zp = ((uint32_t)L->output_shift & 0x3F)
+                      | (((uint32_t)(uint8_t)L->output_zp & 0xFF) << 8);
+    iowrite32(CNN_BASE_ADDR + CNN_REG_GEOMETRY, geometry);
+    iowrite32(CNN_BASE_ADDR + CNN_REG_CHANNELS, channels);
+    iowrite32(CNN_BASE_ADDR + CNN_REG_M_Q31,    (uint32_t)L->output_M);
+    iowrite32(CNN_BASE_ADDR + CNN_REG_SHIFT_ZP, shift_zp);
 
-    /* TODO (P1.7): khi RTL có weight buffer, DMA weights = (weight_base + offset)
-     * vào trước IFM, hoặc dùng AXI-Stream phụ. Hiện weights hardcoded Sobel trong RTL. */
-    (void)weight_base;
-    (void)L->weight_offset;
+    /* ---- 2. Load mode: stream weights+biases via DMA MM2S → conv_cnn S00_AXIS ---- */
+    REG_DBG_PHASE = 2;  // about to kick LOAD
+    iowrite32(CNN_BASE_ADDR + CNN_REG_CTRL, CNN_CTRL_MODE_LOAD | CNN_CTRL_START);
+    uint32_t w_bytes = L->weight_bytes + (L->bias_offset == 0xFFFFFFFFu ? 0 : L->bias_bytes);
+    dma_kick_mm2s(weight_base + L->weight_offset, w_bytes);
+    REG_DBG_PHASE = 3;  // polling LOAD done
+    cnn_poll_done();
+    REG_DBG_PHASE = 4;  // LOAD done, clearing CTRL
+    iowrite32(CNN_BASE_ADDR + CNN_REG_CTRL, 0);
+    dma_wait_idle();
 
-    /* Program DMA: S2MM trước (sẵn sàng nhận), MM2S sau (kích data flow) */
+    /* ---- 3. Infer mode: program S2MM first (ready to receive), then start core ---- */
+    REG_DBG_PHASE = 5;  // about to kick INFER
     uint32_t ifm_bytes = (uint32_t)L->ifm_width * L->ifm_height * L->cin;
     uint32_t ofm_bytes = ofm_geometry_bytes(L);
     dma_kick_s2mm(ofm_phys, ofm_bytes);
-    dma_kick_mm2s(ifm_phys, ifm_bytes);
 
-    /* Kick conv_cnn */
-    uint32_t ctrl = CNN_CTRL_START | (L->pool_en ? CNN_CTRL_POOL_EN : 0);
+    uint32_t ctrl = CNN_CTRL_START
+                  | (L->pool_en              ? CNN_CTRL_POOL_EN  : 0)
+                  | (L->activation==ACT_RELU ? CNN_CTRL_HAS_RELU : 0);
     iowrite32(CNN_BASE_ADDR + CNN_REG_CTRL, ctrl);
 
-    /* Poll done */
-    while ((ioread32(CNN_BASE_ADDR + CNN_REG_STATUS) & 0x01) == 0) { }
+    /* ---- 4. Stream IFM via DMA MM2S → S00_AXIS ---- */
+    dma_kick_mm2s(ifm_phys, ifm_bytes);
+    REG_DBG_PHASE = 6;  // polling INFER done
 
-    /* Đợi DMA flush hết byte cuối ra DDR */
+    /* ---- 5. Wait for conv done + DMA flush ---- */
+    cnn_poll_done();
+    REG_DBG_PHASE = 7;  // INFER done, draining
     dma_wait_idle();
-
-    /* Hạ start để FSM về IDLE chuẩn bị layer kế */
-    iowrite32(CNN_BASE_ADDR + CNN_REG_CTRL, L->pool_en ? CNN_CTRL_POOL_EN : 0);
+    iowrite32(CNN_BASE_ADDR + CNN_REG_CTRL, 0);
+    REG_DBG_PHASE = 8;  // layer complete
 }
 
 /* ============================================================================
@@ -153,6 +187,7 @@ static void run_inference(void)
 
     /* Ping-pong: layer 0: A→B, layer 1: B→A, layer 2: A→B, ... */
     for (uint32_t i = 0; i < NUM_LAYERS; i++) {
+        REG_DBG_LAYER = i;
         uint32_t in_phys  = (i & 1) ? buf_b : buf_a;
         uint32_t out_phys = (i & 1) ? buf_a : buf_b;
         process_one_layer(&LAYERS[i], weight_base, in_phys, out_phys);

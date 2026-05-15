@@ -133,15 +133,83 @@ module conv_cnn_v1_0 #(
     );
 
     // -----------------------------------------------------------------------
-    // conv_core (v2.0 SV datapath top)
-    //   AXIS s_data = S00_AXIS tdata low byte (upper 24 bits ignored — pad)
-    //   AXIS m_data = M00_AXIS tdata low byte (upper 24 bits = 0)
-    //   Use s00_axi_aclk làm clock chính (AXIS clocks giả định cùng domain).
+    // 32→8 INPUT BYTE UNPACKER
+    //   DMA streams 32-bit beats; conv_core consumes 1 byte per s_valid pulse.
+    //   Per beat: distribute 4 bytes (low→high) over 4 conv_core handshake cycles.
+    //   Backpressure to DMA: s00_axis_tready=1 only when current beat is empty.
     // -----------------------------------------------------------------------
+    reg  [31:0] beat_data;
+    reg  [1:0]  byte_idx;
+    reg         beat_valid;
+
     wire        cc_s_ready;
+    wire        core_s_valid = beat_valid;
+    wire [7:0]  core_s_data  = beat_data[byte_idx*8 +: 8];
+    wire        core_consume = beat_valid & cc_s_ready;   // conv_core takes byte
+    wire        accept_beat  = s00_axis_tvalid & ~beat_valid;
+
+    always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
+        if (!s00_axi_aresetn) begin
+            beat_data  <= 32'd0;
+            byte_idx   <= 2'd0;
+            beat_valid <= 1'b0;
+        end else if (accept_beat) begin
+            beat_data  <= s00_axis_tdata;
+            byte_idx   <= 2'd0;
+            beat_valid <= 1'b1;
+        end else if (core_consume) begin
+            if (byte_idx == 2'd3) begin
+                beat_valid <= 1'b0;
+            end else begin
+                byte_idx <= byte_idx + 2'd1;
+            end
+        end
+    end
+
+    assign s00_axis_tready = ~beat_valid;   // accept next beat when current drained
+
+    // -----------------------------------------------------------------------
+    // 8→32 OUTPUT BYTE PACKER
+    //   conv_core emits 1 byte per m_valid; pack 4 bytes into 1 AXIS beat.
+    //   Emit beat when: (a) 4 bytes collected, OR (b) inference done (flush partial).
+    // -----------------------------------------------------------------------
     wire        cc_m_valid;
     wire [7:0]  cc_m_data;
 
+    reg  [31:0] pack_data;
+    reg  [1:0]  pack_idx;
+    reg         pack_emit;          // 1 = drive m00_axis_tvalid
+
+    wire        core_produce = cc_m_valid & ~pack_emit;  // accept conv_core byte
+    wire        beat_sent    = pack_emit & m00_axis_tready;
+
+    always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
+        if (!s00_axi_aresetn) begin
+            pack_data <= 32'd0;
+            pack_idx  <= 2'd0;
+            pack_emit <= 1'b0;
+        end else if (beat_sent) begin
+            // Beat consumed: clear emit, reset pack_idx for next group
+            pack_emit <= 1'b0;
+            pack_idx  <= 2'd0;
+            pack_data <= 32'd0;
+        end else if (core_produce) begin
+            pack_data[pack_idx*8 +: 8] <= cc_m_data;
+            if (pack_idx == 2'd3) begin
+                pack_emit <= 1'b1;       // beat full → emit next cycle
+                pack_idx  <= 2'd0;
+            end else begin
+                pack_idx <= pack_idx + 2'd1;
+            end
+        end
+    end
+
+    // m_ready to conv_core: accept new byte unless we're holding a full beat
+    wire core_m_ready_internal = ~pack_emit;
+
+    // -----------------------------------------------------------------------
+    // conv_core (v2.0 SV datapath top)
+    // -----------------------------------------------------------------------
     conv_core u_core (
         .clk           (s00_axi_aclk),
         .rst_n         (s00_axi_aresetn),
@@ -159,26 +227,24 @@ module conv_cnn_v1_0 #(
         .cfg_output_zp ($signed(cfg_output_zp)),
         .cfg_has_relu  (cfg_has_relu),
 
-        // AXIS in (1 byte/sample từ low byte của tdata)
-        .s_data        (s00_axis_tdata[7:0]),
-        .s_valid       (s00_axis_tvalid),
+        // 8-bit AXIS in (from unpacker)
+        .s_data        (core_s_data),
+        .s_valid       (core_s_valid),
         .s_ready       (cc_s_ready),
 
-        // AXIS out
+        // 8-bit AXIS out (to packer)
         .m_data        (cc_m_data),
         .m_valid       (cc_m_valid),
-        .m_ready       (m00_axis_tready),
+        .m_ready       (core_m_ready_internal),
 
         .done          (cfg_done)
     );
 
-    // AXIS handshake
-    assign s00_axis_tready  = cc_s_ready;
-
-    assign m00_axis_tvalid  = cc_m_valid;
-    assign m00_axis_tdata   = {24'd0, cc_m_data};   // pad upper 24 with 0
-    assign m00_axis_tstrb   = 4'b0001;              // chỉ low byte valid
-    assign m00_axis_tlast   = cfg_done && cc_m_valid;  // pulse last khi inference xong
+    // M00_AXIS output (packed 32-bit beats)
+    assign m00_axis_tvalid  = pack_emit;
+    assign m00_axis_tdata   = pack_data;
+    assign m00_axis_tstrb   = 4'b1111;
+    assign m00_axis_tlast   = cfg_done && pack_emit;
 
     // IRQ
     assign irq = cfg_done;

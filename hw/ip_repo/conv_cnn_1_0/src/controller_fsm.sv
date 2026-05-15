@@ -88,11 +88,16 @@ module controller_fsm
     logic [CIN_ADDR_W-1:0]      cnt_cin_r;
     logic [COUT_ADDR_W-1:0]     cnt_cout_r;
     logic [3:0]                 wait_cnt;       // 0..FSM_DRAIN_CYCLES-1
+    // Latched in S_ACCEPT_CIN when (last_x_in && last_y_in && last_cin_in) — necessary
+    // because x_in/y_in get bumped/wrapped before S_EMIT runs, so direct check there
+    // would miss the terminal pixel.
+    logic                       is_last_pixel;
 
     // Sim-only init
     initial begin
         x_in = '0; y_in = '0; cin_in = '0;
         cnt_cin_r = '0; cnt_cout_r = '0; wait_cnt = '0;
+        is_last_pixel = 1'b0;
     end
 
     // Convenience flags
@@ -101,12 +106,23 @@ module controller_fsm
     logic last_x_in, last_y_in;
     logic last_cnt_cin, last_cnt_cout;
 
-    assign last_cin_in   = (cin_in    == cfg_num_cin  - 1);
+    // Truncated last-index signals — see conv_core.sv comment. Assigning the
+    // subtraction to a field-width signal forces wrap (cfg_*=0 → last=max), so
+    // the comparison matches when the source value equalled MAX_* (cin=64 etc).
+    logic [CIN_ADDR_W-1:0]   cin_last_idx;
+    logic [COUT_ADDR_W-1:0]  cout_last_idx;
+    logic [WIDTH_ADDR_W-1:0] x_last_idx, y_last_idx;
+    assign cin_last_idx  = cfg_num_cin  - 1'b1;
+    assign cout_last_idx = cfg_num_cout - 1'b1;
+    assign x_last_idx    = cfg_width    - 1'b1;
+    assign y_last_idx    = cfg_height   - 1'b1;
+
+    assign last_cin_in   = (cin_in    == cin_last_idx);
     assign window_valid  = (x_in >= 2) && (y_in >= 2);
-    assign last_x_in     = (x_in == cfg_width  - 1);
-    assign last_y_in     = (y_in == cfg_height - 1);
-    assign last_cnt_cin  = (cnt_cin_r  == cfg_num_cin  - 1);
-    assign last_cnt_cout = (cnt_cout_r == cfg_num_cout - 1);
+    assign last_x_in     = (x_in == x_last_idx);
+    assign last_y_in     = (y_in == y_last_idx);
+    assign last_cnt_cin  = (cnt_cin_r  == cin_last_idx);
+    assign last_cnt_cout = (cnt_cout_r == cout_last_idx);
 
     // -------------------------------------------------------------------------
     // FSM sequential
@@ -188,7 +204,7 @@ module controller_fsm
                 if (m_ready) begin
                     if (last_cnt_cout) begin
                         // output pixel xong; quyết định next pixel hay done
-                        if (last_x_in && last_y_in)
+                        if (is_last_pixel)
                             next_state = S_DONE_S;
                         else
                             next_state = S_ACCEPT_CIN;
@@ -213,24 +229,28 @@ module controller_fsm
     // -------------------------------------------------------------------------
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            x_in       <= '0;
-            y_in       <= '0;
-            cin_in     <= '0;
-            cnt_cin_r  <= '0;
-            cnt_cout_r <= '0;
-            wait_cnt   <= '0;
+            x_in          <= '0;
+            y_in          <= '0;
+            cin_in        <= '0;
+            cnt_cin_r     <= '0;
+            cnt_cout_r    <= '0;
+            wait_cnt      <= '0;
+            is_last_pixel <= 1'b0;
         end else begin
             unique case (state)
                 S_IDLE: if (start) begin
-                    x_in       <= '0;
-                    y_in       <= '0;
-                    cin_in     <= '0;
-                    cnt_cin_r  <= '0;
-                    cnt_cout_r <= '0;
+                    x_in          <= '0;
+                    y_in          <= '0;
+                    cin_in        <= '0;
+                    cnt_cin_r     <= '0;
+                    cnt_cout_r    <= '0;
+                    is_last_pixel <= 1'b0;
                 end
 
                 S_ACCEPT_CIN: if (s_valid) begin
                     if (last_cin_in) begin
+                        // Latch terminal-pixel flag BEFORE counter wraps overwrite x_in/y_in
+                        if (last_x_in && last_y_in) is_last_pixel <= 1'b1;
                         cin_in <= '0;
                         // advance input pixel position
                         if (last_x_in) begin

@@ -41,7 +41,7 @@
 	<File Type="BIT" Name="kria_soc_wrapper.bit" src_db="temp.hdf">
 	</File>
 	<DRIVERS>
-		<DRIVER IP_VLNV="xilinx.com:user:conv_cnn:2.0">
+		<DRIVER IP_VLNV="xilinx.com:user:conv_cnn:2.1">
 			<File PATH="drivers/conv_cnn_v1_0/data/conv_cnn.mdd"/>
 			<File PATH="drivers/conv_cnn_v1_0/data/conv_cnn.tcl"/>
 			<File PATH="drivers/conv_cnn_v1_0/src/Makefile"/>
@@ -50,9 +50,9 @@
 			<File PATH="drivers/conv_cnn_v1_0/src/conv_cnn_selftest.c"/>
 		</DRIVER>
 	</DRIVERS>
-	<USEDRESOURCES LUT="22497" FF="28715" BRAM="99" DSP="9"/>
+	<USEDRESOURCES LUT="23857" FF="30151" BRAM="99" DSP="9"/>
 	<DESIGN_DATA Type="rm">
-		<DESIGN_IDS DESIGN_ID="4153619285" PARENT_ID="0" NODE_ID="0"/>
+		<DESIGN_IDS DESIGN_ID="3008770734" PARENT_ID="0" NODE_ID="0"/>
 	</DESIGN_DATA>
 </Project>
 

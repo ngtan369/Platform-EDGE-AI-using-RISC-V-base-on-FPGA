@@ -64,8 +64,11 @@ typedef struct __attribute__((packed)) {
     int8_t   weight_zp;
 } layer_desc_t;
 
-/* Defined in auto-generated layer_table.h */
-extern const uint32_t     NUM_LAYERS;
-extern const layer_desc_t LAYERS[];
+/* NUM_LAYERS + LAYERS macros are defined in auto-generated layer_table.h:
+ *   NUM_LAYERS = compile-time constant (loop bound)
+ *   LAYERS     = (const layer_desc_t*) pointing into D-BRAM (0xB0040800)
+ * ARM populates the D-BRAM region from training/export/<model>_<dataset>.layer_table.bin
+ * before raising CMD_START. RISC-V's m_axi_data cannot reach I-BRAM .rodata, so the
+ * descriptors must live in D-BRAM where m_axi_data can read them. */
 
 #endif /* LAYER_DESC_H */

@@ -37,4 +37,4 @@ rsync "${R[@]}" "$@" "$ROOT/training/export/"    "$BOARD:$REMOTE/training/export
 rsync "${R[@]}" "$@" "$ROOT/host/"               "$BOARD:$REMOTE/host/"
 [ -d "$ROOT/samples" ] && rsync "${R[@]}" "$@" "$ROOT/samples/" "$BOARD:$REMOTE/samples/"
 
-echo "[deploy] done — ssh $BOARD 'cd $REMOTE/host && sudo -E jupyter notebook --no-browser --ip=0.0.0.0 --port=9090'"
+echo "[deploy] done — open http://${BOARD##*@}:9090 in browser"

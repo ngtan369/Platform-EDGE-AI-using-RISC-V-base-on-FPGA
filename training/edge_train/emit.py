@@ -89,13 +89,21 @@ def emit_layer_table(tflite_bytes: bytes,
         blob.extend(weights.tobytes())
         weight_bytes = len(weights.tobytes())
 
+        # TFLite int8 conv: acc = Σ W·(X−input_zp) + bias = Σ W·X − input_zp·ΣW + bias
+        # Hardware computes only Σ W·X + bias_stored, so we fold the input_zp correction:
+        #   bias_stored[cout] = bias_original[cout] − input_zp × Σ_{kh,kw,cin} W[cout]
+        sum_w_per_cout = weights.astype(np.int32).sum(axis=(1, 2, 3))  # shape [cout]
         if biases is not None:
+            bias_corrected = biases.astype(np.int32) - in_zp * sum_w_per_cout
             bias_offset = len(blob)
-            blob.extend(biases.astype(np.int32).tobytes())
-            bias_bytes = biases.size * 4
+            blob.extend(bias_corrected.astype(np.int32).tobytes())
+            bias_bytes = bias_corrected.size * 4
         else:
-            bias_offset = 0xFFFFFFFF
-            bias_bytes  = 0
+            # No explicit bias — synthesize one from the correction alone
+            bias_corrected = (-in_zp * sum_w_per_cout).astype(np.int32)
+            bias_offset = len(blob)
+            blob.extend(bias_corrected.tobytes())
+            bias_bytes = bias_corrected.size * 4
 
         M_real = (in_scale * w_scale) / out_scale if out_scale > 0 else 0.0
         M_q31, shift = quantize_multiplier(M_real)
@@ -134,31 +142,25 @@ def emit_layer_table(tflite_bytes: bytes,
     blob_path.write_bytes(blob)
     print(f"[+] Weights blob : {blob_path}  ({len(blob)} B, {len(layer_descs)} conv layers)")
 
-    # ---- emit C header ----
-    def fmt(L: dict, idx: int) -> str:
-        return textwrap.dedent(f"""\
-            [{idx}] = {{
-                .weight_offset = {L['weight_offset']}u,
-                .weight_bytes  = {L['weight_bytes']}u,
-                .bias_offset   = {hex(L['bias_offset'])}u,
-                .bias_bytes    = {L['bias_bytes']}u,
-                .ifm_width     = {L['ifm_width']},
-                .ifm_height    = {L['ifm_height']},
-                .cin           = {L['cin']},
-                .cout          = {L['cout']},
-                .kernel        = {L['kernel']},
-                .stride        = {L['stride']},
-                .padding       = {L['padding']},
-                .pool_en       = {L['pool_en']},
-                .activation    = {L['activation']},
-                ._reserved     = {{0, 0, 0}},
-                .output_M      = {L['output_M']},
-                .output_shift  = {L['output_shift']},
-                .input_zp      = {L['input_zp']},
-                .output_zp     = {L['output_zp']},
-                .weight_zp     = {L['weight_zp']},
-            }}""")
+    # ---- emit layer_table.bin (ARM loads into D-BRAM @ +0x800 before kick) ----
+    # RISC-V cannot read .rodata in I-BRAM via m_axi_data, so LAYERS[] lives in
+    # D-BRAM instead. ARM populates it at runtime from this binary file.
+    table_bin = bytearray()
+    for L in layer_descs:
+        table_bin.extend(struct.pack(
+            LAYER_DESC_FMT,
+            L["weight_offset"], L["weight_bytes"], L["bias_offset"], L["bias_bytes"],
+            L["ifm_width"], L["ifm_height"], L["cin"], L["cout"],
+            L["kernel"], L["stride"], L["padding"], L["pool_en"], L["activation"],
+            L["output_M"], L["output_shift"], L["input_zp"], L["output_zp"], L["weight_zp"],
+        ))
+    table_bin_path = Path(header_path).with_suffix(".bin")
+    table_bin_path.write_bytes(bytes(table_bin))
+    print(f"[+] Layer blob   : {table_bin_path}  ({len(table_bin)} B, {len(layer_descs)} layers)")
 
+    # ---- emit C header — pointer macros, NUM_LAYERS as compile-time constant ----
+    # LAYERS is a pointer to D-BRAM (populated by ARM at runtime).
+    # The struct's layout still lives in layer_desc.h.
     header = textwrap.dedent(f"""\
         #ifndef LAYER_TABLE_H
         #define LAYER_TABLE_H
@@ -168,18 +170,18 @@ def emit_layer_table(tflite_bytes: bytes,
 
         #include "layer_desc.h"
 
-        const uint32_t NUM_LAYERS = {len(layer_descs)};
+        /* NUM_LAYERS is compile-time (loop bound). LAYERS data lives in D-BRAM at
+         * 0xB0040800 — ARM loads layer_table.bin there before kicking RISC-V. */
+        #define NUM_LAYERS  {len(layer_descs)}u
+        #define LAYERS      ((const layer_desc_t*)0xB0040800u)
 
-        const layer_desc_t LAYERS[{len(layer_descs)}] = {{
+        #endif /* LAYER_TABLE_H */
         """)
-    for i, L in enumerate(layer_descs):
-        header += textwrap.indent(fmt(L, i), "    ") + ",\n"
-    header += "};\n\n#endif /* LAYER_TABLE_H */\n"
 
     header_path = Path(header_path)
     header_path.parent.mkdir(parents=True, exist_ok=True)
     header_path.write_text(header)
-    print(f"[+] Layer table  : {header_path}  ({len(layer_descs)} layers)")
+    print(f"[+] Layer header : {header_path}")
 
     # max IFM/OFM bytes -> ARM ping-pong buffer size
     max_bytes = 0

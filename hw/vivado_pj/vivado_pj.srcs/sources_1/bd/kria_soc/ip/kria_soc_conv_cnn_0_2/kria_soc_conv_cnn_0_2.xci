@@ -3,8 +3,8 @@
   "ip_inst": {
     "xci_name": "kria_soc_conv_cnn_0_2",
     "cell_name": "conv_cnn_0",
-    "component_reference": "xilinx.com:user:conv_cnn:2.0",
-    "ip_revision": "12",
+    "component_reference": "xilinx.com:user:conv_cnn:2.1",
+    "ip_revision": "3",
     "gen_directory": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_conv_cnn_0_2",
     "parameters": {
       "component_parameters": {
@@ -39,7 +39,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "12" } ],
+        "IPREVISION": [ { "value": "3" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../vivado_pj.gen/sources_1/bd/kria_soc/ip/kria_soc_conv_cnn_0_2" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
@@ -326,5 +326,5 @@
       }
     }
   },
-  "checksum": "2f2a9b72"
+  "checksum": "9d64ac88"
 }

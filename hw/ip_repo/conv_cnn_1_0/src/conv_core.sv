@@ -92,6 +92,16 @@ module conv_core
     assign load_s_ready = (l_state == L_WEIGHTS) || (l_state == L_BIAS);
     assign load_done    = (l_state == L_DONE);
 
+    // Truncated "last-index" signals — when cfg_num_* = 0 (overflow because source
+    // value equals MAX_CIN/COUT and the sliced field can't hold it), the subtraction
+    // wraps in field width to give the correct max-index (e.g. 0-1 in 6b = 63).
+    // Without this, the 32-bit-promoted subtraction yields 0xFFFFFFFF which never
+    // matches the 6-bit load_cin/load_cout counter — FSM never terminates.
+    logic [CIN_ADDR_W-1:0]  load_cin_last;
+    logic [COUT_ADDR_W-1:0] load_cout_last;
+    assign load_cin_last  = cfg_num_cin  - 1'b1;
+    assign load_cout_last = cfg_num_cout - 1'b1;
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             l_state            <= L_IDLE;
@@ -130,11 +140,11 @@ module conv_core
                     wb_w_data <= $signed(s_data);
 
                     // Increment counters cin → kk → cout
-                    if (load_cin == cfg_num_cin - 1) begin
+                    if (load_cin == load_cin_last) begin
                         load_cin <= '0;
                         if (load_kk == K_TAPS - 1) begin
                             load_kk <= '0;
-                            if (load_cout == cfg_num_cout - 1) begin
+                            if (load_cout == load_cout_last) begin
                                 load_cout     <= '0;
                                 load_byte_idx <= '0;
                                 l_state       <= L_BIAS;
@@ -166,7 +176,7 @@ module conv_core
                         wb_b_data <= {s_data, load_bias_assemble[23:0]};
                         load_byte_idx <= '0;
 
-                        if (load_cout == cfg_num_cout - 1) begin
+                        if (load_cout == load_cout_last) begin
                             l_state <= L_DONE;
                         end else begin
                             load_cout <= load_cout + 1;
