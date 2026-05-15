@@ -88,8 +88,7 @@ CV32E40P    ──► reads LAYERS[] ──► programs AXI-DMA + conv_cnn per l
 ARM         ──► reads OFM from DDR ──► GAP + softmax + argmax ──► label + confidence
 ```
 
-Memory map: see [docs/memory-map.md](docs/memory-map.md).  
-Full architecture details: see [CLAUDE.md](CLAUDE.md).
+Memory map: see [docs/memory-map.md](docs/memory-map.md).
 
 ---
 

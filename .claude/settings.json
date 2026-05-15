@@ -13,7 +13,8 @@
       "Bash(bash host/scripts/deploy.sh)",
       "Bash(xxd docs/memory-map.md)",
       "Bash(python3)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(grep -v \"^--$\")"
     ]
   }
 }

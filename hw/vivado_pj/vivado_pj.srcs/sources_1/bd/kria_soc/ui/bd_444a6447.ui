@@ -80,8 +80,8 @@ preplace cgraphic comment_4 place left -133 -3 textcolor 4 linecolor 3 linewidth
 levelinfo -pg 1 -50 810 1490 2140 2450 2570
 pagesize -pg 1 -db -bbox -sgen -50 -510 3600 1360
 ",
-   "No Loops_ScaleFactor":"0.365462",
-   "No Loops_TopLeft":"-140,-306",
+   "No Loops_ScaleFactor":"0.376707",
+   "No Loops_TopLeft":"-61,-308",
    "Reduced Jogs_ScaleFactor":"0.89717",
    "Reduced Jogs_TopLeft":"10,628",
    "comment_0":"Instruction BRAM",
@@ -169,10 +169,10 @@ pagesize -pg 1 -db -bbox -sgen -400 -690 2500 430
    "textcolor_comment_6":""
 }
 {
-   """"""""da_axi4_cnt"""""""":"4",
-   """"""""da_bram_cntlr_cnt"""""""":"2",
-   """"""""da_clkrst_cnt"""""""":"11",
-   """"""""da_zynq_ultra_ps_e_cnt"""""""":"1"
+   """""""""da_axi4_cnt""""""""":"4",
+   """""""""da_bram_cntlr_cnt""""""""":"2",
+   """""""""da_clkrst_cnt""""""""":"11",
+   """""""""da_zynq_ultra_ps_e_cnt""""""""":"1"
 }
 {
    "/axi_bram_ctrl_0/comment_2":"comment_2",

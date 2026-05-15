@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<Project Version="1" Minor="7" DIGEST="">
+	<TOOL_VERSION Version="2025.2.1"/>
+	<MODE Name="Post-Synthesis"/>
+	<SYSTEMINFO BOARD="xilinx.com:kv260_som:1.4" PART="xck26-sfvc784-2LV-c" ARCH="zynquplus" PACKAGE="sfvc784" DEVICE="xck26" SPEED="-2LV" LUT="117120" FF="234240" BRAM="144" DSP="1248"/>
+	<PART Name="xck26-sfvc784-2LV-c">
+		<SSIT IS_SSIT="0"/>
+		<NUM_OF_SLRS Value="1"/>
+	</PART>
+	<HIERARCHY Name="kria_soc_wrapper"/>
+	<File Type="HW_HANDOFF" Name="kria_soc.hwh" src_db="kria_soc.hwdef" DESIGN_HIERARCHY="kria_soc_i" BD_TYPE="DEFAULT_BD">
+	</File>
+	<File Type="BDA" Name="kria_soc.bda" src_db="kria_soc.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT" Name="psu_init.c" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT" Name="psu_init.h" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT_GPL" Name="psu_init_gpl.c" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT_GPL" Name="psu_init_gpl.h" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_INIT_HELP" Name="psu_init.html" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_XMD_INIT" Name="psu_init.tcl" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT" Name="psu_init.c" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT" Name="psu_init.h" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT_GPL" Name="psu_init_gpl.c" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_FSBL_INIT_GPL" Name="psu_init_gpl.h" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_INIT_HELP" Name="psu_init.html" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="PS_XMD_INIT" Name="psu_init.tcl" src_db="kria_soc_zynq_ultra_ps_e_0_0.hwdef">
+	</File>
+	<File Type="HW_HANDOFF" Name="kria_soc_smartconnect_1_0.hwh" src_db="kria_soc_smartconnect_1_0.hwdef" DESIGN_HIERARCHY="kria_soc_i/smartconnect_1/inst" BD_TYPE="SCOPED_BD">
+	</File>
+	<File Type="BIT" Name="kria_soc_wrapper.bit" src_db="temp.hdf">
+	</File>
+	<DRIVERS>
+		<DRIVER IP_VLNV="xilinx.com:user:conv_cnn:2.0">
+			<File PATH="drivers/conv_cnn_v1_0/data/conv_cnn.mdd"/>
+			<File PATH="drivers/conv_cnn_v1_0/data/conv_cnn.tcl"/>
+			<File PATH="drivers/conv_cnn_v1_0/src/Makefile"/>
+			<File PATH="drivers/conv_cnn_v1_0/src/conv_cnn.h"/>
+			<File PATH="drivers/conv_cnn_v1_0/src/conv_cnn.c"/>
+			<File PATH="drivers/conv_cnn_v1_0/src/conv_cnn_selftest.c"/>
+		</DRIVER>
+	</DRIVERS>
+	<USEDRESOURCES LUT="22497" FF="28715" BRAM="99" DSP="9"/>
+	<DESIGN_DATA Type="rm">
+		<DESIGN_IDS DESIGN_ID="4153619285" PARENT_ID="0" NODE_ID="0"/>
+	</DESIGN_DATA>
+</Project>
+

@@ -145,4 +145,5 @@ secrets.json
 *.tar.gz
 node_modules/
 docs/reports/
+docs/counter-argument.md
 CLAUDE.md
