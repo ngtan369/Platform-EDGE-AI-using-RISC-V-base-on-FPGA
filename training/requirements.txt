@@ -1,7 +1,9 @@
 tensorflow>=2.13
+tensorflow-datasets>=4.9     # ImageNette auto-download (no kaggle.json needed)
 numpy>=1.21
-kagglehub>=0.2
+kagglehub>=0.2               # cats_dogs (Kaggle)
 opencv-python>=4.5
 matplotlib>=3.5
 Pillow>=9.0
 ipykernel>=6.0
+flatbuffers>=23.0            # TFLite Conv2D padding parsing in emit.py

@@ -337,7 +337,7 @@
                 "SX": "/conv_cnn_0",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "xilinx.com:user:conv_cnn:2.1",
+                "SV": "xilinx.com:user:conv_cnn:2.2",
                 "TM": "both",
                 "TU": "register"
             },
@@ -355,7 +355,7 @@
                 "SX": "/conv_cnn_0",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "xilinx.com:user:conv_cnn:2.1",
+                "SV": "xilinx.com:user:conv_cnn:2.2",
                 "TM": "both",
                 "TU": "register"
             },
@@ -684,7 +684,7 @@
                 "SX": "/conv_cnn_0",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "xilinx.com:user:conv_cnn:2.1",
+                "SV": "xilinx.com:user:conv_cnn:2.2",
                 "TM": "both",
                 "TU": "register"
             },
@@ -702,7 +702,7 @@
                 "SX": "/conv_cnn_0",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "xilinx.com:user:conv_cnn:2.1",
+                "SV": "xilinx.com:user:conv_cnn:2.2",
                 "TM": "both",
                 "TU": "register"
             },

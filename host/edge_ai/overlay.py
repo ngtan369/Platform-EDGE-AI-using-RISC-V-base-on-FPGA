@@ -91,6 +91,10 @@ class EdgeAIOverlay:
     def set_dataset_id(self, dataset_id: int) -> None:
         self.d_bram.write(C.REG_DATASET_ID, dataset_id)
 
+    def set_layer_idx(self, idx: int) -> None:
+        """v2.1: tell RISC-V which single layer to run on next CMD_START."""
+        self.d_bram.write(C.REG_LAYER_IDX, idx)
+
     # ---- run / wait ----
     def kick(self) -> None:
         self.d_bram.write(C.REG_CMD_FROM_ARM, C.CMD_START)
@@ -120,3 +124,16 @@ class EdgeAIOverlay:
         """Return (class_id, confidence_q1_7) from RISC-V (if firmware writes them)."""
         return (self.d_bram.read(C.REG_RESULT_CLASS),
                 self.d_bram.read(C.REG_RESULT_CONF))
+
+    def run_single_layer(self, layer_idx: int, ifm_phys: int, ofm_phys: int,
+                          timeout_s: float = 2.0) -> None:
+        """v2.1: kick one conv layer (firmware reads REG_LAYER_IDX, runs that
+        layer's process_one_layer, signals DONE). ARM handles ping-pong outside.
+        Caller MUST flush IFM buffer before calling, invalidate OFM after."""
+        self.set_layer_idx(layer_idx)
+        self.set_io_buffers(ifm_phys, ofm_phys)
+        self.kick()
+        try:
+            self.poll_done(timeout_s=timeout_s)
+        finally:
+            self.reset_cmd()

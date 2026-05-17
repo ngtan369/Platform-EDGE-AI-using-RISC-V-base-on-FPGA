@@ -28,8 +28,8 @@
 #define REG_IFM_PHYS_ADDR   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x18))
 #define REG_OFM_PHYS_ADDR   (*(volatile uint32_t*)(ARM_COMM_BASE + 0x1C))
 #define REG_WEIGHT_BASE     (*(volatile uint32_t*)(ARM_COMM_BASE + 0x20))
-#define REG_DBG_LAYER       (*(volatile uint32_t*)(ARM_COMM_BASE + 0x24))
-#define REG_DBG_PHASE       (*(volatile uint32_t*)(ARM_COMM_BASE + 0x28))
+#define REG_LAYER_IDX       (*(volatile uint32_t*)(ARM_COMM_BASE + 0x24))   /* ARM→RV: which layer to run */
+#define REG_DBG_PHASE       (*(volatile uint32_t*)(ARM_COMM_BASE + 0x28))   /* RV→ARM: current process phase */
 
 #define CMD_START         0x01
 #define STATUS_IDLE       0x00
@@ -182,15 +182,16 @@ static void wait_for_input_data(void)
 static void run_inference(void)
 {
     uint32_t weight_base = REG_WEIGHT_BASE;
-    uint32_t buf_a       = REG_IFM_PHYS_ADDR;   /* input ảnh */
-    uint32_t buf_b       = REG_OFM_PHYS_ADDR;   /* scratch */
+    uint32_t buf_a       = REG_IFM_PHYS_ADDR;   /* this kick's IFM phys */
+    uint32_t buf_b       = REG_OFM_PHYS_ADDR;   /* this kick's OFM phys */
 
     /* Ping-pong: layer 0: A→B, layer 1: B→A, layer 2: A→B, ... */
-    for (uint32_t i = 0; i < NUM_LAYERS; i++) {
-        REG_DBG_LAYER = i;
-        uint32_t in_phys  = (i & 1) ? buf_b : buf_a;
-        uint32_t out_phys = (i & 1) ? buf_a : buf_b;
-        process_one_layer(&LAYERS[i], weight_base, in_phys, out_phys);
+    /* v2.1 architecture: ARM orchestrates per-layer iteration. RISC-V receives
+     * `layer_idx` per CMD_START and runs that single conv. ARM handles ping-pong
+     * buf swap, padding, maxpool, etc., between kicks. */
+    uint32_t i = REG_LAYER_IDX;
+    if (i < NUM_LAYERS) {
+        process_one_layer(&LAYERS[i], weight_base, buf_a, buf_b);
     }
 }
 

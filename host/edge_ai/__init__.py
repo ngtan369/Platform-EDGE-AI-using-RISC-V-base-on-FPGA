@@ -11,11 +11,13 @@ from .constants import (
 from .overlay import EdgeAIOverlay
 from .preprocess import load_meta, preprocess_image, load_weights_blob
 from .postprocess import gap_argmax
+from .sw_ops import pad_same, maxpool_2x2, relu_int8, relu6_int8, skip_add
 
 __all__ = [
     "EdgeAIOverlay",
     "load_meta", "preprocess_image", "load_weights_blob",
     "gap_argmax",
+    "pad_same", "maxpool_2x2", "relu_int8", "relu6_int8", "skip_add",
     "constants",
     "REG_CMD_FROM_ARM", "REG_STATUS_TO_ARM", "REG_DATASET_ID",
     "REG_RESULT_CLASS", "REG_RESULT_CONF",

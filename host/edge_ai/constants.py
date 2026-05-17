@@ -19,6 +19,7 @@ REG_RESULT_CONF    = 0x10
 REG_IFM_PHYS_ADDR  = 0x18
 REG_OFM_PHYS_ADDR  = 0x1C
 REG_WEIGHT_BASE    = 0x20
+REG_LAYER_IDX      = 0x24    # ARM→RV: which layer to run on this CMD_START (v2.1)
 # Layer table region (D-BRAM-resident copy of LAYERS[]). ARM populates before
 # CMD_START. Capacity: 5 KB (~128 layers of 40 B each). Must match firmware
 # layer_table.h: #define LAYERS ((const layer_desc_t*)0xB0040800u)

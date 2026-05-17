@@ -28,6 +28,14 @@ package conv_pkg;
     parameter int COUT_ADDR_W  = $clog2(MAX_COUT);
     parameter int WIDTH_ADDR_W = $clog2(MAX_WIDTH);
 
+    // ---------------- Parallel cout configuration (v2.1) ----------------
+    // N_COUT_PE = number of cout banks processed simultaneously.
+    // 9 PE_MAC × N_COUT_PE = total PEs. Default 8 → 72 PEs (5.8% of KV260 DSP).
+    parameter int N_COUT_PE       = 8;
+    parameter int COUT_BANK_W     = $clog2(N_COUT_PE);              // = 3
+    parameter int COUT_HIGH_W     = COUT_ADDR_W - COUT_BANK_W;      // = 3 (for MAX_COUT=64)
+    parameter int COUT_BATCH_W    = COUT_HIGH_W;                    // batches 0..(MAX_COUT/N_COUT_PE -1)
+
     // ---------------- Pipeline latencies -----------------
     parameter int REQUANT_LATENCY    = 3;   // requantize internal pipe (bias→mul→shift)
     parameter int PE_MAC_LATENCY     = 2;   // pe_mac internal (mult reg + acc reg)

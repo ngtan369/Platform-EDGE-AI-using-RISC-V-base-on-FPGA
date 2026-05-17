@@ -3,7 +3,7 @@
   <spirit:vendor>xilinx.com</spirit:vendor>
   <spirit:library>user</spirit:library>
   <spirit:name>conv_cnn</spirit:name>
-  <spirit:version>2.1</spirit:version>
+  <spirit:version>2.2</spirit:version>
   <spirit:busInterfaces>
     <spirit:busInterface>
       <spirit:name>S00_AXI</spirit:name>
@@ -492,7 +492,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>ec134503</spirit:value>
+            <spirit:value>39fc3262</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -508,7 +508,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>ec134503</spirit:value>
+            <spirit:value>39fc3262</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1177,7 +1177,7 @@
       <spirit:file>
         <spirit:name>src/weight_buf.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_69201837</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_f0343415</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1258,7 +1258,7 @@
     <spirit:fileSet>
       <spirit:name>xilinx_xpgui_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>xgui/conv_cnn_v2_1.tcl</spirit:name>
+        <spirit:name>xgui/conv_cnn_v2_2.tcl</spirit:name>
         <spirit:fileType>tclSource</spirit:fileType>
         <spirit:userFileType>CHECKSUM_a22c518b</spirit:userFileType>
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
@@ -1272,7 +1272,7 @@
       </spirit:file>
     </spirit:fileSet>
   </spirit:fileSets>
-  <spirit:description>Covolution CNN, Support standard convolution</spirit:description>
+  <spirit:description>9x8 PE</spirit:description>
   <spirit:parameters>
     <spirit:parameter>
       <spirit:name>C_S00_AXIS_TDATA_WIDTH</spirit:name>
@@ -1370,18 +1370,19 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>conv_cnn_v2.1</xilinx:displayName>
-      <xilinx:coreRevision>3</xilinx:coreRevision>
+      <xilinx:coreRevision>1</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:conv_cnn:1.0</xilinx:canUpgradeFrom>
         <xilinx:canUpgradeFrom>xilinx.com:user:conv_cnn:2.0</xilinx:canUpgradeFrom>
+        <xilinx:canUpgradeFrom>xilinx.com:user:conv_cnn:2.1</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-05-15T11:37:14Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-05-16T14:41:14Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2025.2.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="6add534c"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="ed1368d5"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="4e2ea88a"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="3fa59829"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="8460f9dc"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="eadeae9d"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="e115eb06"/>

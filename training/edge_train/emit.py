@@ -50,7 +50,28 @@ def emit_layer_table(tflite_bytes: bytes,
     final_ofm_tensor = None
     final_ofm_layer  = -1
 
-    for op in ops:
+    # Parse TFLite for Conv2D padding mode. The Interpreter doesn't expose op
+    # options directly via _get_ops_details(), so we open the FlatBuffer model.
+    import flatbuffers  # type: ignore
+    from tensorflow.lite.python import schema_py_generated as schema  # type: ignore
+    fb_model = schema.Model.GetRootAsModel(tflite_bytes, 0)
+    subgraph = fb_model.Subgraphs(0)
+    conv_padding_per_op = {}  # op_idx → 0=VALID, 1=SAME
+    for op_i in range(subgraph.OperatorsLength()):
+        op_fb = subgraph.Operators(op_i)
+        opcode_idx = op_fb.OpcodeIndex()
+        opcode = fb_model.OperatorCodes(opcode_idx).BuiltinCode()
+        if opcode == schema.BuiltinOperator.CONV_2D:
+            opt = op_fb.BuiltinOptions()
+            if opt is not None:
+                conv_opt = schema.Conv2DOptions()
+                conv_opt.Init(opt.Bytes, opt.Pos)
+                # padding: 0=SAME, 1=VALID in TFLite schema
+                tfl_pad = conv_opt.Padding()
+                conv_padding_per_op[op_i] = 1 if tfl_pad == 0 else 0
+
+    conv_op_seq = 0  # index across CONV_2Ds only
+    for op_idx_in_ops, op in enumerate(ops):
         op_name = op["op_name"]
 
         if op_name == "MAX_POOL_2D":
@@ -84,6 +105,9 @@ def emit_layer_table(tflite_bytes: bytes,
         if kh != kw or kh not in (1, 3):
             raise ValueError(f"Layer {layer_idx}: kernel {kh}x{kw} unsupported")
         ih, iw = int(in_t["shape"][1]), int(in_t["shape"][2])
+        # Padding: lookup by op flatbuffer index (which matches op order in subgraph)
+        padding = conv_padding_per_op.get(op_idx_in_ops, 0)
+        conv_op_seq += 1
 
         weight_offset = len(blob)
         blob.extend(weights.tobytes())
@@ -112,7 +136,7 @@ def emit_layer_table(tflite_bytes: bytes,
             "weight_offset": weight_offset, "weight_bytes": weight_bytes,
             "bias_offset":   bias_offset,   "bias_bytes":   bias_bytes,
             "ifm_width": iw, "ifm_height": ih, "cin": cin, "cout": cout,
-            "kernel": kh, "stride": 1, "padding": 0, "pool_en": 0,
+            "kernel": kh, "stride": 1, "padding": padding, "pool_en": 0,
             "activation": 1,        # ACT_RELU default; last layer overridden below
             "output_M": M_q31, "output_shift": shift,
             "input_zp": in_zp, "output_zp": out_zp, "weight_zp": w_zp,
@@ -183,20 +207,26 @@ def emit_layer_table(tflite_bytes: bytes,
     header_path.write_text(header)
     print(f"[+] Layer header : {header_path}")
 
-    # max IFM/OFM bytes -> ARM ping-pong buffer size
+    # max IFM/OFM bytes -> ARM ping-pong buffer size.
+    # Account for SAME padding (ARM adds 2px border before DMA so VALID HW = SAME).
     max_bytes = 0
     for L in layer_descs:
-        ifm = L["ifm_width"] * L["ifm_height"] * L["cin"]
-        ow = L["ifm_width"]  - L["kernel"] + 1
-        oh = L["ifm_height"] - L["kernel"] + 1
+        # IFM size as fed to HW: if SAME, ARM zero-pads → HW sees (ih+2)×(iw+2)
+        pad = 1 if (L["padding"] == 1 and L["kernel"] == 3) else 0
+        ifm_h_hw = L["ifm_height"] + 2 * pad
+        ifm_w_hw = L["ifm_width"]  + 2 * pad
+        ifm = ifm_h_hw * ifm_w_hw * L["cin"]
+        # OFM size from HW (VALID conv on padded IFM)
+        ow = ifm_w_hw - L["kernel"] + 1
+        oh = ifm_h_hw - L["kernel"] + 1
         if L["pool_en"]:
             ow //= 2
             oh //= 2
         ofm = ow * oh * L["cout"]
         max_bytes = max(max_bytes, ifm, ofm)
 
-    # Ping-pong indexing: layer i reads (i&1)?buf_b:buf_a, writes the other.
-    # Final OFM ends up in buf_b if final_ofm_layer is even (0,2,...), buf_a if odd.
+    # Ping-pong indexing in Path B: ARM swaps buffer pointers per layer kick.
+    # final_ofm_buf_idx still valid for backward-compat with vgg-tiny notebook.
     final_buf_idx = 1 if (final_ofm_layer % 2) == 0 else 0
 
     return {

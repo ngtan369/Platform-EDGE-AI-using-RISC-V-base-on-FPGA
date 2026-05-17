@@ -54,7 +54,48 @@ def build_legacy(model_name: str, num_classes: int,
     return models.Model(base.input, out, name=model_name)
 
 
+def build_vgg_a(num_classes: int, input_shape=(*FPGA_INPUT_SIZE, 3)) -> tf.keras.Model:
+    """
+    VGG-A small (FPGA-deployable via Phase B ARM-orchestrated runtime).
+
+    Geometry (input 128x128, SAME padding emulated via ARM zero-pad, stride 1,
+    maxpool 2x2 ARM-side):
+        128x128x3
+          -> Conv 3x3 cout=16  ReLU SAME       -> 128x128x16
+          -> MaxPool 2x2 (ARM)                  ->  64x64x16
+          -> Conv 3x3 cout=32  ReLU SAME       ->  64x64x32
+          -> MaxPool 2x2 (ARM)                  ->  32x32x32
+          -> Conv 3x3 cout=64  ReLU SAME       ->  32x32x64
+          -> Conv 3x3 cout=64  ReLU SAME       ->  32x32x64
+          -> MaxPool 2x2 (ARM)                  ->  16x16x64
+          -> Conv 3x3 cout=64  ReLU SAME       ->  16x16x64
+          -> Conv 3x3 cout=64  ReLU SAME       ->  16x16x64
+          -> MaxPool 2x2 (ARM)                  ->   8x8x64
+          -> Conv 3x3 cout=N   (no act) SAME   ->   8x8xN
+        ARM: GAP -> softmax -> argmax
+
+    7 conv layers + 4 maxpool. ~135K params for N=2.
+    """
+    inputs = tf.keras.Input(shape=input_shape)
+    x = layers.Conv2D(16, 3, activation="relu", padding="same")(inputs)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(32, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(64, 3, activation="relu", padding="same")(x)
+    x = layers.Conv2D(64, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(64, 3, activation="relu", padding="same")(x)
+    x = layers.Conv2D(64, 3, activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D(2)(x)
+    x = layers.Conv2D(num_classes, 3, activation=None, padding="same")(x)
+    x = layers.GlobalAveragePooling2D()(x)
+    outputs = layers.Softmax()(x)
+    return models.Model(inputs, outputs, name="vgg_a")
+
+
 def build_model(model_name: str, num_classes: int) -> tf.keras.Model:
     if model_name == "vgg-tiny":
         return build_vgg_tiny(num_classes)
+    if model_name == "vgg-a":
+        return build_vgg_a(num_classes)
     return build_legacy(model_name, num_classes)

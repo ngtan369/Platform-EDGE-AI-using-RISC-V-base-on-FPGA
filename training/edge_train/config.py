@@ -5,11 +5,17 @@ from pathlib import Path
 FPGA_INPUT_SIZE = (128, 128)        # (H, W)
 
 # Dataset-side label mapping. Order = class_id (RISC-V argmax index).
+#
+# Capstone scope (Phase B):
+#   - cats_dogs : hardware validation / bring-up baseline (binary classification)
+#   - imagenette: 10-class multi-class real-world demo (FastAI subset of ImageNet)
 LABEL_MAPS = {
-    "inria":     ["no_person", "person"],
-    "cats_dogs": ["cat", "dog"],
+    "cats_dogs":  ["cat", "dog"],
+    "imagenette": ["tench", "english_springer", "cassette_player", "chainsaw",
+                   "church", "french_horn", "garbage_truck", "gas_pump",
+                   "golf_ball", "parachute"],
 }
-DATASET_IDS = {"inria": 0, "cats_dogs": 1}
+DATASET_IDS = {"cats_dogs": 0, "imagenette": 1}
 
 # Project root resolution: works both for `python -m edge_train` and a notebook
 # that has cd'd into training/. Walk up until we find CLAUDE.md.
