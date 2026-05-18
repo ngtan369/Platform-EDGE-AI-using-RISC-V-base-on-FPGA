@@ -178,9 +178,15 @@ def emit_layer_table(tflite_bytes: bytes,
             L["kernel"], L["stride"], L["padding"], L["pool_en"], L["activation"],
             L["output_M"], L["output_shift"], L["input_zp"], L["output_zp"], L["weight_zp"],
         ))
-    table_bin_path = Path(header_path).with_suffix(".bin")
+    # Emit two copies: one next to weights.bin (canonical artifact for Colab bundle),
+    # one at firmware/layer_table.bin (kept for backward compat with local builds).
+    blob_stem = Path(blob_path).stem.replace(".weights", "")  # e.g. "vgg-tiny_cats_dogs"
+    table_bin_path = Path(blob_path).parent / f"{blob_stem}.layer_table.bin"
     table_bin_path.write_bytes(bytes(table_bin))
     print(f"[+] Layer blob   : {table_bin_path}  ({len(table_bin)} B, {len(layer_descs)} layers)")
+    # Also write a copy at firmware/layer_table.bin (legacy path)
+    legacy_bin_path = Path(header_path).with_suffix(".bin")
+    legacy_bin_path.write_bytes(bytes(table_bin))
 
     # ---- emit C header — pointer macros, NUM_LAYERS as compile-time constant ----
     # LAYERS is a pointer to D-BRAM (populated by ARM at runtime).

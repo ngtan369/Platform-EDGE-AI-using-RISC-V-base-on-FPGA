@@ -1,0 +1,50 @@
+{
+  "model": "vgg-a",
+  "dataset": "cats_dogs",
+  "dataset_id": 0,
+  "labels": [
+    "cat",
+    "dog"
+  ],
+  "input": {
+    "shape": [
+      1,
+      128,
+      128,
+      3
+    ],
+    "dtype": "int8",
+    "scale": 0.003921568859368563,
+    "zero_point": -128,
+    "fpga_size": [
+      128,
+      128
+    ]
+  },
+  "output": {
+    "shape": [
+      1,
+      2
+    ],
+    "dtype": "int8",
+    "scale": 0.00390625,
+    "zero_point": -128
+  },
+  "fpga": {
+    "num_layers": 7,
+    "weights_blob_size": 136440,
+    "final_ofm_layer": 6,
+    "final_ofm_buf_idx": 1,
+    "final_ofm_shape": [
+      1,
+      8,
+      8,
+      2
+    ],
+    "final_ofm_scale": 0.7050672769546509,
+    "final_ofm_zp": 3,
+    "max_tensor_bytes": 73984
+  },
+  "weights_file": "vgg-a_cats_dogs.weights.bin",
+  "header_path": "/content/capstoneProject/firmware/layer_table.h"
+}
