@@ -98,13 +98,26 @@ static void dma_wait_idle(void)
 /* ============================================================================
  * 4. LAYER DRIVER
  * ============================================================================ */
+/* Compute the *effective* IFM dims that conv_cnn sees on AXIS.
+ * RTL only supports VALID conv (no pad_same, no maxpool) — when layer is
+ * marked PAD_SAME, ARM has already zero-padded the IFM in DDR, so the
+ * effective input to RTL is (ifm + kernel - 1) on each spatial dim.
+ * pool_en is ignored at RTL level; ARM applies maxpool in software. */
+static inline uint32_t eff_ifm_w(const layer_desc_t* L) {
+    return (L->padding == PAD_SAME) ? (uint32_t)L->ifm_width  + L->kernel - 1
+                                    : (uint32_t)L->ifm_width;
+}
+static inline uint32_t eff_ifm_h(const layer_desc_t* L) {
+    return (L->padding == PAD_SAME) ? (uint32_t)L->ifm_height + L->kernel - 1
+                                    : (uint32_t)L->ifm_height;
+}
+
 static uint32_t ofm_geometry_bytes(const layer_desc_t* L)
 {
-    uint32_t ow = (L->padding == PAD_SAME) ? L->ifm_width
-                                           : (L->ifm_width  - L->kernel + 1);
-    uint32_t oh = (L->padding == PAD_SAME) ? L->ifm_height
-                                           : (L->ifm_height - L->kernel + 1);
-    if (L->pool_en) { ow >>= 1; oh >>= 1; }
+    /* RTL always outputs VALID conv → (eff_ifm - kernel + 1) per dim.
+     * pool happens on ARM after this DMA, so DON'T halve here. */
+    uint32_t ow = eff_ifm_w(L) - L->kernel + 1;
+    uint32_t oh = eff_ifm_h(L) - L->kernel + 1;
     return ow * oh * (uint32_t)L->cout;
 }
 
@@ -120,7 +133,9 @@ static void process_one_layer(const layer_desc_t* L,
 {
     /* ---- 1. Static layer config (geometry + quant) ---- */
     REG_DBG_PHASE = 1;  // entering config
-    uint32_t geometry = (uint32_t)L->ifm_width | ((uint32_t)L->ifm_height << 16);
+    uint32_t ifm_w = eff_ifm_w(L);   // padded if PAD_SAME
+    uint32_t ifm_h = eff_ifm_h(L);
+    uint32_t geometry = ifm_w | (ifm_h << 16);
     uint32_t channels = (uint32_t)L->cin       | ((uint32_t)L->cout       << 16);
     uint32_t shift_zp = ((uint32_t)L->output_shift & 0x3F)
                       | (((uint32_t)(uint8_t)L->output_zp & 0xFF) << 8);
@@ -142,12 +157,13 @@ static void process_one_layer(const layer_desc_t* L,
 
     /* ---- 3. Infer mode: program S2MM first (ready to receive), then start core ---- */
     REG_DBG_PHASE = 5;  // about to kick INFER
-    uint32_t ifm_bytes = (uint32_t)L->ifm_width * L->ifm_height * L->cin;
-    uint32_t ofm_bytes = ofm_geometry_bytes(L);
+    uint32_t ifm_bytes = ifm_w * ifm_h * (uint32_t)L->cin;   // padded if SAME
+    uint32_t ofm_bytes = ofm_geometry_bytes(L);              // VALID, no pool
     dma_kick_s2mm(ofm_phys, ofm_bytes);
 
+    /* RTL doesn't wire max_pool.sv yet — ARM applies maxpool in software.
+     * Mask out POOL_EN regardless of L->pool_en. */
     uint32_t ctrl = CNN_CTRL_START
-                  | (L->pool_en              ? CNN_CTRL_POOL_EN  : 0)
                   | (L->activation==ACT_RELU ? CNN_CTRL_HAS_RELU : 0);
     iowrite32(CNN_BASE_ADDR + CNN_REG_CTRL, ctrl);
 

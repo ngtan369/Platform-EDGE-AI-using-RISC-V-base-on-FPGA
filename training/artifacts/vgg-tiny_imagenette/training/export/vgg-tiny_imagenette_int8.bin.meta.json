@@ -49,8 +49,8 @@
       118,
       10
     ],
-    "final_ofm_scale": 1.5183109045028687,
-    "final_ofm_zp": 9,
+    "final_ofm_scale": 1.3082371950149536,
+    "final_ofm_zp": 8,
     "max_tensor_bytes": 921600
   },
   "weights_file": "vgg-tiny_imagenette.weights.bin",

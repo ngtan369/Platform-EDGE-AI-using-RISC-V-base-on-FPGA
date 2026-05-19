@@ -94,8 +94,7 @@ def emit_layer_table(tflite_bytes: bytes,
         in_zp     = int(in_t["quantization_parameters"]["zero_points"][0])
         out_scale = float(out_t["quantization_parameters"]["scales"][0])
         out_zp    = int(out_t["quantization_parameters"]["zero_points"][0])
-        w_scales  = w_t["quantization_parameters"]["scales"]
-        w_scale   = float(w_scales[0]) if len(w_scales) > 0 else 1.0
+        w_scales_arr = np.asarray(w_t["quantization_parameters"]["scales"], dtype=np.float64)
         w_zp      = int(w_t["quantization_parameters"]["zero_points"][0])
 
         weights = interp.get_tensor(w_idx)            # int8, [cout, kh, kw, cin]
@@ -108,6 +107,35 @@ def emit_layer_table(tflite_bytes: bytes,
         # Padding: lookup by op flatbuffer index (which matches op order in subgraph)
         padding = conv_padding_per_op.get(op_idx_in_ops, 0)
         conv_op_seq += 1
+
+        # --- Per-axis → per-tensor weight rescale --------------------------------
+        # TFLite emits one scale per output channel for Conv2D weights (per-axis).
+        # Our RTL uses a single M_q31/shift per layer (per-tensor). To bridge:
+        # rescale int8 weights so that ALL channels share a single common_scale.
+        # New weight: w' = round(w_int8[c] * w_scales[c] / common_scale).
+        # Bias must be rescaled the same way: bias' = round(bias[c] * common_scale / w_scales[c]).
+        # Then layer-level M_real = in_scale * common_scale / out_scale.
+        common_w_scale = float(w_scales_arr.max())  # max → least clipping when scaling down
+        if w_scales_arr.size > 1 and not np.allclose(w_scales_arr, common_w_scale):
+            # Rescale each output-channel slice: w_new[c] = w[c] * (w_scales[c] / common_w_scale)
+            scale_ratio = (w_scales_arr / common_w_scale).reshape(-1, 1, 1, 1)
+            weights_rescaled = np.round(weights.astype(np.float64) * scale_ratio)
+            weights_rescaled = np.clip(weights_rescaled, -127, 127).astype(np.int8)
+            # Bias is float·(W*X), where W rescaled by ratio so bias must scale INVERSELY
+            # to keep product equal: bias_real = bias_int32 * w_scale * in_scale → unchanged real value
+            # bias_int32_new = bias_real / (common_w_scale * in_scale)
+            #                = bias_int32 * (w_scale[c] / common_w_scale)
+            if biases is not None:
+                biases_rescaled = np.round(
+                    biases.astype(np.float64) * (w_scales_arr / common_w_scale)
+                ).astype(np.int32)
+            else:
+                biases_rescaled = None
+            weights = weights_rescaled
+            biases  = biases_rescaled
+            print(f"  L{layer_idx}: rescaled per-axis → per-tensor "
+                  f"(scales range {w_scales_arr.min():.4g}..{w_scales_arr.max():.4g})")
+        # Else: already per-tensor, keep weights/biases unchanged
 
         weight_offset = len(blob)
         blob.extend(weights.tobytes())
@@ -129,7 +157,7 @@ def emit_layer_table(tflite_bytes: bytes,
             blob.extend(bias_corrected.tobytes())
             bias_bytes = bias_corrected.size * 4
 
-        M_real = (in_scale * w_scale) / out_scale if out_scale > 0 else 0.0
+        M_real = (in_scale * common_w_scale) / out_scale if out_scale > 0 else 0.0
         M_q31, shift = quantize_multiplier(M_real)
 
         layer_descs.append({

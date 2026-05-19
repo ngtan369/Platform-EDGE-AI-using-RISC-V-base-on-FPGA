@@ -9,13 +9,13 @@ from .constants import (
     STATUS_IDLE, STATUS_BUSY, STATUS_DONE,
 )
 from .overlay import EdgeAIOverlay
-from .preprocess import load_meta, preprocess_image, load_weights_blob
+from .preprocess import load_meta, preprocess_image, load_weights_blob, parse_layer_table
 from .postprocess import gap_argmax
 from .sw_ops import pad_same, maxpool_2x2, relu_int8, relu6_int8, skip_add
 
 __all__ = [
     "EdgeAIOverlay",
-    "load_meta", "preprocess_image", "load_weights_blob",
+    "load_meta", "preprocess_image", "load_weights_blob", "parse_layer_table",
     "gap_argmax",
     "pad_same", "maxpool_2x2", "relu_int8", "relu6_int8", "skip_add",
     "constants",

@@ -144,6 +144,16 @@ secrets.json
 *.tar
 *.tar.gz
 node_modules/
+
+# =============================================================================
+# Docs — track schematic.png + memory-map.md, ignore working drafts + LaTeX build
+# =============================================================================
 docs/reports/
 docs/counter-argument.md
+docs/slide.md
+
+# =============================================================================
+# Project-local files (not for shipping)
+# =============================================================================
 CLAUDE.md
+/temp/

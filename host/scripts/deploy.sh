@@ -18,7 +18,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 #vgg-tiny_cats-dogs
 #vgg-a_cats-dogs
 #vgg-a_imagenette
-ARTIFACT="${ARTIFACT:-vgg-tiny_cats-dogs}"
+ARTIFACT="${ARTIFACT:-vgg-a_imagenette}"
 ART_DIR="$ROOT/training/artifacts/$ARTIFACT/training/export"
 
 echo "[deploy] $ROOT → $BOARD:$REMOTE  (artifact: $ARTIFACT)"

@@ -13,27 +13,31 @@ from __future__ import annotations
 import numpy as np
 
 
-def pad_same(ifm: np.ndarray, kernel: int = 3) -> np.ndarray:
-    """Zero-pad NHWC INT8 IFM so VALID conv emulates SAME conv.
+def pad_same(ifm: np.ndarray, kernel: int = 3, input_zp: int = 0) -> np.ndarray:
+    """Pad NHWC INT8 IFM so VALID-only hardware emulates SAME convolution.
 
-    For kernel=3: pad 1px each side (top, bottom, left, right). Note the pad
-    value is 0 in the SIGNED int8 domain — for unsigned-shifted inputs (input_zp
-    nonzero), the pad should be input_zp instead, but TFLite reference treats
-    pad as 0 in real domain (= input_zp in quantized domain). Our hardware
-    folds input_zp correction into bias (see emit.py), so 0-padding is correct.
+    Critical: must pad with `input_zp` (the quantized representation of REAL
+    zero), NOT integer 0. TFLite reference treats padding as real-domain zero,
+    which in INT8 quantized form equals `input_zp` (e.g. -128 for scale=1/255,
+    zp=-128 input). emit.py folds `-input_zp × ΣW` into bias for INNER pixels,
+    so RTL can do raw MAC; that fold only matches TFLite when edges also see
+    input_zp. Padding with raw 0 introduces a `-input_zp × ΣW` error per edge
+    pixel → accumulates as channel bias through deep layers.
+
+    For kernel=3: pad 1 px each side. kernel=1: no padding.
     """
     if ifm.dtype != np.int8:
         raise TypeError(f"pad_same expects int8 IFM, got {ifm.dtype}")
+    if kernel == 1:
+        return ifm
     if kernel == 3:
         pad = 1
-    elif kernel == 1:
-        return ifm   # no padding for 1x1 conv
     elif kernel == 5:
         pad = 2
     else:
         raise NotImplementedError(f"pad_same: kernel {kernel} not supported")
     return np.pad(ifm, ((pad, pad), (pad, pad), (0, 0)), mode="constant",
-                  constant_values=0)
+                  constant_values=np.int8(input_zp))
 
 
 def maxpool_2x2(ofm: np.ndarray) -> np.ndarray:
